@@ -8,16 +8,25 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/** About 30 times a second, on Bitwig's UI thread, repaints shown mini views whose parameters changed. */
+/**
+ * About 60 times a second, on Bitwig's UI thread, lets the mini views ON SCREEN check their parameters (and repaint when
+ * they changed). Views join when Bitwig attaches them and leave when it detaches them, so rows the mixer rebuilt or
+ * scrolled away cost nothing; the set is weak as a safety net. When no view is shown the timer does nothing.
+ */
 final class Poll {
-    private static final Set<MiniGraph> shown = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private static final Set<MiniGraph> shown = Collections.newSetFromMap(new WeakHashMap<>());
+    /** A copy of {@link #shown} for the timer and the scroll hook, rebuilt on every change (no copying per tick). */
+    private static volatile MiniGraph[] snapshot = new MiniGraph[0];
     private static ScheduledExecutorService timer;
     private static volatile boolean queued;
-    private static boolean logged;
 
     private Poll() {}
 
-    static synchronized void add(MiniGraph g) { shown.add(g); start(); }
+    static synchronized void add(MiniGraph g) { if (shown.add(g)) snapshot = shown.toArray(new MiniGraph[0]); start(); }
+    static synchronized void remove(MiniGraph g) { if (shown.remove(g)) snapshot = shown.toArray(new MiniGraph[0]); }
+
+    /** The views on screen now. */
+    static MiniGraph[] views() { return snapshot; }
 
     private static synchronized void start() {
         if (timer == null) {
@@ -26,18 +35,13 @@ final class Poll {
         }
     }
 
-    static void remove(MiniGraph g) { shown.remove(g); }
-
     private static void tick() {
-        if (queued || shown.isEmpty()) return;
+        if (queued || snapshot.length == 0) return;
         queued = true;
         try {
             CHR.Grk().asyncExec(() -> { // on the UI thread
                 queued = false;
-                MiniGraph[] gs;
-                synchronized (shown) { gs = shown.toArray(new MiniGraph[0]); }
-                if (!logged) { logged = true; MiniGraph.MOD.log("poll running: " + gs.length + " views"); }
-                for (MiniGraph g : gs) { try { g.pollRepaint(); } catch (Throwable ignored) {} }
+                for (MiniGraph g : snapshot) { try { g.pollRepaint(); } catch (Throwable ignored) {} }
             });
         } catch (Throwable t) {
             queued = false;

@@ -60,7 +60,7 @@ final class EqGraph extends MiniGraph {
     Band band(int i) {
         if (freq[i] == null || gain[i] == null) return new Band(Kind.OFF, 0, 1000, 0, 1);
         String t = typeText(i).toLowerCase(Locale.ROOT), en = enableId[i] == null ? "" : params.text(enableId[i]).toLowerCase(Locale.ROOT);
-        if (!t.isEmpty() && seenTypes.add(t)) MOD.log("EQ+ band type text: '" + t + "'");
+        if (!t.isEmpty() && seenTypes.add(t)) if (MiniGraph.DEBUG) MOD.log("EQ+ band type text: '" + t + "'");
         Kind k;
         if (t.equals("off") || en.equals("off")) k = Kind.OFF;
         else if (t.isEmpty()) k = typeId[i] != null && params.choices.containsKey(typeId[i]) ? Kind.OFF : Kind.BELL;
@@ -71,7 +71,7 @@ final class EqGraph extends MiniGraph {
         else if (t.contains("high-cut") || t.contains("high cut") || t.contains("highcut") || t.contains("low-pass") || t.contains("low pass") || t.contains("lp") || t.contains("hc")) k = Kind.LOW_PASS;
         else k = Kind.BELL;
         int order = 2;
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(t);
+        java.util.regex.Matcher m = FilterGraph.DIGITS.matcher(t);
         if (m.find()) order = Math.max(1, Math.min(8, Integer.parseInt(m.group(1)))); // "Low-cut 8ᴾ": 8 poles (48 dB/oct)
         double sh = shift == null ? 0 : shift.value();
         double scale = amount == null ? 1 : clamp(amount.value(), 0, 1);
@@ -242,7 +242,7 @@ final class EqGraph extends MiniGraph {
     static void setChoice(Object choice, int value) {
         if (choice instanceof bitwig.obf.zKO z && value >= 0) {
             for (Object o : z.ODA().TMF()) if (((bitwig.obf.Dew) o).cfM() == value) { z.cfM((bitwig.obf.Dew) o); break; } // select, as EQ+'s menu does
-            if (sets.getAndIncrement() < 60) MOD.log("set choice -> " + value + ", now '" + Params.name(choice) + "'");
+            if (sets.getAndIncrement() < 60) if (MiniGraph.DEBUG) MOD.log("set choice -> " + value + ", now '" + Params.name(choice) + "'");
             return;
         }
         MOD.log("can't set choice " + (choice == null ? null : choice.getClass().getName()));

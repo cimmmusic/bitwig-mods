@@ -55,9 +55,10 @@ final class FilterGraph extends MiniGraph {
         resonance = pickIn(nested, fp, "resonance", "reso");
         drive = pickIn(nested, sp, "drive", "heat", "amount", "gain");
         if (drive == null && sp != null) for (Params.P p : nested) if (p.id().startsWith(sp + "/")) { drive = p; break; } // the shaper's first knob
+        watchedCache = null; typeCache = null;
         filterModule = ModuleMenu.current(filterSlot);
         shaperModule = ModuleMenu.current(shaperSlot);
-        if (log) MOD.log("Filter+ view: filter slot " + fp + " '" + ModuleMenu.name(filterModule) + "' shaper slot " + sp + " '"
+        if (log && DEBUG) MOD.log("Filter+ view: filter slot " + fp + " '" + ModuleMenu.name(filterModule) + "' shaper slot " + sp + " '"
                 + ModuleMenu.name(shaperModule) + "' cutoff=" + EqGraphId(cutoff) + " resonance=" + EqGraphId(resonance) + " drive=" + EqGraphId(drive));
     }
 
@@ -97,13 +98,17 @@ final class FilterGraph extends MiniGraph {
         if (sig != lastSig) { lastSig = sig; jbi(); }
     }
 
-    void afterSwap() { nextCheck = 0; forceUntil = System.currentTimeMillis() + 1500; } // the swap lands asynchronously
+    void afterSwap() { typeCache = null; nextCheck = 0; forceUntil = System.currentTimeMillis() + 1500; } // the swap lands asynchronously
 
     /** Cutoff, resonance and drive live in Filter+'s modules, outside the top-level list. */
+    private java.util.List<Params.P> watchedCache;
     @Override java.util.List<Params.P> watched() {
-        java.util.List<Params.P> l = new java.util.ArrayList<>(params.all);
-        for (Params.P p : new Params.P[] {cutoff, resonance, drive}) if (p != null) l.add(p);
-        return l;
+        if (watchedCache == null) {
+            java.util.List<Params.P> l = new java.util.ArrayList<>(params.all);
+            for (Params.P p : new Params.P[] {cutoff, resonance, drive}) if (p != null) l.add(p);
+            watchedCache = l;
+        }
+        return watchedCache;
     }
 
     /** Right-click on the cutoff node: the filter module's menu; on the yellow node: the waveshaper's — as Filter+'s own choosers. */
@@ -137,7 +142,7 @@ final class FilterGraph extends MiniGraph {
             try { walk(root, "", 0, out, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()), false, false, slots, choices); }
             catch (Throwable t) { MOD.log("Filter+ walk failed: " + t); }
         }
-        if (log) MOD.log("Filter+ parameters: " + out.size() + " in " + slots.size() + " module slots" + (full ? " (full walk)" : "")
+        if (log && DEBUG) MOD.log("Filter+ parameters: " + out.size() + " in " + slots.size() + " module slots" + (full ? " (full walk)" : "")
                 + ", " + (System.nanoTime() - t0) / 1000 + " µs");
         return out;
     }
@@ -243,7 +248,24 @@ final class FilterGraph extends MiniGraph {
     }
     double res() { return resonance == null ? 0.2 : clamp(resonance.norm(), 0, 1); }
 
+    private String typeCache;
+    private long typeAt;
+    private EqGraph.Kind kindCache = EqGraph.Kind.LOW_PASS;
+    private int polesCache = 2;
+    static final java.util.regex.Pattern DIGITS = java.util.regex.Pattern.compile("(\\d+)");
+
+    /** The filter type's text, refreshed at most every 200 ms (it reads the module catalogue and the slot's choices). */
     String typeText() {
+        long now = System.currentTimeMillis();
+        if (typeCache == null || now - typeAt > 200) {
+            String t = computeTypeText();
+            typeAt = now;
+            if (!t.equals(typeCache)) { typeCache = t; kindCache = computeKind(t); polesCache = computePoles(t); }
+        }
+        return typeCache;
+    }
+
+    String computeTypeText() {
         String t = (typeId == null ? "" : params.text(typeId)) + " " + (modeId == null ? "" : params.text(modeId))
                 + " " + ModuleMenu.name(filterModule);
         String fp = pathOf(filterSlot);
@@ -252,16 +274,18 @@ final class FilterGraph extends MiniGraph {
         return t.toLowerCase(Locale.ROOT);
     }
 
-    EqGraph.Kind kind() {
-        String t = typeText();
+    EqGraph.Kind kind() { typeText(); return kindCache; }
+    int poles() { typeText(); return polesCache; }
+
+    static EqGraph.Kind computeKind(String t) {
         if (t.contains("notch") || t.contains("band-reject") || t.contains("br")) return EqGraph.Kind.NOTCH;
         if (t.contains("band") || t.contains("bp")) return EqGraph.Kind.BAND_PASS;
         if (t.contains("high") || t.contains("hp")) return EqGraph.Kind.HIGH_PASS;
         return EqGraph.Kind.LOW_PASS;
     }
 
-    int poles() {
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(typeText());
+    static int computePoles(String t) {
+        java.util.regex.Matcher m = DIGITS.matcher(t);
         int n = 2;
         while (m.find()) { int v = Integer.parseInt(m.group(1)); if (v == 1 || v == 2 || v == 3 || v == 4 || v == 6 || v == 8) { n = v; break; } if (v == 12 || v == 18 || v == 24) { n = v / 6; break; } }
         return n;

@@ -22,6 +22,8 @@ import com.bitwig.base.geom.SYo; // a size (width, height in UI units)
  */
 abstract class MiniGraph extends dve {
     static final Bml.Mod MOD = Bml.mod("mixer-device-mini-panels");
+    /** Diagnostic logging (parameters found, presses, scrolls, probes). Off: only failures are logged. */
+    static final boolean DEBUG = false;
 
     // Colours like the reference: dark panel, blue-grey grid, light blue curve.
     static final iok BG = iok.cfM(30, 30, 32);
@@ -47,7 +49,6 @@ abstract class MiniGraph extends dve {
         this.fullHeight = fullHeight;
         this.collapsed = Collapse.isCollapsed(device, place);
         Collapse.track(this);
-        Poll.add(this); // repaint when the device's values change (weakly held; dropped with the view)
     }
 
     // ---- size: stretch to the channel width, fixed height ----
@@ -60,10 +61,12 @@ abstract class MiniGraph extends dve {
     @Override public void iA_() { // attached
         super.iA_();
         listening = true;
+        inPoll = true; Poll.add(this);    // checked ~60×/s only while on screen
     }
 
     @Override public void iz_() { // detached
         listening = false;
+        inPoll = false; Poll.remove(this); // off screen (row rebuilt, scrolled away, closed): no more checks
         super.iz_();
     }
 
@@ -79,13 +82,27 @@ abstract class MiniGraph extends dve {
     /** Does this view draw a modulation ghost? (VU Meter: no — its needles are already live.) */
     boolean showsModulation() { return true; }
 
+    boolean onScreen() { return listening; }
+    /** In the poll? (Also joined on first paint, in case Bitwig attached us without telling.) */
+    private boolean inPoll;
+
+    private int pollCount;
+    private double choiceSig;
+
     void pollRepaint() {
+        if (collapsed) return; // nothing drawn (expanding repaints anyway)
         try { tick(); } catch (Throwable t) { logOnce("tick failed", t); }
         double sig = 0; int i = 1;
         java.util.List<Params.P> ps = watched();
-        if (showsModulation() && !collapsed) for (Params.P p : ps) { Modulation.track(p); sig += Modulation.value(p.param()) * (i++ * 1.000391); }
-        for (Params.P p : params.all) sig += p.value() * (i++ * 1.000173);
-        for (String id : params.choices.keySet()) sig += params.text(id).hashCode() * 1e-6 * (i++);
+        if (showsModulation()) for (int k = 0, n = ps.size(); k < n; k++) sig += Modulation.track(ps.get(k)) * (i++ * 1.000391);
+        java.util.List<Params.P> all = params.all;
+        for (int k = 0, n = all.size(); k < n; k++) sig += all.get(k).base() * (i++ * 1.000173);
+        if (pollCount++ % 6 == 0 && !params.choices.isEmpty()) { // choice texts (band types, modes…): ~10×/s is plenty
+            double c = 0; int j = 1;
+            for (String id : params.choices.keySet()) c += params.text(id).hashCode() * 1e-6 * (j++);
+            choiceSig = c;
+        }
+        sig += choiceSig;
         if (sig != lastSig) { lastSig = sig; jbi(); }
     }
 
@@ -95,6 +112,7 @@ abstract class MiniGraph extends dve {
     @Override public void Hnt(com.bitwig.graphics.SYo g) {
         super.Hnt(g);
         lastPaint = System.nanoTime();
+        if (!inPoll) { inPoll = true; Poll.add(this); }
         double w = Sxo(), h = yiX(); // our width and height
         try {
             g.qoU(); // save
@@ -196,7 +214,7 @@ abstract class MiniGraph extends dve {
     @Override public drX cfM(eoX button, double x, double y, eoW mods, int clicks) {
         drX d = handle(button, x, y, clicks);
         if (button.name().equals("SELECTION") && presses.getAndIncrement() < 60)
-            MOD.log("press(capture) clicks=" + clicks + " at " + (int) x + "," + (int) y + " on " + getClass().getSimpleName() + " -> " + (d == null ? "none" : "drag"));
+            if (MiniGraph.DEBUG) MOD.log("press(capture) clicks=" + clicks + " at " + (int) x + "," + (int) y + " on " + getClass().getSimpleName() + " -> " + (d == null ? "none" : "drag"));
         return d != null ? d : super.cfM(button, x, y, mods, clicks);
     }
 
@@ -260,7 +278,7 @@ abstract class MiniGraph extends dve {
     @Override public boolean cfM(double x, double y, eoW mods, com.bitwig.base.geom.DoubleRectangle r) {
         boolean mine = false;
         try { mine = !collapsed && wantsWheel(x, y); } catch (Throwable ignored) {}
-        if (asks.getAndIncrement() < 20) MOD.log("scroll target? " + (int) x + "," + (int) y + " -> " + mine);
+        if (asks.getAndIncrement() < 20) if (MiniGraph.DEBUG) MOD.log("scroll target? " + (int) x + "," + (int) y + " -> " + mine);
         return mine || super.cfM(x, y, mods, r);
     }
 
@@ -268,7 +286,7 @@ abstract class MiniGraph extends dve {
     @Override public void cfM(bitwig.obf.dJP e) {
         try {
             double x = e.hbP(), y = e.Grk(), dy = e.UZr(), dx = e.rGR();
-            if (wheels.getAndIncrement() < 20) MOD.log("wheel at " + (int) x + "," + (int) y + " rGR=" + dx + " UZr=" + dy + " " + e.getClass().getSimpleName());
+            if (wheels.getAndIncrement() < 20) if (MiniGraph.DEBUG) MOD.log("wheel at " + (int) x + "," + (int) y + " rGR=" + dx + " UZr=" + dy + " " + e.getClass().getSimpleName());
             double delta = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
             if (!collapsed && delta != 0 && wheelAt(x, y, delta)) { jbi(); return; }
         } catch (Throwable t) { MOD.log("wheel failed", t); }
@@ -283,7 +301,7 @@ abstract class MiniGraph extends dve {
         @Override public void cfM(bitwig.obf.dJP e) {
             try {
                 double dy = e.UZr(), dx = e.rGR();
-                if (wheels.getAndIncrement() < 20) MOD.log("wheel " + e.getClass().getSimpleName() + " rGR=" + dx + " UZr=" + dy + " kFU=" + e.kFU() + " OzW=" + e.OzW());
+                if (wheels.getAndIncrement() < 20) if (MiniGraph.DEBUG) MOD.log("wheel " + e.getClass().getSimpleName() + " rGR=" + dx + " UZr=" + dy + " kFU=" + e.kFU() + " OzW=" + e.OzW());
                 double delta = Math.abs(dy) >= Math.abs(dx) ? dy : dx;
                 if (delta != 0) { d.wheel(delta); jbi(); }
             } catch (Throwable t) { MOD.log("wheel failed", t); }
@@ -296,12 +314,12 @@ abstract class MiniGraph extends dve {
         Drag(Dragger d) { this.d = d; }
         @Override public void cfM(dJH e) { // the press really begins
             super.cfM(e);
-            if (drags.getAndIncrement() < 20) MOD.log("drag start");
+            if (drags.getAndIncrement() < 20) if (MiniGraph.DEBUG) MOD.log("drag start");
             try { d.start(); jbi(); } catch (Throwable t) { MOD.log("drag start failed", t); }
         }
         @Override public void cfM(dJM e) { // drag moves
             super.cfM(e);
-            if (drags.getAndIncrement() < 60) MOD.log("drag move " + e.ejd() + "," + e.uWE());
+            if (drags.getAndIncrement() < 60) if (MiniGraph.DEBUG) MOD.log("drag move " + e.ejd() + "," + e.uWE());
             try { d.move(e.ejd(), e.uWE()); jbi(); } catch (Throwable t) { MOD.log("drag failed", t); }
         }
         @Override public boolean jQ_() { return false; } // a plain drag: the pointer stays visible and the dot follows it
@@ -313,7 +331,7 @@ abstract class MiniGraph extends dve {
         if (p == null) return;
         double v = Math.max(p.min(), Math.min(p.max(), value));
         hSh h = p.param();
-        if (sets.getAndIncrement() < 30) MOD.log("set " + p.id() + " = " + v + " (was " + p.value() + ")");
+        if (sets.getAndIncrement() < 30) if (MiniGraph.DEBUG) MOD.log("set " + p.id() + " = " + v + " (was " + p.value() + ")");
         h.cfM(v, what, new com.bitwig.ramona.core.FDA(undoKey, 1500)); // set with undo; changes within 1.5 s merge into one step
     }
 

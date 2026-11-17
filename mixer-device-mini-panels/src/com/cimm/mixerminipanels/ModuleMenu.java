@@ -49,7 +49,7 @@ final class ModuleMenu {
             catalogue.NC();          // as auG does when attached: start listing
             catalogue.MIO().ejd();
         } catch (Throwable t) { MOD.log("module menu: catalogue failed: " + t); }
-        MOD.log("module menu: headings " + java.util.Arrays.toString(headings));
+        if (MiniGraph.DEBUG) MOD.log("module menu: headings " + java.util.Arrays.toString(headings));
     }
 
     /** A module kind's display text (its own String getters; "" if none). */

@@ -38,7 +38,7 @@ final class LegacyCompGraph extends MiniGraph {
         output = params.findAny("output", "out_gain");
         gr = params.findAny("gain reduction", "gain_reduction", "reduction");
         LO = thr == null ? -60 : Math.min(-24, thr.min());
-        MOD.log("Legacy Compressor view: threshold=" + id(thr) + " ratio=" + id(ratio) + " (text '" + ratioText()
+        if (MiniGraph.DEBUG) MOD.log("Legacy Compressor view: threshold=" + id(thr) + " ratio=" + id(ratio) + " (text '" + ratioText()
                 + "') input=" + id(input) + " output=" + id(output) + " gain reduction=" + id(gr));
     }
 
@@ -59,8 +59,15 @@ final class LegacyCompGraph extends MiniGraph {
 
     static final Pattern RATIO = Pattern.compile("([0-9]+(?:[.,][0-9]+)?)\\s*:\\s*1");
 
+    private String ratioKey; private double ratioVal = 4;
     double ratioOf() {
         String t = ratioText();
+        if (t != null && t.equals(ratioKey) && !t.isEmpty()) return ratioVal;
+        ratioVal = parseRatio(t); ratioKey = t;
+        return ratioVal;
+    }
+
+    double parseRatio(String t) {
         Matcher m = RATIO.matcher(t == null ? "" : t);
         if (m.find()) {
             try { return Math.max(1, Double.parseDouble(m.group(1).replace(',', '.'))); } catch (NumberFormatException ignored) {}

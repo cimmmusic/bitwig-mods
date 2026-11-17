@@ -40,7 +40,7 @@ final class Kinds {
         else if (ids.contains("CONTENTS/THRESHOLD") && ids.contains("CONTENTS/RATIO") && ids.contains("CONTENTS/SMOOTH")) k = COMP_PLUS;
         else if (ids.contains("CONTENTS/THRESHOLD") && ids.contains("CONTENTS/RATIO") && ids.contains("CONTENTS/INPUT")
                 && !ids.contains("CONTENTS/SMOOTH")) k = COMP;
-        if (k != null) MiniGraph.MOD.log("recognised '" + Params.safeName(device) + "' as " + k + " (by its parameters)");
+        if (k != null) if (MiniGraph.DEBUG) MiniGraph.MOD.log("recognised '" + Params.safeName(device) + "' as " + k + " (by its parameters)");
         return k;
     }
 

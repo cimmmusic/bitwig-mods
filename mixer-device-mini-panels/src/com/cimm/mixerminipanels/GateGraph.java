@@ -23,7 +23,7 @@ final class GateGraph extends MiniGraph {
         super(device, 110);
         threshold = params.findAny("threshold");
         depth = params.findAny("depth", "range", "floor");
-        MOD.log("Gate view: threshold=" + DynGraph.id(threshold) + " '" + DynGraph.text(threshold) + "' depth=" + DynGraph.id(depth)
+        if (MiniGraph.DEBUG) MOD.log("Gate view: threshold=" + DynGraph.id(threshold) + " '" + DynGraph.text(threshold) + "' depth=" + DynGraph.id(depth)
                 + " '" + DynGraph.text(depth) + "'");
     }
 

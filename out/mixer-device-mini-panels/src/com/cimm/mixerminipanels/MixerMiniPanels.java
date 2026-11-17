@@ -49,8 +49,8 @@ public final class MixerMiniPanels {
             Object extra = null;
             try { extra = device.OzW(); } catch (Throwable ignored) {}
             keep = !(extra instanceof bitwig.obf.R1Z);
-            if (overviewLog.add(Params.safeName(device)))
-                MOD.log("row extra for " + Params.safeName(device) + ": " + (extra == null ? "none" : extra.getClass().getName())
+            if (MiniGraph.DEBUG && overviewLog.add(Params.safeName(device)))
+                if (MiniGraph.DEBUG) MOD.log("row extra for " + Params.safeName(device) + ": " + (extra == null ? "none" : extra.getClass().getName())
                         + (extra instanceof bitwig.obf.R1Z ? " (overview panel: hidden)" : extra instanceof bitwig.obf.zcJ ? " (in-row meter: kept)" : " (kept)"));
         }
         ROW_IN_INSPECTOR.set(flag); // Bitwig sets this flag for the track Inspector's rows (it shows their window button)
@@ -107,12 +107,12 @@ public final class MixerMiniPanels {
           callOwner = g2L.class, call = "cfM(LdyC;)V", occurrence = 1)
     public static void setRowContent(g2L row, dyC content) {
         dyC result = content;
-        boolean log = diag.getAndIncrement() < 40; // temporary diagnostics: first 40 rows
+        boolean log = MiniGraph.DEBUG && diag.getAndIncrement() < 40; // diagnostics: first 40 rows
         try {
             if (log) {
                 jsd d0 = row.LEd();
                 NBQ c0 = d0 == null ? null : d0.nfq();
-                MOD.log("hook: row=" + row.getClass().getName() + " content=" + (content == null ? null : content.getClass().getName())
+                if (MiniGraph.DEBUG) MOD.log("hook: row=" + row.getClass().getName() + " content=" + (content == null ? null : content.getClass().getName())
                         + " device=" + (d0 == null ? null : d0.getClass().getName())
                         + " controls=" + (c0 == null ? null : c0.getClass().getName())
                         + " pages=" + (c0 == null ? -1 : c0.cfM().count()));
@@ -120,9 +120,9 @@ public final class MixerMiniPanels {
             if (MOD.settings().getBoolean("enabled", true) && content instanceof dve header) {
                 jsd device = row.LEd(); // the device this row shows
                 String name = device == null ? "" : Params.safeName(device);
-                if ((name.equals("Compressor") || name.equals("Compressor+")) && overviewProbed.add(name)) probeOverview(device, name);
+                if (MiniGraph.DEBUG && (name.equals("Compressor") || name.equals("Compressor+")) && overviewProbed.add(name)) probeOverview(device, name);
                 if (NATIVE_PANEL_VIEWS.contains(name)) { // Bitwig's own live display (scope, spectrum) in the mini area
-                    if (name.equals("Oscilloscope")) probe(device);
+                    if (MiniGraph.DEBUG && name.equals("Oscilloscope")) probe(device);
                     dve scope = name.equals("Oscilloscope") ? scopeWidget(device) : nativePanel(device, name);
                     if (scope != null) {
                         Collapse.trackNative(scope, device, place()); // collapse / expand per place (mixer / Inspector)
@@ -140,17 +140,17 @@ public final class MixerMiniPanels {
                     graph.a_(kn.cfM());    // width: natural (stretches to the channel)
                     graph.MRY(Ixm.cfM());  // height: its preferred height
                     int where = place();
-                    if (placeLog.add(name + where)) MOD.log("mini view for " + name + " in " + Collapse.placeName(where));
+                    if (placeLog.add(name + where)) if (MiniGraph.DEBUG) MOD.log("mini view for " + name + " in " + Collapse.placeName(where));
                     graph.init(where);     // mixer or Inspector, and its remembered collapsed state
                     dve mini = graph;
-                    if (log) MOD.log("mini graph for " + name);
+                    if (log) if (MiniGraph.DEBUG) MOD.log("mini graph for " + name);
                     dWb column = dWb.UNj(1); // vertical group, 1 unit between rows
                     header.MRY(w3.cfM); // keep Bitwig's row line at its usual fixed height
                     column.HL(header); // Bitwig's own row
                     column.HL(mini);   // the mini panel
                     row.MRY(kn.cfM()); // height: Bitwig fixed the row to one line; let it fit the column
                     result = column;
-                    if (log) MOD.log("mini panel added");
+                    if (log) if (MiniGraph.DEBUG) MOD.log("mini panel added");
                 }
             }
         } catch (Throwable t) {
@@ -171,7 +171,7 @@ public final class MixerMiniPanels {
             Object def = device.OzW(); // the device's definition (native devices: R1Z)
             String name = device.aF_();
             if (!(def instanceof bitwig.obf.R1Z native_)) {
-                if (name != null && probed.add(name)) MOD.log("PROBE device '" + name + "' def=" + (def == null ? null : def.getClass().getName()) + " (not R1Z)");
+                if (name != null && probed.add(name)) if (MiniGraph.DEBUG) MOD.log("PROBE device '" + name + "' def=" + (def == null ? null : def.getClass().getName()) + " (not R1Z)");
                 return;
             }
             if (name == null || !probed.add(name)) return;
@@ -189,7 +189,7 @@ public final class MixerMiniPanels {
                 sb.append(" panel cfM(").append(i).append(") = ").append(panel.getClass().getName()).append("\n");
                 dump(panel, 2, sb, 0);
             }
-            MOD.log(sb.toString());
+            if (MiniGraph.DEBUG) MOD.log(sb.toString());
         } catch (Throwable t) {
             MOD.log("probe failed", t);
         }
@@ -255,7 +255,7 @@ public final class MixerMiniPanels {
             if (!(main instanceof bitwig.obf.dfh panel)) return;
             StringBuilder sb = new StringBuilder("PANEL of " + name + ": " + main.getClass().getName() + "\n");
             panelItems(panel, sb, 1, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()));
-            MOD.log(sb.toString());
+            if (MiniGraph.DEBUG) MOD.log(sb.toString());
         } catch (Throwable t) { MOD.log("panel probe failed", t); }
     }
 
@@ -287,7 +287,7 @@ public final class MixerMiniPanels {
             bitwig.obf.dfh ov = native_.rGR();
             StringBuilder sb = new StringBuilder("OVERVIEW of " + name + ": " + (ov == null ? "none" : ov.getClass().getName()) + "\n");
             if (ov != null) listItems(ov, sb, 1, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()));
-            MOD.log(sb.toString());
+            if (MiniGraph.DEBUG) MOD.log(sb.toString());
         } catch (Throwable t) { MOD.log("overview probe failed", t); }
     }
 
@@ -323,7 +323,7 @@ public final class MixerMiniPanels {
             built.cfM(com.bitwig.base.geom.Dgc.lYc);
             built.a_(kn.cfM());
             built.MRY(new FixedHeight(NATIVE_HEIGHT));
-            MOD.log(name + ": built Bitwig's own panel");
+            if (MiniGraph.DEBUG) MOD.log(name + ": built Bitwig's own panel");
             return built;
         } catch (Throwable t) {
             MOD.log(name + " panel failed", t);
@@ -349,15 +349,15 @@ public final class MixerMiniPanels {
             for (Object r : roots) {
                 Object item = r instanceof bitwig.obf.dfh panel ? findInPanel(panel, seen, 0) : findScope(r, seen, 0);
                 if (item == null) continue;
-                MOD.log("scope: found " + item.getClass().getName() + " (teo=" + (item instanceof bitwig.obf.teo) + ")");
+                if (MiniGraph.DEBUG) MOD.log("scope: found " + item.getClass().getName() + " (teo=" + (item instanceof bitwig.obf.teo) + ")");
                 if (!(item instanceof bitwig.obf.teo model)) continue;
                 bitwig.obf.aSN w = bitwig.obf.aSN.cfM(model);
                 w.a_(kn.cfM());                       // width: stretch to the channel
                 w.MRY(new FixedHeight(NATIVE_HEIGHT));       // height: as the other mini views
-                MOD.log("scope: live widget added");
+                if (MiniGraph.DEBUG) MOD.log("scope: live widget added");
                 return w;
             }
-            MOD.log("scope: no oscilloscope display item found; building Bitwig's own device panel instead");
+            if (MiniGraph.DEBUG) MOD.log("scope: no oscilloscope display item found; building Bitwig's own device panel instead");
             // Let Bitwig's panel builder (the one the mixer uses for overviews) build the device's main panel: its
             // factories create the live scope themselves.
             Object main = call(native_, "vpw");
@@ -366,7 +366,7 @@ public final class MixerMiniPanels {
                 built.cfM(com.bitwig.base.geom.Dgc.lYc);
                 built.a_(kn.cfM());
                 built.MRY(new FixedHeight(NATIVE_HEIGHT));
-                MOD.log("scope: built Bitwig's Oscilloscope panel " + built.getClass().getName());
+                if (MiniGraph.DEBUG) MOD.log("scope: built Bitwig's Oscilloscope panel " + built.getClass().getName());
                 return built;
             }
         } catch (Throwable t) {
@@ -383,7 +383,7 @@ public final class MixerMiniPanels {
         if (items == null) return null;
         for (Object it : items) {
             if (it instanceof bitwig.obf.teo) return it;
-            if (scopeLog.getAndIncrement() < 80) MOD.log("scope: item " + (it == null ? null : it.getClass().getName()));
+            if (scopeLog.getAndIncrement() < 80) if (MiniGraph.DEBUG) MOD.log("scope: item " + (it == null ? null : it.getClass().getName()));
             if (it instanceof bitwig.obf.RlL item) {
                 Object f;
                 try { f = findInPanel(item.iCS(), seen, depth + 1); } catch (Throwable t) { f = null; }

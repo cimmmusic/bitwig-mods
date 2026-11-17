@@ -22,7 +22,7 @@ final class LimiterGraph extends MiniGraph {
         super(device, 110);
         input = params.findAny("input", "gain");
         ceiling = params.findAny("ceiling", "threshold", "output");
-        MOD.log("Peak Limiter view: input=" + DynGraph.id(input) + " ceiling=" + DynGraph.id(ceiling));
+        if (MiniGraph.DEBUG) MOD.log("Peak Limiter view: input=" + DynGraph.id(input) + " ceiling=" + DynGraph.id(ceiling));
     }
 
     double inDb() { return input == null ? 0 : input.value(); }

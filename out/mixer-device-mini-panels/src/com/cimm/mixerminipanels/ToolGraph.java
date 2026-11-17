@@ -24,7 +24,7 @@ final class ToolGraph extends MiniGraph {
         gain = params.findAny("contents/amplitude", "amplitude", "gain", "volume");
         pan = params.findAny("contents/pan", "pan");
         width = params.findAny("contents/width", "width");
-        MOD.log("Tool view: gain=" + id(gain) + " pan=" + id(pan) + " width=" + id(width));
+        if (MiniGraph.DEBUG) MOD.log("Tool view: gain=" + id(gain) + " pan=" + id(pan) + " width=" + id(width));
     }
 
     static String id(Params.P p) { return p == null ? "none" : p.id() + " [" + p.min() + ", " + p.max() + "] = " + p.value(); }

@@ -38,7 +38,7 @@ final class DynGraph extends MiniGraph {
         double lo = -60;
         if (loThr != null && loThr.min() < 0) lo = Math.min(lo, loThr.min());
         LO = Math.max(-72, lo);
-        MOD.log("Dynamics view: lo thr=" + id(loThr) + " hi thr=" + id(hiThr) + " lo ratio=" + id(loRatio) + " '" + text(loRatio)
+        if (MiniGraph.DEBUG) MOD.log("Dynamics view: lo thr=" + id(loThr) + " hi thr=" + id(hiThr) + " lo ratio=" + id(loRatio) + " '" + text(loRatio)
                 + "' hi ratio=" + id(hiRatio) + " '" + text(hiRatio) + "' knees=" + id(loKnee) + " / " + id(hiKnee) + " input=" + id(input) + " output=" + id(output));
     }
 
@@ -68,9 +68,16 @@ final class DynGraph extends MiniGraph {
     static final Pattern RATIO = Pattern.compile("([0-9]+(?:[.,][0-9]+)?|∞)\\s*:\\s*([0-9]+(?:[.,][0-9]+)?|∞)");
 
     /** Output dB per input dB from a ratio's display text: "4:1" → 0.25, "1:2" → 2; 1 if it can't be read. */
+    private static final java.util.Map<String, Double> SLOPES = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** Output dB per input dB from a ratio's display text, memoised per text (out() asks for every curve point). */
     static double slope(Params.P p) {
         if (p == null) return 1;
-        Matcher m = RATIO.matcher(text(p));
+        return SLOPES.computeIfAbsent(text(p), DynGraph::parseSlope);
+    }
+
+    static double parseSlope(String text) {
+        Matcher m = RATIO.matcher(text);
         if (!m.find()) return 1;
         double a = num(m.group(1)), b = num(m.group(2));
         if (a <= 0) return 1;

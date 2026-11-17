@@ -31,7 +31,7 @@ final class TransientGraph extends MiniGraph {
         aTime = pick("attack", "time");
         sGain = exact("CONTENTS/SUSTAIN") != null ? exact("CONTENTS/SUSTAIN") : pick("sustain", "gain"); // Bitwig 6.1.4: CONTENTS/SUSTAIN
         sTime = pick("sustain", "time");
-        MOD.log("Transient view: attack gain=" + DynGraph.id(aGain) + " time=" + DynGraph.id(aTime)
+        if (MiniGraph.DEBUG) MOD.log("Transient view: attack gain=" + DynGraph.id(aGain) + " time=" + DynGraph.id(aTime)
                 + " sustain gain=" + DynGraph.id(sGain) + " time=" + DynGraph.id(sTime));
     }
 
