@@ -80,24 +80,24 @@ final class FilterGraph extends MiniGraph {
         return null;
     }
 
-    private long nextCheck;
+    private long nextCheck, nextRefresh, forceUntil;
     private double lastSig = Double.NaN;
     /** Every half second (and right after our own swaps): re-resolve when a slot's module changed; repaint on value changes. */
     @Override void tick() {
         long now = System.currentTimeMillis();
         if (now >= nextCheck) {
-            nextCheck = now + 500;
-            boolean stale = filterSlot == null || shaperSlot == null
+            nextCheck = now + (now < forceUntil ? 150 : 500);
+            boolean stale = now < forceUntil || now >= nextRefresh
                     || !java.util.Objects.equals(ModuleMenu.current(filterSlot), filterModule)
                     || !java.util.Objects.equals(ModuleMenu.current(shaperSlot), shaperModule);
-            if (stale) resolve(false);
+            if (stale) { resolve(false); nextRefresh = now + 3000; } // module swaps made in the device panel: picked up within 3 s
         }
         double sig = (cutoff == null ? 0 : cutoff.value()) + 3.1 * (resonance == null ? 0 : resonance.value())
                 + 7.3 * (drive == null ? 0 : drive.value()) + typeText().hashCode() * 1e-6;
         if (sig != lastSig) { lastSig = sig; jbi(); }
     }
 
-    void afterSwap() { nextCheck = 0; }
+    void afterSwap() { nextCheck = 0; forceUntil = System.currentTimeMillis() + 1500; } // the swap lands asynchronously
 
     /** Cutoff, resonance and drive live in Filter+'s modules, outside the top-level list. */
     @Override java.util.List<Params.P> watched() {
@@ -124,13 +124,21 @@ final class FilterGraph extends MiniGraph {
     /** Settable parameters anywhere in the device's contents tree (Filter+'s filter / FX modules are nested objects
      *  under its contents, not top-level parameters), found by walking child lists reflectively; the tree is logged. */
     static java.util.List<Params.P> nested(jsd device, java.util.Map<String, Object> slots, java.util.Map<String, Object> choices, boolean log) {
+        long t0 = System.nanoTime();
         java.util.List<Params.P> out = new java.util.ArrayList<>();
-        java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        StringBuilder sb = new StringBuilder("Filter+ contents tree:\n");
-        try { walk(Reflect.call(device, "puu"), "", 0, out, seen, sb, slots, choices); }
-        catch (Throwable t) { sb.append("  walk failed: ").append(t).append("\n"); }
-        for (Params.P p : out) sb.append("  found ").append(p.id()).append(" | ").append(p.name()).append(" [").append(p.min()).append(", ").append(p.max()).append("] = ").append(p.value()).append("\n");
-        if (log) MOD.log(sb.toString());
+        Object root = Reflect.call(device, "puu");
+        // Fast path: only follow CONTENTS / POLY / MODULES / numbered items down to the module slots, then everything in
+        // a slot. (The whole tree is ~4,400 nodes and took ~400 ms per view build — the delay selecting a channel.)
+        try { walk(root, "", 0, out, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()), true, false, slots, choices); }
+        catch (Throwable t) { MOD.log("Filter+ walk failed: " + t); }
+        boolean full = false;
+        if (slots.isEmpty()) { // unexpected layout: the full walk
+            out.clear(); choices.clear(); full = true;
+            try { walk(root, "", 0, out, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()), false, false, slots, choices); }
+            catch (Throwable t) { MOD.log("Filter+ walk failed: " + t); }
+        }
+        if (log) MOD.log("Filter+ parameters: " + out.size() + " in " + slots.size() + " module slots" + (full ? " (full walk)" : "")
+                + ", " + (System.nanoTime() - t0) / 1000 + " µs");
         return out;
     }
 
@@ -139,21 +147,18 @@ final class FilterGraph extends MiniGraph {
     /** Getters that return a nested device's contents (AxS.puu, iyP.QOl). */
     static final String[] SUB_CONTENTS = {"puu", "QOl"};
 
-    static void walk(Object o, String path, int depth, java.util.List<Params.P> out, java.util.Set<Object> seen, StringBuilder sb,
-                     java.util.Map<String, Object> slots, java.util.Map<String, Object> choices) {
-        if (o == null || depth > 9 || !seen.add(o) || sb.length() > 120000) return;
+    /** Ids followed on the way down to Filter+'s module slots (focused walk); numbered and unnamed items are followed too. */
+    static final java.util.Set<String> PATH_IDS = java.util.Set.of("CONTENTS", "POLY", "MODULES");
+
+    static void walk(Object o, String path, int depth, java.util.List<Params.P> out, java.util.Set<Object> seen, boolean focused,
+                     boolean inSlot, java.util.Map<String, Object> slots, java.util.Map<String, Object> choices) {
+        if (o == null || depth > 9 || !seen.add(o)) return;
         String id = str(getter(o, "ax_", String.class));
+        if (focused && !inSlot && depth > 0 && !id.isEmpty() && !PATH_IDS.contains(id) && !isNumber(id)) return; // prune named side branches (Pre/Post FX chains, ports…)
         String here = path.isEmpty() ? id : (id.isEmpty() ? path : path + "/" + id);
-        String indent = "  ".repeat(depth + 1);
-        if (o instanceof bitwig.obf.hSh h) {
-            String nm = str(getter(o, "aF_", String.class));
-            Params.P p = new Params.P(here, nm, h);
-            out.add(p);
-            sb.append(indent).append("P ").append(here).append(" '").append(nm).append("' [").append(p.min()).append(", ").append(p.max()).append("] = ").append(p.value()).append("\n");
-            return;
-        }
-        sb.append(indent).append(o.getClass().getName()).append(" '").append(id).append("' ").append(str(getter(o, "aF_", String.class))).append("\n");
-        if (o.getClass().getSimpleName().equals("rSf")) slots.put(here, o); // a module slot
+        if (o instanceof bitwig.obf.hSh h) { out.add(new Params.P(here, str(getter(o, "aF_", String.class)), h)); return; }
+        boolean slot = o.getClass().getSimpleName().equals("rSf");
+        if (slot) slots.put(here, o); // a module slot
         if (o instanceof bitwig.obf.v3U) { choices.put(here, o); return; } // other parameter kinds (choices, switches): leaves
         for (String m : CHILD_LISTS) {
             Object r = getter(o, m, java.util.List.class, java.util.stream.Stream.class);
@@ -161,20 +166,37 @@ final class FilterGraph extends MiniGraph {
             if (r instanceof java.util.List<?> l) items = new java.util.ArrayList<>(l);
             else if (r instanceof java.util.stream.Stream<?> st) items = st.limit(200).toList();
             if (items == null) continue;
-            for (Object c : items) walk(c, here, depth + 1, out, seen, sb, slots, choices);
+            for (Object c : items) walk(c, here, depth + 1, out, seen, focused, inSlot || slot, slots, choices);
         }
-        for (String m : SUB_CONTENTS) walk(getter(o, m, Object.class), here, depth + 1, out, seen, sb, slots, choices);
+        for (String m : SUB_CONTENTS) walk(getter(o, m, Object.class), here, depth + 1, out, seen, focused, inSlot || slot, slots, choices);
     }
+
+    static boolean isNumber(String s) {
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) if (!Character.isDigit(s.charAt(i))) return false;
+        return true;
+    }
+
+    /** Public zero-argument methods by class and name (null when missing), so the walk doesn't look each one up again. */
+    private static final ClassValue<java.util.concurrent.ConcurrentHashMap<String, java.util.Optional<java.lang.reflect.Method>>> METHODS =
+            new ClassValue<>() {
+                @Override protected java.util.concurrent.ConcurrentHashMap<String, java.util.Optional<java.lang.reflect.Method>> computeValue(Class<?> c) {
+                    return new java.util.concurrent.ConcurrentHashMap<>();
+                }
+            };
 
     /** Calls the public zero-argument method only if it returns one of the given types (never a void/other method that
      *  happens to share the obfuscated name). */
     static Object getter(Object o, String name, Class<?>... types) {
         try {
-            java.lang.reflect.Method m = o.getClass().getMethod(name);
+            java.lang.reflect.Method m = METHODS.get(o.getClass()).computeIfAbsent(name, k -> {
+                try { java.lang.reflect.Method x = o.getClass().getMethod(k); x.setAccessible(true); return java.util.Optional.of(x); }
+                catch (Throwable t) { return java.util.Optional.empty(); }
+            }).orElse(null);
+            if (m == null) return null;
             boolean ok = false;
             for (Class<?> t : types) ok |= t.isAssignableFrom(m.getReturnType());
             if (!ok) return null;
-            m.setAccessible(true);
             return m.invoke(o);
         } catch (Throwable t) { return null; }
     }
