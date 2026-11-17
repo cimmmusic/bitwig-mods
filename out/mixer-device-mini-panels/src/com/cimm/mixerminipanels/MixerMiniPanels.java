@@ -148,10 +148,6 @@ public final class MixerMiniPanels {
                     dWb column = dWb.UNj(1); // vertical group, 1 unit between rows
                     header.MRY(w3.cfM); // keep Bitwig's row line at its usual fixed height
                     column.HL(header); // Bitwig's own row
-                    if (Kinds.OVER.equals(Kinds.kind(device))) { // Over: its own before/after clipping display above the curve
-                        dve disp = displayPart(device, name, OVER_DISPLAY_HEIGHT);
-                        if (disp != null) { disp = NativeFrame.wrap(disp, device, where); Collapse.trackNative(disp, device, where); column.HL(disp); }
-                    }
                     column.HL(mini);   // the mini panel
                     row.MRY(kn.cfM()); // height: Bitwig fixed the row to one line; let it fit the column
                     result = column;
