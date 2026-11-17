@@ -292,11 +292,13 @@ final class FilterGraph extends MiniGraph {
     }
 
     /** Response in dB at f: Butterworth sections, the last one's Q raised by the resonance. */
-    double db(double f) {
+    double db(double f) { return db(f, res()); }
+
+    double db(double f, double rs) {
         EqGraph.Kind k = kind();
-        double fc = hz(), qRes = 0.707 + res() * 9;
+        double fc = hz(), qRes = 0.707 + rs * 9;
         if (k == EqGraph.Kind.BAND_PASS || k == EqGraph.Kind.NOTCH) {
-            double q = 0.5 + res() * 8;
+            double q = 0.5 + rs * 8;
             return EqGraph.biquadDb(EqGraph.rbj(k, fc, 0, q), f);
         }
         int n = poles();
@@ -362,11 +364,19 @@ final class FilterGraph extends MiniGraph {
         final Object undo = new Object();
         final double[] pos = {k[0]};
         final double[] r0 = {res()};
-        return (ddx, ddy) -> { // left/right: cutoff; up/down: resonance
+        final double[] py = {k[1]};
+        final boolean[] held = {Math.abs(k[1] - h / 2) < 1};
+        return (ddx, ddy) -> { // left/right: cutoff; up/down: resonance (the 0 dB line is sticky)
             pos[0] += ddx;
             set(cutoff, cutoffValue(xf(clamp(pos[0], 0, w), w)), undo, "Change cutoff");
             if (resonance != null) {
+                py[0] += ddy;
                 r0[0] = clamp(r0[0] - ddy / (h * 0.8), 0, 1);
+                if (sticky(held, py[0] - h / 2)) {
+                    double fc = clamp(hz(), EqGraph.FMIN, EqGraph.FMAX);
+                    double rz = resonanceForZero(rs -> db(fc, rs));
+                    if (!Double.isNaN(rz)) r0[0] = rz; // the resonance that puts the cutoff on 0 dB
+                }
                 set(resonance, resonance.min() + (resonance.max() - resonance.min()) * r0[0], undo, "Change resonance");
             }
         };

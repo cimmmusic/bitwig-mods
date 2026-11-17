@@ -135,11 +135,20 @@ final class PlainFilterGraph extends MiniGraph {
         final Object undo = new Object();
         final double[] pos = {k[0]};
         final double[] r0 = {res()};
-        return (ddx, ddy) -> { // left/right: cutoff; up/down: resonance
+        final double[] py = {k[1]};
+        final boolean[] held = {Math.abs(k[1] - h / 2) < 1};
+        return (ddx, ddy) -> { // left/right: cutoff; up/down: resonance (the 0 dB line is sticky)
             pos[0] += ddx;
             set(cutoff, clamp(cutoffValue(xf(clamp(pos[0], 0, w), w)), cutoff.min(), cutoff.max()), undo, "Change cutoff");
             if (resonance != null && ddy != 0) {
+                py[0] += ddy;
                 r0[0] = clamp(r0[0] - ddy / (h * 0.8), 0, 1);
+                if (sticky(held, py[0] - h / 2)) {
+                    double fc = clamp(hz(), EqGraph.FMIN, EqGraph.FMAX);
+                    EqGraph.Kind kd = kindCache; int n = polesCache;
+                    double rz = resonanceForZero(rs -> db(fc, kd, n, fc, rs));
+                    if (!Double.isNaN(rz)) r0[0] = rz; // the resonance that puts the cutoff on 0 dB
+                }
                 set(resonance, resonance.min() + (resonance.max() - resonance.min()) * r0[0], undo, "Change resonance");
             }
         };

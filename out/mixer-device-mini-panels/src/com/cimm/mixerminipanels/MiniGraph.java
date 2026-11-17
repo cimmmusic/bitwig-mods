@@ -137,6 +137,24 @@ abstract class MiniGraph extends dve {
         }
     }
 
+    // ---- sticky centre line (as the Tool view's pan): catches within SNAP px, lets go past RELEASE px ----
+    static final double SNAP = 10, RELEASE = 16;
+
+    /** Updates held[0] for a pointer `off` px from the line and says whether the value should sit on it. */
+    static boolean sticky(boolean[] held, double off) {
+        if (Math.abs(off) < SNAP) held[0] = true;
+        else if (Math.abs(off) > RELEASE) held[0] = false;
+        return held[0];
+    }
+
+    /** The resonance 0…1 that puts a response at exactly 0 dB (bisection; db(r) rises with r), or NaN if none does. */
+    static double resonanceForZero(java.util.function.DoubleUnaryOperator dbAt) {
+        double lo = 0, hi = 1, a = dbAt.applyAsDouble(lo), b = dbAt.applyAsDouble(hi);
+        if (!(a < 0 && b > 0)) return Double.NaN;
+        for (int i = 0; i < 30; i++) { double m = (lo + hi) / 2; if (dbAt.applyAsDouble(m) < 0) lo = m; else hi = m; }
+        return (lo + hi) / 2;
+    }
+
     /** True while the modulation ghost is being painted. */
     boolean ghost;
 

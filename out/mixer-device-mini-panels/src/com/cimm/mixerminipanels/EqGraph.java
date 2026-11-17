@@ -384,6 +384,7 @@ final class EqGraph extends MiniGraph {
         final Object undo = new Object();
         final int[] band = {hit};
         final double[] pos = new double[3];
+        final boolean[] held = {false}; // gain held on the 0 dB line (sticky, as the Tool view)
         if (hit >= 0) { pos[0] = fx(clamp(bs[hit].f, FMIN, FMAX), w); pos[1] = nodeY(bs[hit], h, r); }
         else { pos[0] = clamp(x, 0, w); pos[1] = clamp(y, 0, h); }
         final boolean doubleClick = clicks >= 2;
@@ -417,7 +418,11 @@ final class EqGraph extends MiniGraph {
                 boolean vGain = added || gainMoves(band(b).kind); // a new node is a bell even before Bitwig reports it
                 pos[0] = clamp(pos[0] + ddx, 0, w);
                 set(freq[b], freqValue(b, xf(pos[0], w), sh), undo, "Change EQ band frequency");
-                if (vGain) { pos[1] = clamp(pos[1] + ddy, 0, h); set(gain[b], unscaled(yd(pos[1], h, r)), undo, "Change EQ band gain"); }
+                if (vGain) {
+                    pos[1] = clamp(pos[1] + ddy, 0, h);
+                    boolean zero = sticky(held, pos[1] - h / 2); // the centre line (0 dB) is sticky
+                    set(gain[b], zero ? 0 : unscaled(yd(pos[1], h, r)), undo, "Change EQ band gain");
+                }
                 else if (q[b] != null) { pos[2] = q[b].min() < 0 ? pos[2] - ddy * 0.02 : pos[2] * Math.pow(1.03, -ddy); set(q[b], pos[2], undo, "Change EQ band Q"); }
             }
         };
