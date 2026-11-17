@@ -104,6 +104,12 @@
       "kind": "class",
       "class": "dpl"
     },
+    "dWb.init": {
+      "kind": "method",
+      "owner": "dWb",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
     "drX.init": {
       "kind": "method",
       "owner": "drX",
@@ -319,6 +325,7 @@
   ],
   "opens": [
     "auI",
+    "dWb.init",
     "dpl",
     "dpl.MRY",
     "dpl.MRY-2",

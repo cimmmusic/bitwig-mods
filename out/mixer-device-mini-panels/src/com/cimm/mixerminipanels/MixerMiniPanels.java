@@ -125,6 +125,7 @@ public final class MixerMiniPanels {
                     if (MiniGraph.DEBUG && name.equals("Oscilloscope")) probe(device);
                     dve scope = name.equals("Oscilloscope") ? scopeWidget(device) : nativePanel(device, name);
                     if (scope != null) {
+                        scope = NativeFrame.wrap(scope, device, place()); // right-click: Collapse Mini View
                         Collapse.trackNative(scope, device, place()); // collapse / expand per place (mixer / Inspector)
                         dWb column = dWb.UNj(1);
                         header.MRY(w3.cfM);
@@ -149,7 +150,7 @@ public final class MixerMiniPanels {
                     column.HL(header); // Bitwig's own row
                     if (Kinds.OVER.equals(Kinds.kind(device))) { // Over: its own before/after clipping display above the curve
                         dve disp = displayPart(device, name, OVER_DISPLAY_HEIGHT);
-                        if (disp != null) { Collapse.trackNative(disp, device, where); column.HL(disp); }
+                        if (disp != null) { disp = NativeFrame.wrap(disp, device, where); Collapse.trackNative(disp, device, where); column.HL(disp); }
                     }
                     column.HL(mini);   // the mini panel
                     row.MRY(kn.cfM()); // height: Bitwig fixed the row to one line; let it fit the column
