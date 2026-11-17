@@ -69,29 +69,29 @@ final class GateGraph extends MiniGraph {
     }
 
     @Override void paintGraph(com.bitwig.graphics.SYo g, double w, double h) {
-        g.Hnt(FIELD); g.MRY(0, 0, w, h); g.wGc();
+        col(g, FIELD); g.MRY(0, 0, w, h); g.wGc();
         double tx = px(thrDb(), w);
-        g.Hnt(BAND); g.MRY(tx - 6, 0, 12, h); g.wGc();                  // threshold band
+        col(g, BAND); g.MRY(tx - 6, 0, 12, h); g.wGc();                  // threshold band
 
         g.IwV(1);
-        g.Hnt(GRIDC);                                                    // faint 12 dB grid
+        col(g, GRIDC);                                                    // faint 12 dB grid
         for (double d = -12; d > LO; d -= 12) {
             double x = Math.floor(px(d, w)) + 0.5, y = Math.floor(py(d, h)) + 0.5;
             g.MRY(x, 0); g.cfM(x, h); g.hbP(); g.MRY(0, y); g.cfM(w, y); g.hbP();
         }
-        g.Hnt(UNITY); g.IwV(1); CompGraph.dash(g, 3, 3);                 // dashed 1:1
+        col(g, UNITY); g.IwV(1); CompGraph.dash(g, 3, 3);                 // dashed 1:1
         g.MRY(px(LO, w), py(LO, h)); g.cfM(px(HI, w), py(HI, h)); g.hbP();
         CompGraph.dash(g);
 
         g.qoU(); g.MRY(0, 0, w, h); g.lYc();
-        g.Hnt(TRANSFER); g.IwV(1.6);                                     // transfer: dropped below, 1:1 above
+        col(g, TRANSFER); g.IwV(1.6);                                     // transfer: dropped below, 1:1 above
         double t = thrDb(), d = depthDb();
         g.MRY(px(LO, w), py(LO - d, h)); g.cfM(tx, py(t - d, h)); g.cfM(tx, py(t, h)); g.cfM(px(HI, w), py(HI, h));
         g.hbP();
         g.ucQ();
 
         double[] k = node(w, h);
-        g.Hnt(NODE); g.MRY(k[0], k[1], 5); g.wGc();
+        col(g, NODE); g.MRY(k[0], k[1], 5); g.wGc();
     }
 
     @Override Dragger press(double x, double y, double w, double h, int clicks) {

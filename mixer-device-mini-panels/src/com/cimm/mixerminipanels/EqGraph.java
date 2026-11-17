@@ -182,12 +182,12 @@ final class EqGraph extends MiniGraph {
         double r = range();
         g.IwV(1);
         // minor frequency lines (20–90, 200–900, 2k–9k Hz), then the band separators (100 Hz, 1 kHz, 10 kHz)
-        g.Hnt(GRID_MINOR);
+        col(g, GRID_MINOR);
         for (double dec = 10; dec <= 10000; dec *= 10)
             for (int m = 2; m <= 9; m++) { double f = dec * m; if (f < FMIN || f > FMAX) continue; double x = Math.floor(fx(f, w)) + 0.5; g.MRY(x, 0); g.cfM(x, h); g.hbP(); }
         // dB lines: quarters of the range
         for (int k = -3; k <= 3; k++) { if (k == 0) continue; double y = Math.floor(dy(r * k / 4, h, r)) + 0.5; g.MRY(0, y); g.cfM(w, y); g.hbP(); }
-        g.Hnt(GRID_MAJOR);
+        col(g, GRID_MAJOR);
         for (double f : new double[] {100, 1000, 10000}) { double x = Math.floor(fx(f, w)) + 0.5; g.MRY(x, 0); g.cfM(x, h); g.hbP(); }
         double y0 = Math.floor(h / 2) + 0.5; g.MRY(0, y0); g.cfM(w, y0); g.hbP();
         if (freq[0] == null) { g.cfM(4, 12, "EQ+ parameters not found", TEXT); return; }
@@ -198,13 +198,13 @@ final class EqGraph extends MiniGraph {
         double px = 0, py = dy(clamp(total(bs, FMIN), -lim, lim), h, r);
         for (int i = 1; i <= n; i++) {
             double x = w * i / n, y = dy(clamp(total(bs, xf(x, w)), -lim, lim), h, r);
-            if (!(py > h + 2 && y > h + 2) && !(py < -2 && y < -2)) { g.Hnt(rainbow(x / w)); g.MRY(px, py); g.cfM(x, y); g.hbP(); }
+            if (!(py > h + 2 && y > h + 2) && !(py < -2 && y < -2)) { col(g, rainbow(x / w)); g.MRY(px, py); g.cfM(x, y); g.hbP(); }
             px = x; py = y;
         }
         for (int b = 0; b < BANDS; b++) {
             if (bs[b].kind == Kind.OFF) continue;
             double x = fx(clamp(bs[b].f, FMIN, FMAX), w), y = nodeY(bs[b], h, r);
-            g.Hnt(NODE); g.MRY(x, y, 5); g.wGc(); // plain white dot
+            col(g, NODE); g.MRY(x, y, 5); g.wGc(); // plain white dot
         }
     }
 

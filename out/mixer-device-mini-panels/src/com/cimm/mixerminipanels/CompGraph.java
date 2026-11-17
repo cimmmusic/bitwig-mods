@@ -55,19 +55,19 @@ final class CompGraph extends MiniGraph {
     }
 
     @Override void paintGraph(com.bitwig.graphics.SYo g, double w, double h) {
-        g.Hnt(FIELD); g.MRY(0, 0, w, h); g.wGc();
+        col(g, FIELD); g.MRY(0, 0, w, h); g.wGc();
         g.IwV(1);
-        g.Hnt(GRIDC);                                                   // faint 12 dB grid
+        col(g, GRIDC);                                                   // faint 12 dB grid
         for (double d = -12; d > LO; d -= 12) {
             double x = Math.floor(px(d, w)) + 0.5, y = Math.floor(py(d, h)) + 0.5;
             g.MRY(x, 0); g.cfM(x, h); g.hbP(); g.MRY(0, y); g.cfM(w, y); g.hbP();
         }
-        g.Hnt(UNITY); g.IwV(1); CompGraph.dash(g, 3, 3);                // dashed 1:1: the uncompressed path
+        col(g, UNITY); g.IwV(1); CompGraph.dash(g, 3, 3);                // dashed 1:1: the uncompressed path
         g.MRY(px(LO, w), py(LO, h)); g.cfM(px(0, w), py(0, h)); g.hbP();
         CompGraph.dash(g);
         double ty = Math.floor(py(thrDb(), h)) + 0.5;
-        g.Hnt(LINE); g.IwV(1.4); g.MRY(0, ty); g.cfM(w, ty); g.hbP();  // threshold line
-        g.Hnt(TRANSFER); g.IwV(1.6);                                     // transfer curve
+        col(g, LINE); g.IwV(1.4); g.MRY(0, ty); g.cfM(w, ty); g.hbP();  // threshold line
+        col(g, TRANSFER); g.IwV(1.6);                                     // transfer curve
         int n = (int) Math.max(16, w / 1.5);
         for (int i = 0; i <= n; i++) {
             double in = LO + (-LO) * i / n, x = w * i / n, y = py(clamp(out(in), LO, 0), h);
@@ -75,8 +75,8 @@ final class CompGraph extends MiniGraph {
         }
         g.hbP();
         double[] k = kneeNode(w, h), t = thresholdNode(w, h);
-        g.Hnt(NODE); g.MRY(k[0], k[1], 5); g.wGc();                    // knee (same size as every node)
-        g.Hnt(NODE); g.MRY(t[0], t[1], 5); g.wGc();                    // threshold
+        col(g, NODE); g.MRY(k[0], k[1], 5); g.wGc();                    // knee (same size as every node)
+        col(g, NODE); g.MRY(t[0], t[1], 5); g.wGc();                    // threshold
     }
 
     @Override Dragger press(double x, double y, double w, double h, int clicks) {

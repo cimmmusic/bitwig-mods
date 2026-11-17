@@ -102,25 +102,25 @@ final class DynGraph extends MiniGraph {
     double[] node(double t, double w, double h) { double in = clamp(t - inDb(), LO, HI); return new double[] {px(in, w), py(clamp(out(in), LO, HI), h)}; }
 
     @Override void paintGraph(com.bitwig.graphics.SYo g, double w, double h) {
-        g.Hnt(FIELD); g.MRY(0, 0, w, h); g.wGc();
+        col(g, FIELD); g.MRY(0, 0, w, h); g.wGc();
 
         // Threshold bands, behind everything.
         for (double t : new double[] {loDb(), hiDb()}) {
             double x = px(t - inDb(), w);
-            g.Hnt(BAND); g.MRY(x - 6, 0, 12, h); g.wGc();
+            col(g, BAND); g.MRY(x - 6, 0, 12, h); g.wGc();
         }
 
         g.IwV(1);
-        g.Hnt(GRIDC);                                                   // faint 12 dB grid
+        col(g, GRIDC);                                                   // faint 12 dB grid
         for (double d = -12; d > LO; d -= 12) {
             double x = Math.floor(px(d, w)) + 0.5, y = Math.floor(py(d, h)) + 0.5;
             g.MRY(x, 0); g.cfM(x, h); g.hbP(); g.MRY(0, y); g.cfM(w, y); g.hbP();
         }
-        g.Hnt(UNITY); g.IwV(1); CompGraph.dash(g, 3, 3);                // dashed 1:1
+        col(g, UNITY); g.IwV(1); CompGraph.dash(g, 3, 3);                // dashed 1:1
         g.MRY(px(LO, w), py(LO, h)); g.cfM(px(HI, w), py(HI, h)); g.hbP();
         CompGraph.dash(g);
 
-        g.Hnt(TRANSFER); g.IwV(1.6);                                     // transfer curve
+        col(g, TRANSFER); g.IwV(1.6);                                     // transfer curve
         int n = (int) Math.max(16, w / 1.5);
         for (int i = 0; i <= n; i++) {
             double in = LO + (HI - LO) * i / n, x = w * i / n, y = py(clamp(out(in), LO, HI), h);
@@ -129,8 +129,8 @@ final class DynGraph extends MiniGraph {
         g.hbP();
 
         double[] a = node(loDb(), w, h), b = node(hiDb(), w, h);
-        g.Hnt(NODE); g.MRY(a[0], a[1], 5); g.wGc();
-        g.Hnt(NODE); g.MRY(b[0], b[1], 5); g.wGc();
+        col(g, NODE); g.MRY(a[0], a[1], 5); g.wGc();
+        col(g, NODE); g.MRY(b[0], b[1], 5); g.wGc();
     }
 
     @Override Dragger press(double x, double y, double w, double h, int clicks) {

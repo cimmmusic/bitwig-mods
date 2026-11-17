@@ -73,9 +73,17 @@ abstract class MiniGraph extends dve {
     void tick() {}
     boolean isCollapsed() { return collapsed; }
 
+    /** The parameters this view draws (top-level ones; views with nested parameters add theirs). */
+    java.util.List<Params.P> watched() { return params.all; }
+
+    /** Does this view draw a modulation ghost? (VU Meter: no — its needles are already live.) */
+    boolean showsModulation() { return true; }
+
     void pollRepaint() {
         try { tick(); } catch (Throwable t) { logOnce("tick failed", t); }
         double sig = 0; int i = 1;
+        java.util.List<Params.P> ps = watched();
+        if (showsModulation() && !collapsed) for (Params.P p : ps) { Modulation.track(p); sig += Modulation.value(p.param()) * (i++ * 1.000391); }
         for (Params.P p : params.all) sig += p.value() * (i++ * 1.000173);
         for (String id : params.choices.keySet()) sig += params.text(id).hashCode() * 1e-6 * (i++);
         if (sig != lastSig) { lastSig = sig; jbi(); }
@@ -99,12 +107,40 @@ abstract class MiniGraph extends dve {
             } else {
                 g.Hnt(BG); g.MRY(0, 0, w, h); g.wGc();
                 paintGraph(g, w, h);
+                if (showsModulation() && modulated()) { // the modulation ghost: the same drawing with modulated values, translucent
+                    ghost = true; Params.modPass = true;
+                    try { paintGraph(g, w, h); } finally { ghost = false; Params.modPass = false; }
+                }
                 g.Hnt(EDGE); g.MRY(0, 0, 2, h); g.wGc(); g.MRY(w - 2, 0, 2, h); g.wGc(); // 2 px black edges: neighbouring channels' views read as separate
             }
             g.ucQ(); // restore
         } catch (Throwable t) {
             logOnce("paint failed", t);
         }
+    }
+
+    /** True while the modulation ghost is being painted. */
+    boolean ghost;
+
+    boolean modulated() {
+        for (Params.P p : watched()) if (Modulation.active(p)) return true;
+        return false;
+    }
+
+    /** Sets the drawing colour; in the ghost pass backgrounds and grids vanish and everything else is half see-through. */
+    void col(com.bitwig.graphics.SYo g, iok c) {
+        if (!ghost) { g.Hnt(c); return; }
+        if (isBackground(c)) { g.Hnt(CLEAR); return; }
+        g.Hnt(new iok(c.FzB(), c.IwV(), c.UNj(), c.hUR() * GHOST_ALPHA)); // iok getters: FzB red, IwV green, UNj blue, hUR alpha
+    }
+    static final float GHOST_ALPHA = 0.45f;
+    static final iok CLEAR = new iok(0f, 0f, 0f, 0f);
+    private static iok[] backgrounds;
+    static boolean isBackground(iok c) {
+        if (backgrounds == null) backgrounds = new iok[] {BG, GRID, GRID_MAJOR, BAR, EDGE, EqGraph.GRID_MINOR, CompGraph.FIELD, CompGraph.GRIDC,
+                CompGraph.UNITY, DynGraph.BAND, ToolGraph.FIELD, ToolGraph.GRIDC, ToolGraph.MAJOR};
+        for (iok b : backgrounds) if (b == c) return true;
+        return false;
     }
 
     @Override public dve MJ() { return this; } // the widget itself, as Bitwig's widgets do

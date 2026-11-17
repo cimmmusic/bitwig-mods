@@ -99,6 +99,13 @@ final class FilterGraph extends MiniGraph {
 
     void afterSwap() { nextCheck = 0; }
 
+    /** Cutoff, resonance and drive live in Filter+'s modules, outside the top-level list. */
+    @Override java.util.List<Params.P> watched() {
+        java.util.List<Params.P> l = new java.util.ArrayList<>(params.all);
+        for (Params.P p : new Params.P[] {cutoff, resonance, drive}) if (p != null) l.add(p);
+        return l;
+    }
+
     /** Right-click on the cutoff node: the filter module's menu; on the yellow node: the waveshaper's — as Filter+'s own choosers. */
     @Override boolean menu(bitwig.obf.dKW popup, double x, double y, double w, double h) {
         double[] k = node(w, h);
@@ -269,15 +276,15 @@ final class FilterGraph extends MiniGraph {
 
     @Override void paintGraph(com.bitwig.graphics.SYo g, double w, double h) {
         g.IwV(1);
-        g.Hnt(GRID_MINOR);
+        col(g, GRID_MINOR);
         for (double dec = 10; dec <= 10000; dec *= 10)
             for (int m = 2; m <= 9; m++) { double f = dec * m; if (f < EqGraph.FMIN || f > EqGraph.FMAX) continue; double x = Math.floor(fx(f, w)) + 0.5; g.MRY(x, 0); g.cfM(x, h); g.hbP(); }
-        g.Hnt(GRID_MAJOR);
+        col(g, GRID_MAJOR);
         for (double f : new double[] {100, 1000, 10000}) { double x = Math.floor(fx(f, w)) + 0.5; g.MRY(x, 0); g.cfM(x, h); g.hbP(); }
         double y0 = Math.floor(h / 2) + 0.5; g.MRY(0, y0); g.cfM(w, y0); g.hbP();
 
         // Response curve in Filter+'s green.
-        g.Hnt(CURVE); g.IwV(1.8);
+        col(g, CURVE); g.IwV(1.8);
         int n = (int) Math.max(24, w / 1.5);
         for (int i = 0; i <= n; i++) {
             double x = w * i / n, y = dy(clamp(db(xf(x, w)), -RANGE - 6, RANGE), h);
@@ -286,11 +293,11 @@ final class FilterGraph extends MiniGraph {
         g.hbP();
         if (drive != null) { // drive: a yellow line across, its height the drive amount, node at the right
             double yd = driveY(h);
-            g.Hnt(DRIVE); g.IwV(1.4); g.MRY(0, yd); g.cfM(w, yd); g.hbP();
+            col(g, DRIVE); g.IwV(1.4); g.MRY(0, yd); g.cfM(w, yd); g.hbP();
             g.MRY(w - 12, yd, 5); g.wGc();
         }
         double[] k = node(w, h);
-        g.Hnt(NODE); g.MRY(k[0], k[1], 5); g.wGc();
+        col(g, NODE); g.MRY(k[0], k[1], 5); g.wGc();
     }
 
     double driveY(double h) { return h - 6 - clamp(drive.norm(), 0, 1) * (h - 12); }

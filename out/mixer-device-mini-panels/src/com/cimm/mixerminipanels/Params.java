@@ -17,12 +17,19 @@ final class Params {
     private static final Set<String> logged = ConcurrentHashMap.newKeySet();
 
     record P(String id, String name, hSh param) {
-        double value() { try { return param.iCS(); } catch (Throwable t) { return 0; } } // plain value
+        /** Plain value — the knob's, or (while a view paints its modulation ghost) the modulated one. */
+        double value() {
+            try { return modPass ? Modulation.value(param) : param.iCS(); } catch (Throwable t) { return 0; }
+        }
+        double base() { try { return param.iCS(); } catch (Throwable t) { return 0; } } // always the knob's value
         double min() { try { return param.QNk().wGc(); } catch (Throwable t) { return 0; } }
         double max() { try { return param.QNk().qoU(); } catch (Throwable t) { return 1; } }
         double norm() { double a = min(), b = max(); return b > a ? (value() - a) / (b - a) : 0; }
         String key() { return (id + " " + name).toLowerCase(Locale.ROOT); }
     }
+
+    /** True while a view paints its modulation ghost (UI thread only): value() then returns modulated values. */
+    static boolean modPass;
 
     final List<P> all = new ArrayList<>();
     final List<String> other = new ArrayList<>(); // parameters that aren't settable values (choices, switches): logged only

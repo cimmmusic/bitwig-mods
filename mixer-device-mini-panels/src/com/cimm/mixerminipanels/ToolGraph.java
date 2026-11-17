@@ -46,20 +46,20 @@ final class ToolGraph extends MiniGraph {
     double cy(double h) { return h - 8 - gainPos() * (h - 16); }
 
     @Override void paintGraph(com.bitwig.graphics.SYo g, double w, double h) {
-        g.Hnt(FIELD); g.MRY(0, 0, w, h); g.wGc();
+        col(g, FIELD); g.MRY(0, 0, w, h); g.wGc();
         g.IwV(1);
-        g.Hnt(GRIDC);                                             // quarters
+        col(g, GRIDC);                                             // quarters
         for (int i = 1; i < 4; i++) { double x = Math.floor(w * i / 4) + 0.5; g.MRY(x, 0); g.cfM(x, h); g.hbP(); }
         double y0 = Math.floor(h - 8 - 0.5 * (h - 16)) + 0.5;     // middle: 0 dB
-        g.Hnt(MAJOR); g.MRY(0, y0); g.cfM(w, y0); g.hbP();
+        col(g, MAJOR); g.MRY(0, y0); g.cfM(w, y0); g.hbP();
         double xc = Math.floor(w / 2) + 0.5;                       // centre
         g.MRY(xc, 0); g.cfM(xc, h); g.hbP();
 
         double c = cx(w), r = half(w), y = cy(h);
-        g.Hnt(BAND_FILL); g.MRY(c - r, y - 4, 2 * r, 8); g.wGc();  // the image
-        g.Hnt(BAND); g.IwV(2); g.MRY(c - r, y); g.cfM(c + r, y); g.hbP();
+        col(g, BAND_FILL); g.MRY(c - r, y - 4, 2 * r, 8); g.wGc();  // the image
+        col(g, BAND); g.IwV(2); g.MRY(c - r, y); g.cfM(c + r, y); g.hbP();
         g.MRY(c - r, y, 2.5); g.wGc(); g.MRY(c + r, y, 2.5); g.wGc(); // width handles
-        g.Hnt(NODE); g.MRY(c, y, 5); g.wGc();                       // pan / gain node
+        col(g, NODE); g.MRY(c, y, 5); g.wGc();                       // pan / gain node
     }
 
     @Override Dragger press(double x, double y, double w, double h, int clicks) {

@@ -12,6 +12,8 @@ import bitwig.obf.jsd; // a device
  * held readings as READING_1 / READING_2; we smooth the needles at 60 fps so they move like a needle, not in steps.
  */
 final class VuGraph extends MiniGraph {
+    @Override boolean showsModulation() { return false; } // its needles are already live
+
     static final iok FIELD = iok.cfM(34, 34, 36);
     static final iok SCALE = iok.cfM(196, 196, 196);
     static final iok ORANGE = iok.cfM(242, 140, 43);

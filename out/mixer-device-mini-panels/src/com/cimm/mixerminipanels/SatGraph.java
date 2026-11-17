@@ -75,7 +75,7 @@ final class SatGraph extends MiniGraph {
     double[] loud(double w, double h) { return new double[] {px(hiDb(), w), amountY(hiAmt, h)}; }
 
     private void curve(com.bitwig.graphics.SYo g, double w, double h, int sign, iok colour) {
-        g.Hnt(colour); g.IwV(1.6);
+        col(g, colour); g.IwV(1.6);
         int n = (int) Math.max(16, w / 1.5);
         for (int i = 0; i <= n; i++) {
             double in = LO + (HI - LO) * i / n, x = w * i / n, y = py(clamp(out(in, sign), LO - 6, HI + 6), h);
@@ -86,24 +86,24 @@ final class SatGraph extends MiniGraph {
 
     private void node(com.bitwig.graphics.SYo g, double[] at, double kneeDb, double w, iok colour) {
         double dx = Math.abs(kneeDb) / (HI - LO) * w / 2; // knee dots: half the knee width either side
-        g.Hnt(colour);
+        col(g, colour);
         if (dx > 6) { g.MRY(at[0] - dx, at[1], 2); g.wGc(); g.MRY(at[0] + dx, at[1], 2); g.wGc(); }
         g.MRY(at[0], at[1], 5); g.wGc();
     }
 
     @Override void paintGraph(com.bitwig.graphics.SYo g, double w, double h) {
-        g.Hnt(FIELD); g.MRY(0, 0, w, h); g.wGc();
+        col(g, FIELD); g.MRY(0, 0, w, h); g.wGc();
         g.IwV(1);
-        g.Hnt(GRIDC);
+        col(g, GRIDC);
         for (double d = -12; d > LO; d -= 12) {
             double x = Math.floor(px(d, w)) + 0.5, y = Math.floor(py(d, h)) + 0.5;
             g.MRY(x, 0); g.cfM(x, h); g.hbP(); g.MRY(0, y); g.cfM(w, y); g.hbP();
         }
         double lx = Math.floor(px(hiDb(), w)) + 0.5;                    // loud threshold line
-        g.Hnt(LOUD); g.IwV(1); g.MRY(lx, 0); g.cfM(lx, h); g.hbP();
+        col(g, LOUD); g.IwV(1); g.MRY(lx, 0); g.cfM(lx, h); g.hbP();
         if (drive != null) { // drive: a yellow line across (height = drive amount) under the curves, its node at the right
             double yd = driveY(h);
-            g.Hnt(DRIVE); g.IwV(1.4); g.MRY(0, yd); g.cfM(w, yd); g.hbP();
+            col(g, DRIVE); g.IwV(1.4); g.MRY(0, yd); g.cfM(w, yd); g.hbP();
         }
         g.qoU(); g.MRY(0, 0, w, h); g.lYc();
         curve(g, w, h, -1, CURVE_B);                                    // orange half underneath
@@ -111,7 +111,7 @@ final class SatGraph extends MiniGraph {
         g.ucQ();
         node(g, quiet(w, h), v(loKnee, 0), w, QUIET);
         node(g, loud(w, h), v(hiKnee, 0), w, LOUD);
-        if (drive != null) { g.Hnt(DRIVE); g.MRY(w - 12, driveY(h), 5); g.wGc(); }
+        if (drive != null) { col(g, DRIVE); g.MRY(w - 12, driveY(h), 5); g.wGc(); }
     }
 
     double driveY(double h) { return h - 6 - clamp(drive.norm(), 0, 1) * (h - 12); }
