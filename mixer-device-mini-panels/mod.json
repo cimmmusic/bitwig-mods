@@ -1,0 +1,37 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "mixer-device-mini-panels",
+    "name": "Mixer: Device Mini Panels",
+    "version": "0.2.0-dev.1",
+    "author": "Cimm",
+    "description": "Shows each device's remote-control knobs under its name in the mixer's Devices section, so EQ+, Compressor and other native devices can be adjusted in a mini view on every channel.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  },
+  "registrations": [
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
+    }
+  ]
+}

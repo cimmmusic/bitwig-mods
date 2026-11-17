@@ -1,0 +1,13 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "label-modulator",
+    "name": "Label Modulator",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "A modulator that's just text: a modulator named \"Label …\" shows its text instead of its controls.",
+    "documentation": "readme"
+  },
+  "built_against": { "bitwig_version": "6.1.4", "platform": "macos", "architecture": "universal" },
+  "resources": { "readme": { "kind": "file", "path": "README.md", "media_type": "text/markdown" } }
+}

@@ -1,0 +1,79 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "label-modulator",
+    "name": "Label Modulator",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "A modulator that's just text: a modulator named \"Label \u2026\" shows its text instead of its controls.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.labelmodulator.LabelModulator"
+  },
+  "targets": {
+    "com.bitwig.flt.widget.core.device.wQh.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/wQh",
+      "name": "MRY",
+      "descriptor": "(Lg1C;)V"
+    },
+    "com.bitwig.flt.widget.core.device.wQh.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/wQh",
+      "name": "cfM",
+      "descriptor": "(LdyC;)V"
+    },
+    "dve.init": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "<init>",
+      "descriptor": "()V"
+    }
+  },
+  "hooks": [
+    {
+      "id": "panel-modulator",
+      "target": "com.bitwig.flt.widget.core.device.wQh.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "panelModulator",
+        "descriptor": "(Lg1C;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "panel-content",
+      "target": "com.bitwig.flt.widget.core.device.wQh.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.flt.widget.core.device.wQh.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "panelContent",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/wQh;LdyC;)V",
+        "args": []
+      }
+    }
+  ],
+  "opens": [
+    "dve.init"
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  }
+}
