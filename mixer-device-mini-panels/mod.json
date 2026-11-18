@@ -3,9 +3,9 @@
   "mod": {
     "id": "mixer-device-mini-panels",
     "name": "Mixer: Device Mini Panels",
-    "version": "0.2.0-dev.1",
+    "version": "0.3.0-dev.1",
     "author": "Cimm",
-    "description": "Shows each device's remote-control knobs under its name in the mixer's Devices section, so EQ+, Compressor and other native devices can be adjusted in a mini view on every channel.",
+    "description": "Adds graphical mini views under devices in the mixer's Devices section — EQs, compressors, dynamics, gate, limiter, Over, Saturator, Transient Control, filters, De-Esser, Tool and meters — with draggable nodes, right-click type menus and live modulation.",
     "documentation": "readme"
   },
   "built_against": {
