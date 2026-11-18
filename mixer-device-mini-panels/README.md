@@ -1,6 +1,6 @@
 # Mixer: Device Mini Panels
 
-<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/all-mini-views.png" width="388" alt="All mini views in the mixer">
+<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/mini-views-grid.png" width="702" alt="All mini views">
 
 Adds a small graphical view under each supported device in the mixer's Devices section, so you can see and adjust EQs, dynamics, filters and more on every channel without opening the device.
 
