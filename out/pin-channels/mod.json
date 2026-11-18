@@ -1,0 +1,144 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "pin-channels",
+    "name": "Pin Channels",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "Pin channels (e.g. VCAs) so they stay in view: a fixed bar at the top of the arranger and a fixed area at the left of the mixer, with mute, solo and volume.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.pinchannels.Sticky"
+  },
+  "targets": {
+    "dTA": {
+      "kind": "class",
+      "class": "dTA"
+    },
+    "dve.Hnt": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "Hnt",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "dve.cfM": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "cfM",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    },
+    "dve.jbi": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "jbi",
+      "descriptor": "()V"
+    },
+    "drX.init": {
+      "kind": "method",
+      "owner": "drX",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dve.MRY": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "MRY",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    }
+  },
+  "hooks": [
+    {
+      "id": "frozen-rows",
+      "target": "dTA",
+      "transform": "ADD_METHOD",
+      "method": {
+        "from_target": "dve.Hnt"
+      },
+      "body": {
+        "template": "CALL_SUPER_THEN_STATIC"
+      },
+      "bridge": {
+        "method": "paint",
+        "descriptor": "(LdTA;Lcom/bitwig/graphics/SYo;)V",
+        "args": [
+          "this",
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "frozen-press-at",
+      "target": "dve.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "pressAt",
+        "descriptor": "(Ldve;LeoX;DDLeoW;I)V",
+        "args": [
+          "this",
+          "arg1",
+          "arg2",
+          "arg4",
+          "arg6",
+          "arg7"
+        ]
+      }
+    },
+    {
+      "id": "frozen-press",
+      "target": "dve.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "pressed",
+        "descriptor": "(LdrX;Ldve;)LdrX;",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "frozen-repaint",
+      "target": "dve.jbi",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "repaint",
+        "descriptor": "(Ldve;)V",
+        "args": [
+          "this"
+        ]
+      }
+    }
+  ],
+  "opens": [
+    "drX.init",
+    "dve.MRY",
+    "dve.cfM"
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  },
+  "registrations": [
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
+    }
+  ]
+}
