@@ -14,6 +14,24 @@
     "architecture": "universal"
   },
   "resources": {
-    "readme": { "kind": "file", "path": "README.md", "media_type": "text/markdown" }
-  }
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  },
+  "registrations": [
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
+    }
+  ]
 }
