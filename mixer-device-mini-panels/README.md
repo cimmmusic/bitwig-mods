@@ -176,6 +176,7 @@ Adds a small graphical view under each supported device in the mixer's Devices s
 <a href="https://github.com/cimmmusic/bitwig-devices/tree/main/devices/cimm-vu"><img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/vu-meter.png" width="168" align="right" alt="VU Meter mini view"></a>
 
 - [VU Meter](https://github.com/cimmmusic/bitwig-devices/tree/main/devices/cimm-vu) (Cimm's native Nitro device): live needles.
+  To see this meter, install the [VU Meter Nitro device](https://github.com/cimmmusic/bitwig-devices/tree/main/devices/cimm-vu) first. It isn't part of this mod.
 - Oscilloscope, Spectrum, Tuner: Bitwig's own live display.
 
 <br clear="right">
