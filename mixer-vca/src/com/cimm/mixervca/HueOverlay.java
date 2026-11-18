@@ -25,9 +25,22 @@ final class HueOverlay extends dve {
     @Override public boolean TtY(double x, double y) { return false; } // never hit: the mouse goes to the fader
     @Override public boolean d_(double x, double y) { return false; }
 
+    static final boolean DIAGNOSE = true; // temporary: a plain red wash + one log line, to see where the overlay sits
+    private static int logs;
+
     @Override public void Hnt(com.bitwig.graphics.SYo g) {
         super.Hnt(g);
         double w = Sxo(), h = yiX();
+        if (logs < 3) {
+            logs++;
+            String at = "?";
+            try { com.bitwig.base.geom.OLR me = ihs(), s = section.ihs(); at = "overlay at " + (me == null ? "?" : me.FzB() + "," + me.hUR()) + " size " + w + "x" + h + "; section at " + (s == null ? "?" : s.FzB() + "," + s.hUR()) + " size " + section.Sxo() + "x" + section.yiX(); } catch (Throwable ignored) {}
+            Vca.MOD.log("VCA overlay painting: " + at);
+        }
+        if (DIAGNOSE) {
+            try { g.qoU(); g.Hnt(new iok(1f, 0f, 0f, 0.35f)); g.MRY(0, 0, w, h); g.wGc(); g.ucQ(); } catch (Throwable ignored) {}
+            return;
+        }
         double top = 0;
         try { // below the readout: the lowest text widget in the top third of the section
             com.bitwig.base.geom.OLR me = ihs();
