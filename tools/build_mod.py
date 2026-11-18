@@ -13,7 +13,12 @@ HOME = Path.home()
 JDK = Path("/opt/homebrew/opt/openjdk@25/bin")
 BML = HOME / "Downloads/BML-0.36.0-dev.16-macos"
 KIT = BML / "modkit"
-BW = Path("/Applications/Bitwig Studio.app/Contents/Java")
+# The mods are written against Bitwig 6.1.4 (macOS); Patchbay translates them to the installed version at load.
+# The mod kit's final check needs the jars of the version the code is written for: a copy of 6.1.4's, taken from its
+# installer (build/bitwig-6.1.4), else the installed Bitwig's.
+BW = Path(__file__).resolve().parent.parent / "build" / "bitwig-6.1.4"
+if not (BW / "bitwig.jar").exists():
+    BW = Path("/Applications/Bitwig Studio.app/Contents/Java")
 BITWIG_JAR, LIBS_JAR = BW / "bitwig.jar", BW / "libs.jar"
 WORKROOT = HOME / "CimmBitwigMods/build"
 COMPILE_JAR = WORKROOT / "bitwig614-compile.jar"

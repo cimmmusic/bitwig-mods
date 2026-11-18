@@ -54,7 +54,11 @@ public final class MixerMiniPanels {
                         + (extra instanceof bitwig.obf.R1Z ? " (overview panel: hidden)" : extra instanceof bitwig.obf.zcJ ? " (in-row meter: kept)" : " (kept)"));
         }
         ROW_IN_INSPECTOR.set(flag); // Bitwig sets this flag for the track Inspector's rows (it shows their window button)
-        try { return g2L.cfM(device, flag, keep); } // Bitwig's row builder (setRowContent runs inside it)
+        try {
+            g2L row = g2L.cfM(device, flag, keep); // Bitwig's row builder (setRowContent runs inside it)
+            if (!flag) Hidden.row(device, row);    // mixer rows (not the Inspector's): hidden if the device is hidden
+            return row;
+        }
         finally { ROW_IN_INSPECTOR.remove(); }
     }
     /** While a row is being built: whether it is in the track Inspector (else the mixer). */

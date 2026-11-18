@@ -15,6 +15,17 @@ public final class MiniViewActions implements ActionProvider {
 
     @Override
     public void declare(Actions actions) {
+        // Hide the device's row in the mixer's Devices section (the device keeps working; not the same as deactivating)
+        actions.action("cimm_hide_in_mixer", "Hide in Mixer")
+               .in(Menu.DEVICE)
+               .menuOnly()
+               .visibleWhen(c -> c.device() != null && !Hidden.isHidden(c.device()))
+               .onRun(c -> Hidden.set(c.device(), true));
+        actions.action("cimm_show_in_mixer", "Show in Mixer")
+               .in(Menu.DEVICE)
+               .menuOnly()
+               .visibleWhen(c -> c.device() != null && Hidden.isHidden(c.device()))
+               .onRun(c -> Hidden.set(c.device(), false));
         for (int place : new int[] {Collapse.MIXER, Collapse.INSPECTOR}) {
             // IDs stay "…_mixer" / "…_inspector"; labels sort alphabetically, so "Track Inspector" puts Mixer first.
             String id = Collapse.placeName(place).toLowerCase(java.util.Locale.ROOT);
