@@ -32,7 +32,11 @@ public final class VcaHooks {
 
     @Hook(id = "fader-channel", target = bitwig.obf.bDJ.class,
           method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.ENTRY)
-    public static void faderChannel(@Arg(0) RYd channel) { building.set(channel); }
+    public static void faderChannel(@Arg(0) RYd channel) {
+        building.set(channel);
+        try { if (channel instanceof xJo t) Linker.know(t.cb_()); } catch (Throwable ignored) {} // its project: VCAs link once the mixer shows
+    }
+    private static int sectionLogs, hitLogs, missLogs;
 
     @Hook(id = "fader-section", target = bitwig.obf.bDJ.class,
           method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.WRAP_RETURN)
@@ -40,7 +44,9 @@ public final class VcaHooks {
         RYd ch = building.get();
         building.remove();
         try {
-            if (section != null && ch instanceof xJo t && Vca.members(t) != null) { vcaSections.add(section); any = true; }
+            boolean vca = section != null && ch instanceof xJo t && Vca.members(t) != null;
+            if (vca) { vcaSections.add(section); any = true; }
+            if (sectionLogs < 12) { sectionLogs++; Vca.MOD.log("fader section for '" + (ch instanceof xJo t ? t.ca_() : String.valueOf(ch)) + "' vca=" + vca + " " + (section == null ? "null" : section.getClass().getName())); }
         } catch (Throwable ignored) {}
         return section;
     }
@@ -68,9 +74,13 @@ public final class VcaHooks {
             dve w = widget;
             for (int i = 0; i < 12 && w != null; i++) {
                 if (w instanceof bitwig.obf.dut) return colour;  // a text: the dB readout keeps its own colour
-                if (vcaSections.contains(w)) return redLike(colour);
+                if (vcaSections.contains(w)) {
+                    if (hitLogs < 10) { hitLogs++; Vca.MOD.log("red for " + widget.getClass().getName() + " depth " + i + " colour " + colour); }
+                    return redLike(colour);
+                }
                 w = w.RbC(); // its parent
             }
+            if (missLogs < 5) { missLogs++; Vca.MOD.log("orange outside VCA sections: " + widget.getClass().getName() + " " + colour); }
         } catch (Throwable ignored) {}
         return colour;
     }

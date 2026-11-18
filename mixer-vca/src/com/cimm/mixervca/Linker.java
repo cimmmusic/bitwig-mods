@@ -49,7 +49,7 @@ final class Linker {
     private static final Set<g2L> projects = Collections.newSetFromMap(new WeakHashMap<>());
     private static final Map<xJo, Link> links = new IdentityHashMap<>();
     private static volatile boolean queued;
-    private static boolean started, loggedScan;
+    private static boolean started, loggedScan = true; // the application-list scan finds no projects (library metadata): projects come from the mixer and the menu
     private static long nextScan;
 
     static synchronized void start() {
