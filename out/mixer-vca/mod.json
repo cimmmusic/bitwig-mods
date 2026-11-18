@@ -24,17 +24,11 @@
       "name": "cfM",
       "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;"
     },
-    "aoH.tp2": {
+    "dve.init": {
       "kind": "method",
-      "owner": "aoH",
-      "name": "tp2",
-      "descriptor": "()LaoH;"
-    },
-    "eeY.cfM": {
-      "kind": "method",
-      "owner": "eeY",
-      "name": "cfM",
-      "descriptor": "(Ldve;)Liok;"
+      "owner": "dve",
+      "name": "<init>",
+      "descriptor": "()V"
     }
   },
   "hooks": [
@@ -59,44 +53,10 @@
         "descriptor": "(Ldve;)Ldve;",
         "args": []
       }
-    },
-    {
-      "id": "fader-widget",
-      "target": "bDJ.cfM",
-      "transform": "REPLACE_INVOKE",
-      "match": {
-        "opcode": "INVOKESTATIC",
-        "target": "aoH.tp2",
-        "occurrence": 1
-      },
-      "bridge": {
-        "method": "faderWidget",
-        "descriptor": "()LaoH;",
-        "args": []
-      }
-    },
-    {
-      "id": "theme-colour-widget",
-      "target": "eeY.cfM",
-      "transform": "INSERT_AT_ENTRY",
-      "bridge": {
-        "method": "themeColourWidget",
-        "descriptor": "(Ldve;)V",
-        "args": [
-          "arg1"
-        ]
-      }
-    },
-    {
-      "id": "theme-colour",
-      "target": "eeY.cfM",
-      "transform": "WRAP_OBJECT_RETURN",
-      "bridge": {
-        "method": "themeColour",
-        "descriptor": "(Liok;)Liok;",
-        "args": []
-      }
     }
+  ],
+  "opens": [
+    "dve.init"
   ],
   "resources": {
     "readme": {
