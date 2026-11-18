@@ -24,29 +24,11 @@
       "name": "cfM",
       "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;"
     },
-    "aoH.tp2": {
+    "eeY.cfM": {
       "kind": "method",
-      "owner": "aoH",
-      "name": "tp2",
-      "descriptor": "()LaoH;"
-    },
-    "avb.MRY": {
-      "kind": "method",
-      "owner": "avb",
-      "name": "MRY",
-      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
-    },
-    "eff.eej": {
-      "kind": "method",
-      "owner": "eff",
-      "name": "eej",
-      "descriptor": "()LeeY;"
-    },
-    "eff.xL": {
-      "kind": "method",
-      "owner": "eff",
-      "name": "xL",
-      "descriptor": "()LeeY;"
+      "owner": "eeY",
+      "name": "cfM",
+      "descriptor": "(Ldve;)Liok;"
     }
   },
   "hooks": [
@@ -63,74 +45,34 @@
       }
     },
     {
-      "id": "fader-widget",
+      "id": "fader-section",
       "target": "bDJ.cfM",
-      "transform": "REPLACE_INVOKE",
-      "match": {
-        "opcode": "INVOKESTATIC",
-        "target": "aoH.tp2",
-        "occurrence": 1
-      },
+      "transform": "WRAP_OBJECT_RETURN",
       "bridge": {
-        "method": "faderWidget",
-        "descriptor": "()LaoH;",
+        "method": "faderSection",
+        "descriptor": "(Ldve;)Ldve;",
         "args": []
       }
     },
     {
-      "id": "fader-paint",
-      "target": "avb.MRY",
+      "id": "theme-colour-widget",
+      "target": "eeY.cfM",
       "transform": "INSERT_AT_ENTRY",
       "bridge": {
-        "method": "faderPaint",
-        "descriptor": "(Lavb;)V",
+        "method": "themeColourWidget",
+        "descriptor": "(Ldve;)V",
         "args": [
-          "this"
+          "arg1"
         ]
       }
     },
     {
-      "id": "fader-accent-1",
-      "target": "avb.MRY",
-      "transform": "REPLACE_INVOKE",
-      "match": {
-        "opcode": "INVOKEVIRTUAL",
-        "target": "eff.eej",
-        "occurrence": 1
-      },
+      "id": "theme-colour",
+      "target": "eeY.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
       "bridge": {
-        "method": "accent1",
-        "descriptor": "(Leff;)LeeY;",
-        "args": []
-      }
-    },
-    {
-      "id": "fader-accent-2",
-      "target": "avb.MRY",
-      "transform": "REPLACE_INVOKE",
-      "match": {
-        "opcode": "INVOKEVIRTUAL",
-        "target": "eff.eej",
-        "occurrence": 1
-      },
-      "bridge": {
-        "method": "accent2",
-        "descriptor": "(Leff;)LeeY;",
-        "args": []
-      }
-    },
-    {
-      "id": "fader-accent-3",
-      "target": "avb.MRY",
-      "transform": "REPLACE_INVOKE",
-      "match": {
-        "opcode": "INVOKEVIRTUAL",
-        "target": "eff.xL",
-        "occurrence": 1
-      },
-      "bridge": {
-        "method": "accent3",
-        "descriptor": "(Leff;)LeeY;",
+        "method": "themeColour",
+        "descriptor": "(Liok;)Liok;",
         "args": []
       }
     }

@@ -1,64 +1,89 @@
 package com.cimm.mixervca;
 
+import bitwig.obf.dve; // a widget
+import bitwig.obf.iok; // a colour
 import bitwig.obf.xJo; // a track
 import bml.api.Arg;
 import bml.api.At;
 import bml.api.Hook;
-import bml.api.This;
+import bml.api.Return;
 import com.bitwig.flt.document.core.iface.RYd; // a channel
 import java.util.Collections;
 import java.util.Set;
 import java.util.WeakHashMap;
 
 /**
- * A VCA's fader bar is red instead of Bitwig's orange; its dB readout keeps the default colour.
+ * A VCA's fader is red instead of Bitwig's orange; the dB readout keeps its own colour.
  *
- * The mixer builds each channel's volume fader in bDJ.cfM(channel, …) with aoH.tp2() (the fader widget). The fader
- * paints in avb.MRY(SYo), asking its style for the accent colour (eff.eej(), or eff.xL() in another state). So: note
- * the channel while its fader is built, remember the fader widgets built for VCAs, and while one of those paints,
- * answer the style's colour question with red.
+ * The mixer builds each channel's volume section (fader, meter, readout) in bDJ.cfM(channel, …). Which inner widget
+ * paints the bar isn't certain, so the colour is changed where every themed colour is worked out: eeY.cfM(widget)
+ * turns a theme colour into the colour a widget draws with. When that colour is the orange accent (or a shade of it)
+ * and the widget is inside a VCA's volume section, the answer is red, shade kept.
  */
 public final class VcaHooks {
     private VcaHooks() {}
 
-    /** A Bitwig theme colour (eeY) made from a plain red. */
-    static final bitwig.obf.eeY RED = bitwig.obf.eeY.cfM("VCA fader", bitwig.obf.iok.cfM(226, 58, 58));
+    static final iok RED = iok.cfM(226, 58, 58);
 
+    /** The volume sections built for VCA tracks. */
+    private static final Set<dve> vcaSections = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    private static volatile boolean any;
     private static final ThreadLocal<RYd> building = new ThreadLocal<>();
-    private static final Set<Object> vcaFaders = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
-    private static final ThreadLocal<Object> painting = new ThreadLocal<>();
-
-    // ---- building: which faders belong to VCAs ----
 
     @Hook(id = "fader-channel", target = bitwig.obf.bDJ.class,
           method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.ENTRY)
     public static void faderChannel(@Arg(0) RYd channel) { building.set(channel); }
 
-    @Hook(id = "fader-widget", target = bitwig.obf.bDJ.class,
-          method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.REPLACE_CALL,
-          callOwner = bitwig.obf.aoH.class, call = "tp2()LaoH;", occurrence = 1)
-    public static bitwig.obf.aoH faderWidget() {
-        bitwig.obf.aoH fader = bitwig.obf.aoH.tp2();
+    @Hook(id = "fader-section", target = bitwig.obf.bDJ.class,
+          method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.WRAP_RETURN)
+    public static dve faderSection(@Return dve section) {
         RYd ch = building.get();
         building.remove();
-        try { if (ch instanceof xJo t && Vca.members(t) != null) vcaFaders.add(fader); } catch (Throwable ignored) {}
-        return fader;
+        try {
+            if (section != null && ch instanceof xJo t && Vca.members(t) != null) { vcaSections.add(section); any = true; }
+        } catch (Throwable ignored) {}
+        return section;
     }
 
-    // ---- painting: red for those faders ----
+    /** The widgets whose themed colour is being worked out (eeY.cfM can nest: a colour made from another). */
+    private static final ThreadLocal<java.util.ArrayDeque<Object>> asking = ThreadLocal.withInitial(java.util.ArrayDeque::new);
+    private static final Object NONE = new Object();
 
-    @Hook(id = "fader-paint", target = bitwig.obf.avb.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
-    public static void faderPaint(@This bitwig.obf.avb fader) { painting.set(vcaFaders.contains(fader) ? fader : null); }
+    @Hook(id = "theme-colour-widget", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
+    public static void themeColourWidget(@Arg(0) dve widget) {
+        if (!any) return;
+        java.util.ArrayDeque<Object> st = asking.get();
+        if (st.size() > 64) st.clear(); // never let a lost entry pile up
+        st.push(widget == null ? NONE : widget);
+    }
 
-    @Hook(id = "fader-accent-1", target = bitwig.obf.avb.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.REPLACE_CALL,
-          callOwner = bitwig.obf.eff.class, call = "eej()LeeY;", occurrence = 1)
-    public static bitwig.obf.eeY accent1(bitwig.obf.eff style) { return painting.get() != null ? RED : style.eej(); }
+    /** Every themed colour a widget draws with: orange inside a VCA's volume section becomes red. */
+    @Hook(id = "theme-colour", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
+    public static iok themeColour(@Return iok colour) {
+        if (!any) return colour;
+        java.util.ArrayDeque<Object> st = asking.get();
+        Object top = st.poll();
+        if (!(top instanceof dve widget) || colour == null || !orange(colour)) return colour;
+        try {
+            dve w = widget;
+            for (int i = 0; i < 12 && w != null; i++) {
+                if (w instanceof bitwig.obf.dut) return colour;  // a text: the dB readout keeps its own colour
+                if (vcaSections.contains(w)) return redLike(colour);
+                w = w.RbC(); // its parent
+            }
+        } catch (Throwable ignored) {}
+        return colour;
+    }
 
-    @Hook(id = "fader-accent-2", target = bitwig.obf.avb.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.REPLACE_CALL,
-          callOwner = bitwig.obf.eff.class, call = "eej()LeeY;", occurrence = 2)
-    public static bitwig.obf.eeY accent2(bitwig.obf.eff style) { return painting.get() != null ? RED : style.eej(); }
+    /** Bitwig's orange accent and its darker / lighter shades: red clearly highest, then green, little blue. */
+    static boolean orange(iok c) {
+        float r = c.FzB(), g = c.IwV(), b = c.UNj(); // iok: FzB red, IwV green, UNj blue, hUR alpha
+        return r > 0.25f && g > r * 0.35f && g < r * 0.8f && b < r * 0.45f;
+    }
 
-    @Hook(id = "fader-accent-3", target = bitwig.obf.avb.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.REPLACE_CALL,
-          callOwner = bitwig.obf.eff.class, call = "xL()LeeY;", occurrence = 1)
-    public static bitwig.obf.eeY accent3(bitwig.obf.eff style) { return painting.get() != null ? RED : style.xL(); }
+    /** Red at the same brightness and alpha as the orange it replaces. */
+    static iok redLike(iok c) {
+        float k = c.FzB() / (226f / 255f);
+        return new iok(Math.min(1f, RED.FzB() * k), Math.min(1f, RED.IwV() * k), Math.min(1f, RED.UNj() * k), c.hUR());
+    }
 }
