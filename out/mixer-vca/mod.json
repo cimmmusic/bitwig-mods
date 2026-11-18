@@ -24,6 +24,12 @@
       "name": "cfM",
       "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;"
     },
+    "aoH.tp2": {
+      "kind": "method",
+      "owner": "aoH",
+      "name": "tp2",
+      "descriptor": "()LaoH;"
+    },
     "eeY.cfM": {
       "kind": "method",
       "owner": "eeY",
@@ -51,6 +57,21 @@
       "bridge": {
         "method": "faderSection",
         "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "fader-widget",
+      "target": "bDJ.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKESTATIC",
+        "target": "aoH.tp2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "faderWidget",
+        "descriptor": "()LaoH;",
         "args": []
       }
     },

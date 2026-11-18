@@ -57,6 +57,27 @@ public final class VcaHooks {
         return section;
     }
 
+    /** Paint helpers of VCA faders: aoH (the fader) draws its fill through its "inside display" dNN (aoH.E1b()),
+     *  which isn't placed in the widget tree, so it is marked directly when the fader is made. */
+    private static final Set<Object> vcaPainters = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+    @Hook(id = "fader-widget", target = bitwig.obf.bDJ.class,
+          method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.aoH.class, call = "tp2()LaoH;", occurrence = 1)
+    public static bitwig.obf.aoH faderWidget() {
+        bitwig.obf.aoH fader = bitwig.obf.aoH.tp2();
+        try {
+            if (Boolean.TRUE.equals(buildingVca.get())) {
+                vcaPainters.add(fader);
+                Object inside = fader.E1b(); // its inside display: paints the fill
+                if (inside != null) vcaPainters.add(inside);
+                any = true;
+                Vca.MOD.log("VCA fader marked: " + fader.getClass().getName() + " + " + (inside == null ? "no display" : inside.getClass().getName()));
+            }
+        } catch (Throwable t) { Vca.MOD.log("VCA fader mark failed", t); }
+        return fader;
+    }
+
     /** The widgets whose themed colour is being worked out (eeY.cfM can nest: a colour made from another). */
     private static final ThreadLocal<java.util.ArrayDeque<Object>> asking = ThreadLocal.withInitial(java.util.ArrayDeque::new);
     private static final Object NONE = new Object();
@@ -77,6 +98,10 @@ public final class VcaHooks {
         Object top = st.poll();
         if (!(top instanceof dve widget) || colour == null || !orange(colour)) return colour;
         if (widget instanceof bitwig.obf.dut) return colour; // a text (the dB readout) keeps its own colour
+        if (vcaPainters.contains(widget)) {                  // a VCA fader or its inside display
+            if (hitLogs < 10) { hitLogs++; Vca.MOD.log("red for VCA painter " + widget.getClass().getName() + " " + colour); }
+            return redLike(colour);
+        }
         if (buildingVca.get()) { // inside bDJ.cfM for a VCA: its own widgets, being built
             if (hitLogs < 10) { hitLogs++; Vca.MOD.log("red (while building) for " + widget.getClass().getName() + " " + colour); }
             return redLike(colour);
