@@ -9,13 +9,13 @@ import java.util.Locale;
  * and a steeper 4-pole curve —, Listen, a gain-reduction meter, Amount), in the EQ views' language: the frequency
  * grid, an orange curve showing the cut above the frequency (steeper in the 4-pole mode), and one white node:
  * left/right = Frequency, up/down = Amount (down = more). Right-click the node: the mode menu (the choice's own options,
- * as the Filter view). The cut drawn is a guide (Amount's full turn = 12 dB); the device works dynamically, only on
+ * as the Filter view). The cut drawn is a guide (a full Amount reaches the bottom of the view); the device works dynamically, only on
  * the sibilant moments. Parameters are found by name.
  */
 final class DeEsserGraph extends MiniGraph {
     static final iok GRID_MINOR = EqGraph.GRID_MINOR;
-    static final double RANGE = 18;               // dB shown above / below 0
-    static final double MAX_CUT = 12;             // dB drawn for a full Amount
+    static final double RANGE = 12;               // dB shown above / below 0 (zoomed in: the cut reads clearly)
+    static final double MAX_CUT = RANGE;          // a full Amount reaches the bottom of the view
     static final iok CURVE = iok.cfM(240, 140, 60); // the device's orange
 
     final Params.P freq, amount;
@@ -39,16 +39,18 @@ final class DeEsserGraph extends MiniGraph {
     }
     double freqValue(double hz) { return freq.max() > 200 ? hz : 69 + 12 * Math.log(hz / 440) / Math.log(2); }
 
-    /** The cut in dB (positive): a dB amount as its size, a 0…1 amount as up to MAX_CUT. */
-    double cutDb() {
-        if (amount == null) return 6;
-        boolean dB = amount.min() < 0 || amount.max() > 1.0001;
-        return dB ? Math.min(Math.abs(amount.value()), RANGE) : clamp(amount.norm(), 0, 1) * MAX_CUT;
+    /** The cut drawn, dB (positive): the Amount knob's position over the whole view — a full turn reaches the bottom
+     *  (user, 2026-11-18: the change was too small to read). A negative-range amount counts down from its top. */
+    double amountN() {
+        if (amount == null) return 0.5;
+        double n = clamp(amount.norm(), 0, 1);
+        return amount.max() <= 0 && amount.min() < 0 ? 1 - n : n;
     }
+    double cutDb() { return amountN() * MAX_CUT; }
     void setCut(double db, Object undo) {
-        boolean dB = amount.min() < 0 || amount.max() > 1.0001;
-        double v = dB ? (amount.max() <= 0 ? -db : db) : clamp(db / MAX_CUT, 0, 1) * (amount.max() - amount.min()) + amount.min();
-        set(amount, clamp(v, amount.min(), amount.max()), undo, "Change amount");
+        double n = clamp(db / MAX_CUT, 0, 1);
+        if (amount.max() <= 0 && amount.min() < 0) n = 1 - n;
+        set(amount, amount.min() + (amount.max() - amount.min()) * n, undo, "Change amount");
     }
 
     /** The steeper (4-pole) mode: by the option's text ("4"), else the second option. */
@@ -65,8 +67,8 @@ final class DeEsserGraph extends MiniGraph {
 
     double db(double f, double fc, double cut, boolean steep) {
         if (cut <= 0) return 0;
-        if (!steep) return EqGraph.biquadDb(EqGraph.rbj(EqGraph.Kind.HIGH_SHELF, fc, -cut, 0.6), f);
-        return 2 * EqGraph.biquadDb(EqGraph.rbj(EqGraph.Kind.HIGH_SHELF, fc, -cut / 2, 1.1), f); // two sharper halves
+        if (!steep) return EqGraph.biquadDb(EqGraph.rbj(EqGraph.Kind.HIGH_SHELF, fc, -cut, 0.8), f);
+        return 2 * EqGraph.biquadDb(EqGraph.rbj(EqGraph.Kind.HIGH_SHELF, fc, -cut / 2, 1.6), f); // two sharper halves
     }
 
     // ---- geometry (as the EQ views) ----
