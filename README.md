@@ -1,6 +1,6 @@
 # Cimm's Bitwig mods
 
-Mods for Bitwig Studio's interface, loaded with BML (Bitwig Mod Loader) and managed in
+Mods for Bitwig Studio's interface, loaded with BML and managed in
 Patchbay. Built against Bitwig Studio 6.1.4 on macOS.
 
 ## Mods
