@@ -29,11 +29,16 @@ public final class VcaHooks {
     private static final Set<dve> vcaSections = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private static volatile boolean any;
     private static final ThreadLocal<RYd> building = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> buildingVca = ThreadLocal.withInitial(() -> false);
 
     @Hook(id = "fader-channel", target = bitwig.obf.bDJ.class,
           method = "cfM(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;", at = At.ENTRY)
     public static void faderChannel(@Arg(0) RYd channel) {
         building.set(channel);
+        boolean vca = false;
+        try { vca = channel instanceof xJo t && Vca.members(t) != null; } catch (Throwable ignored) {}
+        buildingVca.set(vca);   // Bitwig works out the fader's colours while building it, before it is in the section
+        if (vca) any = true;
         try { if (channel instanceof xJo t) Linker.know(t.cb_()); } catch (Throwable ignored) {} // its project: VCAs link once the mixer shows
     }
     private static int sectionLogs, hitLogs, missLogs;
@@ -43,10 +48,11 @@ public final class VcaHooks {
     public static dve faderSection(@Return dve section) {
         RYd ch = building.get();
         building.remove();
+        buildingVca.set(false);
         try {
             boolean vca = section != null && ch instanceof xJo t && Vca.members(t) != null;
             if (vca) { vcaSections.add(section); any = true; }
-            if (sectionLogs < 12) { sectionLogs++; Vca.MOD.log("fader section for '" + (ch instanceof xJo t ? t.ca_() : String.valueOf(ch)) + "' vca=" + vca + " " + (section == null ? "null" : section.getClass().getName())); }
+            if (vca && sectionLogs < 6) { sectionLogs++; Vca.MOD.log("fader section for '" + (ch instanceof xJo t ? t.ca_() : String.valueOf(ch)) + "' vca=" + vca + " " + (section == null ? "null" : section.getClass().getName())); }
         } catch (Throwable ignored) {}
         return section;
     }
@@ -70,6 +76,11 @@ public final class VcaHooks {
         java.util.ArrayDeque<Object> st = asking.get();
         Object top = st.poll();
         if (!(top instanceof dve widget) || colour == null || !orange(colour)) return colour;
+        if (widget instanceof bitwig.obf.dut) return colour; // a text (the dB readout) keeps its own colour
+        if (buildingVca.get()) { // inside bDJ.cfM for a VCA: its own widgets, being built
+            if (hitLogs < 10) { hitLogs++; Vca.MOD.log("red (while building) for " + widget.getClass().getName() + " " + colour); }
+            return redLike(colour);
+        }
         try {
             dve w = widget;
             for (int i = 0; i < 12 && w != null; i++) {
