@@ -47,7 +47,20 @@ final class Vca {
             names.append(t.ca_());   // displayed name (macOS ca_; Windows cb_)
             ids.append(t.kFU());     // UUID
         }
-        return "VCA fader for: " + names + ". Moving this track's fader moves theirs (Mixer: VCA mod). [mixer-vca members=" + ids + "]";
+        return "VCA: " + names + " [mixer-vca members=" + ids + "]"; // short: the members' names, then the link (their UUIDs)
+    }
+
+    /** Bitwig's default mixer strip width (the track's view settings: JVl "mixer_width", 85). A VCA gets half. */
+    static final int DEFAULT_WIDTH = 85;
+
+    /** The track's mixer strip width: its view settings object (cXR.oQj(), an RBc) — LEd() reads, Hnt(int) sets
+     *  (inside an open undo step, as Bitwig's own set_mixer_channel_widths does). */
+    static void setHalfWidth(xJo track) {
+        try {
+            Object view = Reflect.call(track, "oQj");
+            if (view instanceof bitwig.obf.yel v) v.Hnt(DEFAULT_WIDTH / 2);
+            else MOD.log("VCA: no mixer width settings on the new track");
+        } catch (Throwable t) { MOD.log("VCA: couldn't set the width", t); }
     }
 
     static void create(List<xJo> members) {
@@ -69,6 +82,7 @@ final class Vca {
             vca.d_("VCA " + (count + 1));
             vca.TtY(comment(members));
             parent.cfM((zwV) vca, index);    // zwV: the insert method for main tracks
+            setHalfWidth(vca);
             project.cfM(false);              // close the undo step
             Linker.know(project);
             MOD.log("VCA " + (count + 1) + " created for " + members.size() + " tracks");
