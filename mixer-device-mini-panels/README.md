@@ -72,7 +72,7 @@ Adds a small graphical view under each supported device in the mixer's Devices s
 
 - Shows the transfer curve (hard knee) with a dashed 1:1 line, drawn like Compressor+.
 - Drag the node at the bend for the threshold.
-- Input moves the bend; Output shifts the curve up or down.
+- Follows the device's Input knob (moves the bend) and Output knob (shifts the curve up or down).
 
 <br clear="right">
 
