@@ -15,6 +15,7 @@ VCA faders for Bitwig: one fader that moves a set of channels' faders together, 
 - Each member keeps its own level relative to the VCA: move a member by hand and that becomes its new place.
 - A member pushed to the top or to silence comes back to exactly where it was when the VCA returns.
 - Undo undoes the VCA move, and the members follow it back.
+- The VCA's fader is red, so it stands out from the channels.
 
 ## Notes
 
