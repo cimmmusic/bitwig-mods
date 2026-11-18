@@ -207,6 +207,7 @@ abstract class MiniGraph extends dve {
         try {
             popup.ELS(); // separator
             extraMenu(popup);
+            popup.cfM("Reset Device to Default", (Runnable) () -> Reset.device(device));
             popup.cfM(collapsed ? "Expand Mini View" : "Collapse Mini View", (Runnable) () -> setCollapsed(!collapsed));
         } catch (Throwable t) { MOD.log("menu failed", t); }
     }

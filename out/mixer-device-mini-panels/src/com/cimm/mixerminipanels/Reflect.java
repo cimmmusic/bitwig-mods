@@ -20,9 +20,10 @@ final class Reflect {
         try { return m.invoke(o); } catch (Throwable t) { return null; }
     }
 
+    /** name: the 6.1.4 name; on 6.1.7 it is translated (Names). */
     static Method method(Class<?> c, String name) {
         return CACHE.get(c).computeIfAbsent(name, n -> {
-            Method m = find(c, n);
+            Method m = find(c, Names.method(n));
             if (m != null) try { m.setAccessible(true); } catch (Throwable t) { m = null; }
             return Optional.ofNullable(m);
         }).orElse(null);

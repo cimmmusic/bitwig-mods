@@ -30,13 +30,13 @@ final class ModuleMenu {
         headings = new String[4];
         for (int i = 0; i < 4; i++) {
             try {
-                java.lang.reflect.Field f = bitwig.obf.auG.class.getDeclaredField(LAYOUT_FIELDS[i]);
+                java.lang.reflect.Field f = bitwig.obf.auG.class.getDeclaredField(Names.field("auG", LAYOUT_FIELDS[i]));
                 f.setAccessible(true);
                 layouts[i] = (Object[]) f.get(null);
             } catch (Throwable t) { MOD.log("module menu: layout " + LAYOUT_FIELDS[i] + " failed: " + t); }
         }
         try { // heading of each layout: the module kind whose chooser case is 2..5
-            java.lang.reflect.Field f = bitwig.obf.auI.class.getDeclaredField("cfM");
+            java.lang.reflect.Field f = bitwig.obf.auI.class.getDeclaredField(Names.field("auI", "cfM"));
             f.setAccessible(true);
             int[] cases = (int[]) f.get(null);
             for (bitwig.obf.rQz k : bitwig.obf.rQz.values()) {

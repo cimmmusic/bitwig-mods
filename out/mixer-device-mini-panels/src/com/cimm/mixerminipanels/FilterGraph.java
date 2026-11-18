@@ -31,7 +31,12 @@ final class FilterGraph extends MiniGraph {
         super(device, 110);
         // Filter+ keeps cutoff, resonance and drive inside its swappable modules (CONTENTS/…/MODULES/n), not in its
         // top-level parameters (only PITCH_TRANSPOSE, MIX, AUTO_RELEASE): walk the contents tree.
+        long t0 = System.nanoTime();
         resolve(true);
+        if (!loggedBuild) { loggedBuild = true; MOD.log("Filter+ view built in " + (System.nanoTime() - t0) / 1_000_000 + " ms: " + slots.size()
+                + " module slots, cutoff " + (cutoff != null) + ", drive " + (drive != null) + (Names.V617 ? " (6.1.7 names)" : "")); }
+        // Filter+'s modules finish loading just after the view is built: look again often for the first 3 s.
+        forceUntil = System.currentTimeMillis() + 3000;
         typeId = firstChoice("TYPE", "MODEL", "FILTER");
         modeId = firstChoice("MODE", "RESPONSE", "SHAPE");
         ModuleMenu.init(); // start the module catalogue loading now, so it's ready for the first right-click
@@ -49,6 +54,14 @@ final class FilterGraph extends MiniGraph {
             if (hasCutoff && filterSlot == null) filterSlot = e.getValue();
             else if (shaperSlot == null && id != null && ModuleMenu.layoutOf(id) >= 0 && !hasCutoff
                     && ModuleMenu.layoutOf(id) == ModuleMenu.layoutOf(waveshaperHint())) shaperSlot = e.getValue();
+        }
+        if (shaperSlot == null) { // module catalogue not loaded yet: the other slot with knobs is the waveshaper's
+            for (java.util.Map.Entry<String, Object> e : slots.entrySet()) {
+                if (e.getValue() == filterSlot) continue;
+                boolean knobs = false;
+                for (Params.P p : nested) if (p.id().startsWith(e.getKey() + "/")) { knobs = true; break; }
+                if (knobs) { shaperSlot = e.getValue(); break; }
+            }
         }
         String fp = pathOf(filterSlot), sp = pathOf(shaperSlot);
         cutoff = pickIn(nested, fp, "cutoff", "frequency", "freq");
@@ -82,13 +95,14 @@ final class FilterGraph extends MiniGraph {
     }
 
     private long nextCheck, nextRefresh, forceUntil;
+    private static boolean loggedBuild;
     private double lastSig = Double.NaN;
     /** Every half second (and right after our own swaps): re-resolve when a slot's module changed; repaint on value changes. */
     @Override void tick() {
         long now = System.currentTimeMillis();
         if (now >= nextCheck) {
             nextCheck = now + (now < forceUntil ? 150 : 500);
-            boolean stale = now < forceUntil || now >= nextRefresh
+            boolean stale = (now < forceUntil && (cutoff == null || drive == null || filterModule == null)) || now >= nextRefresh
                     || !java.util.Objects.equals(ModuleMenu.current(filterSlot), filterModule)
                     || !java.util.Objects.equals(ModuleMenu.current(shaperSlot), shaperModule);
             if (stale) { resolve(false); nextRefresh = now + 3000; } // module swaps made in the device panel: picked up within 3 s
@@ -153,6 +167,9 @@ final class FilterGraph extends MiniGraph {
     static final String[] SUB_CONTENTS = {"puu", "QOl"};
 
     /** Ids followed on the way down to Filter+'s module slots (focused walk); numbered and unnamed items are followed too. */
+    /** The module slot's class (rSf on 6.1.4, ZFS on 6.1.7). */
+    static final String SLOT_CLASS = Names.cls("rSf");
+
     static final java.util.Set<String> PATH_IDS = java.util.Set.of("CONTENTS", "POLY", "MODULES");
 
     static void walk(Object o, String path, int depth, java.util.List<Params.P> out, java.util.Set<Object> seen, boolean focused,
@@ -162,7 +179,7 @@ final class FilterGraph extends MiniGraph {
         if (focused && !inSlot && depth > 0 && !id.isEmpty() && !PATH_IDS.contains(id) && !isNumber(id)) return; // prune named side branches (Pre/Post FX chains, ports…)
         String here = path.isEmpty() ? id : (id.isEmpty() ? path : path + "/" + id);
         if (o instanceof bitwig.obf.hSh h) { out.add(new Params.P(here, str(getter(o, "aF_", String.class)), h)); return; }
-        boolean slot = o.getClass().getSimpleName().equals("rSf");
+        boolean slot = o.getClass().getSimpleName().equals(SLOT_CLASS);
         if (slot) slots.put(here, o); // a module slot
         if (o instanceof bitwig.obf.v3U) { choices.put(here, o); return; } // other parameter kinds (choices, switches): leaves
         for (String m : CHILD_LISTS) {
@@ -195,7 +212,7 @@ final class FilterGraph extends MiniGraph {
     static Object getter(Object o, String name, Class<?>... types) {
         try {
             java.lang.reflect.Method m = METHODS.get(o.getClass()).computeIfAbsent(name, k -> {
-                try { java.lang.reflect.Method x = o.getClass().getMethod(k); x.setAccessible(true); return java.util.Optional.of(x); }
+                try { java.lang.reflect.Method x = o.getClass().getMethod(Names.method(k)); x.setAccessible(true); return java.util.Optional.of(x); }
                 catch (Throwable t) { return java.util.Optional.empty(); }
             }).orElse(null);
             if (m == null) return null;

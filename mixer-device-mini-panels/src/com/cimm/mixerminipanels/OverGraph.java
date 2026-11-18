@@ -14,7 +14,9 @@ import bitwig.obf.jsd; // a device
  *
  * The level is the channel's own meter (the one Bitwig's controller API reads for VU meters): device.wYK() is the
  * channel, its mixer module MIO() → meter E3() → one tft per audio channel (IwV / cfM: peak / RMS, linear), observed
- * with a listener while the view is on screen. It is the channel's output, i.e. after Over (and anything after it).
+ * with a listener while the view is on screen. That meter is POST-fader, so the channel's fader gain (RYd.MIO().UNj(),
+ * value = cube root of amplitude, dB = 60·log10) is taken back out: the view shows the level after the device chain
+ * and before the fader — Over's output when Over is the last device — and doesn't move when the fader (or a VCA) does.
  */
 final class OverGraph extends MiniGraph {
     static final iok FIELD = iok.cfM(46, 46, 48);
@@ -111,15 +113,30 @@ final class OverGraph extends MiniGraph {
     @Override public void iA_() { super.iA_(); listen(true); }
     @Override public void iz_() { listen(false); super.iz_(); }
 
-    /** The channel's level now, dB (loudest audio channel's peak). */
+    /** The channel's level now, dB (loudest audio channel's peak), with the fader's gain taken back out. */
     private double levelDb() {
         double a = 0;
         for (Object o : channels()) {
             if (!(o instanceof bitwig.obf.xSo c)) continue;
             try { a = Math.max(a, Math.max(c.IwV(), c.cfM())); } catch (Throwable ignored) {}
         }
-        return a <= 1e-6 ? LO : 20 * Math.log10(a);
+        if (a <= 1e-6) return LO;
+        double fader = faderDb();
+        return Double.isNaN(fader) ? 20 * Math.log10(a) : 20 * Math.log10(a) - fader;
     }
+
+    /** The channel fader, dB (NaN when unknown, or at −∞ where nothing can be recovered). */
+    private double faderDb() {
+        try {
+            if (device.wYK() instanceof com.bitwig.flt.document.core.iface.RYd ch && ch.MIO() != null
+                    && ch.MIO().UNj() instanceof bitwig.obf.hSh h) {
+                double v = h.iCS();
+                if (v > 1e-4) return 60 * Math.log10(v);
+            }
+        } catch (Throwable t) { if (!loggedFader) { loggedFader = true; MOD.log("Over: no channel fader", t); } }
+        return Double.NaN;
+    }
+    private boolean loggedFader;
 
     @Override void tick() {
         if (!listening) listen(true);

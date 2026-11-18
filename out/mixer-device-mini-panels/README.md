@@ -14,6 +14,7 @@ Adds a small graphical view under each supported device in the mixer's Devices s
 - Modulation shows as a see-through "ghost" of the curve and nodes that follows it live. The solid curve and nodes stay at the knob's own value.
 - In the EQ and filter views the 0 dB centre line is sticky: it catches a node and only lets go when you pull it clearly away.
 - Right-click a view for Collapse Mini View. A collapsed view becomes a thin bar; click it to open it again.
+- Right-click a view (away from its nodes) for Reset Device to Default: every knob, choice and switch of the device goes back to its default.
 - Right-click a device for Mini View in Mixer / Track Inspector: Collapse or Expand.
 - Devices renamed by a preset are still recognised for most views.
 
