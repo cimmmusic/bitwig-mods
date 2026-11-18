@@ -14,22 +14,12 @@ final class HueOverlay {
 
     static final iok RED = iok.cfM(226, 40, 40);
 
-    static void tint(dve section, com.bitwig.graphics.SYo g) {
-        double w = section.Sxo(), h = section.yiX();
+    /** Tints the fader area below its readout box. */
+    static void tint(dve area, dve readout, com.bitwig.graphics.SYo g) {
+        double w = area.Sxo(), h = area.yiX();
         double top = 0;
-        try { // below the readout: the lowest text widget in the top third of the section
-            com.bitwig.base.geom.OLR me = section.ihs();
-            if (me != null) {
-                java.util.Iterator<?> it = section.lYc(bitwig.obf.dut.class).iterator();
-                while (it.hasNext()) {
-                    if (!(it.next() instanceof dve t)) continue;
-                    com.bitwig.base.geom.OLR p = t.ihs();
-                    if (p == null) continue;
-                    double y = p.hUR() - me.hUR(), bottom = y + t.yiX();
-                    if (y < h / 3 && bottom > top) top = bottom;
-                }
-            }
-        } catch (Throwable ignored) {}
+        com.bitwig.base.geom.OLR a = area.ihs(), r = readout.ihs();
+        if (a != null && r != null) top = Math.max(0, r.hUR() - a.hUR() + readout.yiX()); // below the readout
         if (top >= h) return;
         g.qoU();                                  // save (operator included)
         try {

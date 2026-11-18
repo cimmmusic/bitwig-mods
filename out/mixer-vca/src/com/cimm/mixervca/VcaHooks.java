@@ -49,14 +49,36 @@ public final class VcaHooks {
      * a VCA section has painted its children (the fader's fill and line), the red hue goes over them — the section keeps
      * its own size and place.
      */
+    /** The fader areas to tint (each the readout box's nearest ancestor that also holds the fill), with that readout. */
+    private static final java.util.Map<dve, dve> targets = new java.util.WeakHashMap<>();
+
     @Hook(id = "paint-children", target = dve.class, method = "Hnt(Lcom/bitwig/graphics/SYo;)V", at = At.REPLACE_CALL,
           callOwner = dve.class, call = "b_(Lcom/bitwig/graphics/SYo;)V", occurrence = 1)
     public static void paintChildren(dve widget, com.bitwig.graphics.SYo g) {
         widget.b_(g);
-        if (!any || !sections.containsKey(widget)) return;
+        if (!any) return;
         try {
-            HueOverlay.tint(widget, g);
-            if (!logged) { logged = true; Vca.MOD.log("VCA fader tinted: " + widget.Sxo() + "x" + widget.yiX()); }
+            if (sections.containsKey(widget)) { findArea(widget); return; } // the readout box: find the fader area above it
+            dve readout = targets.get(widget);
+            if (readout != null) HueOverlay.tint(widget, readout, g);
         } catch (Throwable t) { if (!logged) { logged = true; Vca.MOD.log("VCA tint failed", t); } }
+    }
+
+    /** The readout box's nearest ancestor at least twice as tall and not much wider: the whole fader. */
+    private static void findArea(dve readout) {
+        if (targets.containsValue(readout)) return;
+        double w = readout.Sxo(), h = readout.yiX();
+        StringBuilder sb = new StringBuilder("VCA fader: readout " + w + "x" + h + "; up:");
+        dve p = readout.RbC();
+        for (int i = 0; i < 6 && p != null; i++, p = p.RbC()) {
+            sb.append(' ').append(p.getClass().getSimpleName()).append(' ').append(p.Sxo()).append('x').append(p.yiX());
+            if (p.yiX() >= h * 2 && p.Sxo() <= w * 1.6) {
+                targets.put(p, readout);
+                sb.append(" <- tinted");
+                p.jbi(); // repaint it
+                break;
+            }
+        }
+        if (!logged) { logged = true; Vca.MOD.log(sb.toString()); }
     }
 }
