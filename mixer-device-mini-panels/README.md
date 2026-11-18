@@ -4,6 +4,15 @@
 
 Give your mixer X-ray vision. Device Mini Panels puts a tiny picture of **16 devices** right under their names in the mixer: EQ curves, compressor knees, filter slopes, saturation, transients and even a swinging VU needle. Spot what every channel is doing at a glance, then grab a dot and drag to shape the sound, without opening a single device window.
 
+## The 16 devices
+
+- **EQ:** EQ+, EQ-5, EQ-2
+- **Filters:** Filter+, Filter, De-Esser
+- **Dynamics:** Compressor+, Compressor, Dynamics, Gate, Peak Limiter, Transient Control
+- **Colour:** Saturator, Over
+- **Utility:** Tool
+- **Meter:** VU Meter (needs the VU Meter Nitro device installed)
+
 ## Getting started
 
 - Turn on the mixer's Devices section (the section toggles at the bottom of the mixer).
