@@ -1,0 +1,255 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "mixer-vca",
+    "name": "Mixer: VCA",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "VCA channels in the mixer: a VCA fader moves its member channels' faders together, with mute and solo for the whole group.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.mixervca.VcaHooks"
+  },
+  "targets": {
+    "bDq.cfM": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "cfM",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.IwV": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "IwV",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.UNj": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "UNj",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.hUR": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "hUR",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.TMF": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "TMF",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.fJR": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "fJR",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.Hnt": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "Hnt",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.iHb": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "iHb",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.nVd": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "nVd",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.MRY": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "MRY",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.wGc": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "wGc",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.TtY": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "TtY",
+      "descriptor": "()Ldve;"
+    },
+    "bDq.eLY": {
+      "kind": "method",
+      "owner": "bDq",
+      "name": "eLY",
+      "descriptor": "()Ldve;"
+    },
+    "dve.init": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dve.iG_": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "iG_",
+      "descriptor": "()Lcom/bitwig/base/geom/SYo;"
+    }
+  },
+  "hooks": [
+    {
+      "id": "master-cfM",
+      "target": "bDq.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_cfM",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-IwV",
+      "target": "bDq.IwV",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_IwV",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-UNj",
+      "target": "bDq.UNj",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_UNj",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-hUR",
+      "target": "bDq.hUR",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_hUR",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-TMF",
+      "target": "bDq.TMF",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_TMF",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-fJR",
+      "target": "bDq.fJR",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_fJR",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-Hnt",
+      "target": "bDq.Hnt",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_Hnt",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-iHb",
+      "target": "bDq.iHb",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_iHb",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-nVd",
+      "target": "bDq.nVd",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_nVd",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-MRY",
+      "target": "bDq.MRY",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_MRY",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-wGc",
+      "target": "bDq.wGc",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_wGc",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-TtY",
+      "target": "bDq.TtY",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_TtY",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    },
+    {
+      "id": "master-eLY",
+      "target": "bDq.eLY",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "master_eLY",
+        "descriptor": "(Ldve;)Ldve;",
+        "args": []
+      }
+    }
+  ],
+  "opens": [
+    "dve.iG_",
+    "dve.init"
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  }
+}
