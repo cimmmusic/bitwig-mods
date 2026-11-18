@@ -20,22 +20,61 @@ Adds a small graphical view under each supported device in the mixer's Devices s
 - Right-click a device for Mini View in Mixer / Track Inspector: Collapse or Expand.
 - Devices renamed by a preset are still recognised for most views.
 
-## EQ+, EQ-5, EQ-2
+## EQ+
 
-<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/eq-plus.png" width="168" alt="EQ+ mini view"> <img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/eq-5.png" width="168" alt="EQ-5 mini view"> <img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/eq-2.png" width="168" alt="EQ-2 mini view">
+<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/eq-plus.png" width="168" align="right" alt="EQ+ mini view">
 
-- Shows the frequency response with one node per band.
-- Drag a node for frequency and gain.
+- Shows the frequency response with one node per band (up to 8 bands), in EQ+'s rainbow curve.
+- Drag a node for frequency and gain (cuts and notches: frequency and Q).
 - Click empty space to add a band; double-click a node to remove it.
 - Scroll or middle-drag over a node for Q.
 - Right-click a node for its band type.
 
-## Compressor+, Compressor
+<br clear="right">
 
-<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/compressor-plus.png" width="168" alt="Compressor+ mini view"> <img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/compressor.png" width="168" alt="Compressor mini view">
+## EQ-5
 
-- Shows the transfer curve with a dashed 1:1 line.
-- Drag the threshold and knee nodes.
+<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/eq-5.png" width="168" align="right" alt="EQ-5 mini view">
+
+- Shows the frequency response with one node per band (up to 5 bands). Global Amount scales what's drawn.
+- Drag a node for frequency and gain (cuts and notches: frequency and Q).
+- Click empty space to add a band; double-click a node to remove it.
+- Scroll or middle-drag over a node for Q.
+- Right-click a node for its band type.
+
+<br clear="right">
+
+## EQ-2
+
+<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/eq-2.png" width="168" align="right" alt="EQ-2 mini view">
+
+- Shows the frequency response with a node for the low and the high band.
+- Drag a node for frequency and gain (cuts and notches: frequency and Q).
+- Click empty space to add a band; double-click a node to remove it.
+- Scroll or middle-drag over a node for Q.
+- Right-click a node for its band type.
+
+<br clear="right">
+
+## Compressor+
+
+<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/compressor-plus.png" width="168" align="right" alt="Compressor+ mini view">
+
+- Shows the transfer curve with its soft knee and a dashed 1:1 line.
+- Drag the node at the bend for the threshold.
+- Drag the knee node right/up to widen the knee, left/down to narrow it.
+
+<br clear="right">
+
+## Compressor
+
+<img src="https://raw.githubusercontent.com/cimmmusic/bitwig-mods/main/images/mini-views/compressor.png" width="168" align="right" alt="Compressor mini view">
+
+- Shows the transfer curve (hard knee) with a dashed 1:1 line, drawn like Compressor+.
+- Drag the node at the bend for the threshold.
+- Input moves the bend; Output shifts the curve up or down.
+
+<br clear="right">
 
 ## Dynamics
 
