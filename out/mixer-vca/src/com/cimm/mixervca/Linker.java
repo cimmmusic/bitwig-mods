@@ -51,6 +51,17 @@ final class Linker {
     private static volatile boolean queued;
     private static boolean started, loggedScan = true; // the application-list scan finds no projects (library metadata): projects come from the mixer and the menu
     private static long nextScan;
+    /** VCAs whose old half width has been checked this session (UI thread). */
+    private static final Set<xJo> widthChecked = Collections.newSetFromMap(new WeakHashMap<>());
+
+    /** Whether the track is a linked VCA right now (UI thread). */
+    static boolean isVca(xJo track) { return links.containsKey(track); }
+
+    /** Whether the parameter is a linked VCA's volume (UI thread). */
+    static boolean isVcaVolume(Object param) {
+        for (Link l : links.values()) if (l.vol == param) return true;
+        return false;
+    }
 
     static synchronized void start() {
         if (started) return;
@@ -128,7 +139,7 @@ final class Linker {
                 hSh vol = volume(t);
                 if (vol == null) continue;
                 Link l = links.get(t);
-                if (l == null) l = new Link(t, vol);
+                if (l == null) { l = new Link(t, vol); if (widthChecked.add(t)) Vca.restoreWidth(t); }
                 Map<xJo, Member> keep = new IdentityHashMap<>();
                 for (UUID id : ids) {
                     xJo m = byId.get(id);
@@ -146,6 +157,7 @@ final class Linker {
         if (next.size() != links.size()) Vca.MOD.log("VCA: " + next.size() + " VCA(s) linked");
         links.clear();
         links.putAll(next);
+        try { VcaHooks.refreshSliders(); } catch (Throwable t) { Vca.MOD.log("VCA slider refresh failed", t); }
     }
 
     // ---- following ----

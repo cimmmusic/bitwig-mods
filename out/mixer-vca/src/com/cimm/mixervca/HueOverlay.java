@@ -29,4 +29,16 @@ final class HueOverlay {
             g.MRY(0, top, w, h - top); g.wGc();
         } finally { g.ucQ(); }                    // restore
     }
+
+    /** Tints one rectangle (the arrange view's volume slider, painted from its parent). */
+    static void tintRect(com.bitwig.graphics.SYo g, double x, double y, double w, double h) {
+        if (w <= 0 || h <= 0) return;
+        g.qoU();
+        try {
+            g.MRY(x, y, w, h); g.lYc();
+            g.cfM(com.bitwig.graphics.IOJ.ODA);   // HSL_HUE
+            g.Hnt(RED);
+            g.MRY(x, y, w, h); g.wGc();
+        } finally { g.ucQ(); }
+    }
 }

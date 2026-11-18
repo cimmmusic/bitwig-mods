@@ -35,6 +35,18 @@
       "owner": "dve",
       "name": "b_",
       "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "aqu.cfM": {
+      "kind": "method",
+      "owner": "aqu",
+      "name": "cfM",
+      "descriptor": "(LhSh;Lljb;ZLcom/bitwig/flt/document/core/iface/RYd;)Laqu;"
+    },
+    "aot.Hnt": {
+      "kind": "method",
+      "owner": "aot",
+      "name": "Hnt",
+      "descriptor": "(LuN3;)V"
     }
   },
   "hooks": [
@@ -73,6 +85,41 @@
         "method": "paintChildren",
         "descriptor": "(Ldve;Lcom/bitwig/graphics/SYo;)V",
         "args": []
+      }
+    },
+    {
+      "id": "arrange-fader-channel",
+      "target": "aqu.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "arrangeFaderChannel",
+        "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;)V",
+        "args": [
+          "arg3"
+        ]
+      }
+    },
+    {
+      "id": "arrange-fader",
+      "target": "aqu.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "arrangeFader",
+        "descriptor": "(Laqu;)Laqu;",
+        "args": []
+      }
+    },
+    {
+      "id": "slider-bind",
+      "target": "aot.Hnt",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "sliderBind",
+        "descriptor": "(Laot;Ljava/lang/Object;)V",
+        "args": [
+          "this",
+          "arg1"
+        ]
       }
     }
   ],

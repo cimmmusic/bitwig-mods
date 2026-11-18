@@ -50,17 +50,23 @@ final class Vca {
         return "VCA: " + names + " [mixer-vca members=" + ids + "]"; // short: the members' names, then the link (their UUIDs)
     }
 
-    /** Bitwig's default mixer strip width (the track's view settings: JVl "mixer_width", 85). A VCA gets half. */
-    static final int DEFAULT_WIDTH = 85;
+    /** Bitwig's default mixer strip width (the track's view settings: JVl "mixer_width", 85). VCAs are default width
+     *  now; earlier versions made them half (42), which {@link #restoreWidth} undoes. */
+    static final int DEFAULT_WIDTH = 85, OLD_HALF_WIDTH = DEFAULT_WIDTH / 2;
 
-    /** The track's mixer strip width: its view settings object (cXR.oQj(), an RBc) — LEd() reads, Hnt(int) sets
-     *  (inside an open undo step, as Bitwig's own set_mixer_channel_widths does). */
-    static void setHalfWidth(xJo track) {
+    /** A VCA left at the old half width goes back to the default. The track's mixer strip width is its view settings
+     *  object (cXR.oQj(), an RBc): LEd() reads, Hnt(int) sets inside an open undo step. True if it changed. */
+    static boolean restoreWidth(xJo track) {
         try {
             Object view = Reflect.call(track, "oQj");
-            if (view instanceof bitwig.obf.yel v) v.Hnt(DEFAULT_WIDTH / 2);
-            else MOD.log("VCA: no mixer width settings on the new track");
-        } catch (Throwable t) { MOD.log("VCA: couldn't set the width", t); }
+            if (!(view instanceof bitwig.obf.yel v) || v.LEd() != OLD_HALF_WIDTH) return false;
+            g2L project = track.cb_();
+            if (project == null) return false;
+            project.cfM("VCA: default width", false); // open one undo step
+            try { v.Hnt(DEFAULT_WIDTH); } finally { project.cfM(false); }
+            MOD.log("VCA '" + track.ca_() + "': mixer width back to the default");
+            return true;
+        } catch (Throwable t) { MOD.log("VCA: couldn't restore the width", t); return false; }
     }
 
     static void create(List<xJo> members) {
@@ -82,7 +88,6 @@ final class Vca {
             vca.d_("VCA " + (count + 1));
             vca.TtY(comment(members));
             parent.cfM((zwV) vca, index);    // zwV: the insert method for main tracks
-            setHalfWidth(vca);
             project.cfM(false);              // close the undo step
             Linker.know(project);
             MOD.log("VCA " + (count + 1) + " created for " + members.size() + " tracks");

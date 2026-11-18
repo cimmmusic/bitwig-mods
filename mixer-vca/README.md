@@ -6,7 +6,7 @@ VCA faders for Bitwig: one fader that moves a set of channels' faders together, 
 
 - Select the tracks, right-click one of them and choose Group as VCA.
 - A new track named VCA 1 (2, 3 …) appears after them, in a lighter grey. It carries no audio.
-- It is half the width of a normal mixer strip.
+- It is a normal-width mixer strip (VCAs made by earlier versions at half width go back to the default when the project opens).
 - Its comment reads "VCA: " and the member names, followed by a tag with their IDs: that is the link, saved with the project. Leave the tag in place.
 
 ## Using it
@@ -15,7 +15,7 @@ VCA faders for Bitwig: one fader that moves a set of channels' faders together, 
 - Each member keeps its own level relative to the VCA: move a member by hand and that becomes its new place.
 - A member pushed to the top or to silence comes back to exactly where it was when the VCA returns.
 - Undo undoes the VCA move, and the members follow it back.
-- The VCA's fader is red, so it stands out from the channels.
+- The VCA's fader is red, so it stands out from the channels — in the mixer and in the arrange view's track header.
 
 ## Notes
 
