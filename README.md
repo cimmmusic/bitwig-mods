@@ -14,4 +14,15 @@ against 6.1.4 and Patchbay adapts them to the installed version when they load.
 
 All downloads: [Releases](https://github.com/cimmmusic/bitwig-mods/releases/tag/downloads).
 
+## Mini views
+
+What [Mixer: Device Mini Panels](https://github.com/cimmmusic/bitwig-mods/tree/perf/mixer-device-mini-panels) shows under each device in the mixer. Drag the dots to adjust the device.
+
+<table>
+  <tr><td><img src="images/mini-views/eq-plus.png" width="168" alt="EQ+ mini view"></td><td><img src="images/mini-views/eq-2.png" width="168" alt="EQ-2 mini view"></td><td><img src="images/mini-views/eq-5.png" width="168" alt="EQ-5 mini view"></td><td><img src="images/mini-views/filter-plus.png" width="168" alt="Filter+ mini view"></td></tr>
+  <tr><td><img src="images/mini-views/filter.png" width="168" alt="Filter mini view"></td><td><img src="images/mini-views/compressor-plus.png" width="168" alt="Compressor+ mini view"></td><td><img src="images/mini-views/compressor.png" width="168" alt="Compressor mini view"></td><td><img src="images/mini-views/peak-limiter.png" width="168" alt="Peak Limiter mini view"></td></tr>
+  <tr><td><img src="images/mini-views/dynamics.png" width="168" alt="Dynamics mini view"></td><td><img src="images/mini-views/gate.png" width="168" alt="Gate mini view"></td><td><img src="images/mini-views/de-esser.png" width="168" alt="De-Esser mini view"></td><td><img src="images/mini-views/transient-control.png" width="168" alt="Transient Control mini view"></td></tr>
+  <tr><td><img src="images/mini-views/saturator.png" width="168" alt="Saturator mini view"></td><td><img src="images/mini-views/over.png" width="168" alt="Over mini view"></td><td><img src="images/mini-views/tool.png" width="168" alt="Tool mini view"></td><td><img src="images/mini-views/vu-meter.png" width="168" alt="VU Meter mini view"></td></tr>
+</table>
+
 Native devices live in [bitwig-devices](https://github.com/cimmmusic/bitwig-devices).
