@@ -24,11 +24,29 @@
       "name": "cfM",
       "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;"
     },
-    "duY.Hnt": {
+    "aoH.tp2": {
       "kind": "method",
-      "owner": "duY",
-      "name": "Hnt",
-      "descriptor": "(Lejt;)V"
+      "owner": "aoH",
+      "name": "tp2",
+      "descriptor": "()LaoH;"
+    },
+    "avb.MRY": {
+      "kind": "method",
+      "owner": "avb",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "eff.eej": {
+      "kind": "method",
+      "owner": "eff",
+      "name": "eej",
+      "descriptor": "()LeeY;"
+    },
+    "eff.xL": {
+      "kind": "method",
+      "owner": "eff",
+      "name": "xL",
+      "descriptor": "()LeeY;"
     }
   },
   "hooks": [
@@ -45,17 +63,74 @@
       }
     },
     {
-      "id": "fader-colour",
+      "id": "fader-widget",
       "target": "bDJ.cfM",
       "transform": "REPLACE_INVOKE",
       "match": {
-        "opcode": "INVOKEVIRTUAL",
-        "target": "duY.Hnt",
+        "opcode": "INVOKESTATIC",
+        "target": "aoH.tp2",
         "occurrence": 1
       },
       "bridge": {
-        "method": "faderColour",
-        "descriptor": "(LduY;Lejt;)V",
+        "method": "faderWidget",
+        "descriptor": "()LaoH;",
+        "args": []
+      }
+    },
+    {
+      "id": "fader-paint",
+      "target": "avb.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "faderPaint",
+        "descriptor": "(Lavb;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "fader-accent-1",
+      "target": "avb.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eff.eej",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "accent1",
+        "descriptor": "(Leff;)LeeY;",
+        "args": []
+      }
+    },
+    {
+      "id": "fader-accent-2",
+      "target": "avb.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eff.eej",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "accent2",
+        "descriptor": "(Leff;)LeeY;",
+        "args": []
+      }
+    },
+    {
+      "id": "fader-accent-3",
+      "target": "avb.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eff.xL",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "accent3",
+        "descriptor": "(Leff;)LeeY;",
         "args": []
       }
     }
