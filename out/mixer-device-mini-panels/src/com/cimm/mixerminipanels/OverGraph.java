@@ -5,8 +5,9 @@ import bitwig.obf.jsd; // a device
 
 /**
  * Mini view for Bitwig's "Over", after the user's mockup (2026-11-17): one yellow line — Over's Clip level — over a
- * scrolling waveform of the channel's level. Drag the line up / down to set Clip. Peaks that reach the line are drawn
- * brighter (that's where Over is clipping).
+ * scrolling waveform. Drag the line up / down to set Clip. As Over's own display (user's video, 2026-11-17): the
+ * post-clip waveform is capped at the line — nothing crosses it — and the pre-clip waveform shows faint behind it
+ * (pre-clip source still to be found: logged "Over internals:").
  *
  * Over (Bitwig 6.1.4, mod log): CLIP dB −24…+6 (the big knob), GAIN dB ±24, KNEE 0…0.49, MB_TILT ±1, MB_MIX, MIX,
  * PCM_THRESHOLD dB −6…+6 (the separate PCM clipper), choices DELTA, MAKEUP, PCM_CLIPPING.
@@ -20,9 +21,9 @@ final class OverGraph extends MiniGraph {
     static final iok GRIDC = iok.cfM(62, 62, 66);
     static final iok WAVE = iok.cfM(220, 80, 92);        // red line
     static final iok WAVE_FILL = iok.cfM(88, 46, 54);    // dark red fill
-    static final iok HOT = iok.cfM(255, 150, 150);       // peaks at the line: clipping
+    static final iok PRE_FILL = iok.cfM(70, 30, 38);     // pre-clip: faint dark red
     static final iok LINE = iok.cfM(240, 190, 70);       // Over's yellow
-    static final double LO = -42, HI = 6;                // dB shown
+    static final double LO = -26, HI = 6.5;              // dB shown: Clip's range (−24…+6) fills the height, as Over's display
     static final int HISTORY = 240;                      // samples kept (~4 s at the poll rate)
 
     final Params.P clip;
@@ -38,6 +39,44 @@ final class OverGraph extends MiniGraph {
         for (Params.P p : params.all) if (p.id().equalsIgnoreCase("CONTENTS/CLIP")) c = p;
         clip = c != null ? c : params.findAny("clip");
         java.util.Arrays.fill(hist, LO);
+        java.util.Arrays.fill(pre, Double.NaN);
+        dumpOnce(device);
+    }
+
+    /** The level going INTO Over (its display's faint waveform): not found yet, so NaN; the log dump below is to find it. */
+    private final double[] pre = new double[HISTORY];
+    private static boolean dumped;
+
+    /** Once: Over's second ID list (Guv) and its contents tree's first levels, to find where its display's data lives. */
+    private static void dumpOnce(jsd device) {
+        if (dumped) return;
+        dumped = true;
+        StringBuilder sb = new StringBuilder("Over internals:\n");
+        try {
+            String[] ids = device.Guv();
+            if (ids != null) for (String id : ids) {
+                Object v = null;
+                try { v = device.MRY(id); } catch (Throwable ignored) {}
+                sb.append("  Guv ").append(id).append(" -> ").append(v == null ? "null" : v.getClass().getName()).append("\n");
+            }
+        } catch (Throwable t) { sb.append("  Guv failed ").append(t).append("\n"); }
+        try { tree(Reflect.call(device, "puu"), 1, sb, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>())); }
+        catch (Throwable t) { sb.append("  tree failed ").append(t).append("\n"); }
+        MOD.log(sb.toString());
+    }
+
+    private static void tree(Object o, int depth, StringBuilder sb, java.util.Set<Object> seen) {
+        if (o == null || depth > 4 || !seen.add(o) || sb.length() > 30000) return;
+        String id = FilterGraph.str(FilterGraph.getter(o, "ax_", String.class)), nm = FilterGraph.str(FilterGraph.getter(o, "aF_", String.class));
+        sb.append("  ".repeat(depth)).append(o.getClass().getName()).append(" '").append(id).append("' ").append(nm);
+        if (o instanceof bitwig.obf.hSh h) { try { sb.append(" = ").append(h.iCS()); } catch (Throwable ignored) {} }
+        sb.append("\n");
+        if (o instanceof bitwig.obf.v3U) return;
+        for (String m : FilterGraph.CHILD_LISTS) {
+            Object r = FilterGraph.getter(o, m, java.util.List.class, java.util.stream.Stream.class);
+            java.util.List<?> items = r instanceof java.util.List<?> l ? new java.util.ArrayList<>(l) : r instanceof java.util.stream.Stream<?> st ? st.limit(100).toList() : null;
+            if (items != null) for (Object c : items) tree(c, depth + 1, sb, seen);
+        }
     }
 
 
@@ -85,6 +124,7 @@ final class OverGraph extends MiniGraph {
     @Override void tick() {
         if (!listening) listen(true);
         hist[head] = clamp(levelDb(), LO, HI + 6);
+        pre[head] = Double.NaN; // no pre-clip source yet
         head = (head + 1) % HISTORY;
         jbi(); // scrolls: repaint every tick
     }
@@ -103,20 +143,26 @@ final class OverGraph extends MiniGraph {
             for (int i = 1; i < 10; i++) { double x = Math.floor(w * i / 10) + 0.5; g.MRY(x, 0); g.cfM(x, h); g.hbP(); }
             for (int i = 1; i < 5; i++) { double y = Math.floor(h * i / 5) + 0.5; g.MRY(0, y); g.cfM(w, y); g.hbP(); }
 
-            // the waveform: newest at the right
+            // newest at the right; post-clip capped at the line (nothing crosses it), pre-clip faint behind
             int n = HISTORY;
-            double step = w / (n - 1);
+            double step = w / (n - 1), c = clipDb();
             g.qoU(); g.MRY(0, 0, w, h); g.lYc();
-            col(g, WAVE_FILL);                                           // fill under the line
+            col(g, PRE_FILL);                                            // pre: the full signal, faint
             for (int i = 0; i < n - 1; i++) {
-                double y = py(hist[(head + i) % n], h);
+                double d = pre[(head + i) % n];
+                if (Double.isNaN(d)) continue;
+                double y = py(d, h);
                 g.MRY(i * step, y, step + 0.6, h - y); g.wGc();
             }
-            g.IwV(1.6);
-            double c = clipDb();
+            col(g, WAVE_FILL);                                           // post: capped at the line
+            for (int i = 0; i < n - 1; i++) {
+                double y = py(Math.min(hist[(head + i) % n], c), h);
+                g.MRY(i * step, y, step + 0.6, h - y); g.wGc();
+            }
+            g.IwV(1.4);
+            col(g, WAVE);
             for (int i = 1; i < n; i++) {
-                double d0 = hist[(head + i - 1) % n], d1 = hist[(head + i) % n];
-                col(g, Math.max(d0, d1) >= c - 0.2 ? HOT : WAVE);        // at the line: clipping
+                double d0 = Math.min(hist[(head + i - 1) % n], c), d1 = Math.min(hist[(head + i) % n], c);
                 g.MRY((i - 1) * step, py(d0, h)); g.cfM(i * step, py(d1, h)); g.hbP();
             }
             g.ucQ();
