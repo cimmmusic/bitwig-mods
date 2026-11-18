@@ -34,11 +34,29 @@ public final class VcaHooks {
         RYd ch = building.get();
         building.remove();
         try {
-            if (section != null && ch instanceof xJo t && Vca.members(t) != null) {
-                Vca.MOD.log("VCA red overlay on '" + t.ca_() + "'");
-                return bitwig.obf.dVK.cfM(new dve[] {section, new HueOverlay(section)}); // the section, the overlay on top
-            }
-        } catch (Throwable t) { Vca.MOD.log("VCA red overlay failed", t); }
+            if (section != null && ch instanceof xJo t && Vca.members(t) != null) { sections.put(section, Boolean.TRUE); any = true; }
+        } catch (Throwable t) { Vca.MOD.log("VCA fader mark failed", t); }
         return section;
+    }
+
+    /** The VCAs' volume sections (UI thread only). */
+    private static final java.util.Map<dve, Boolean> sections = new java.util.WeakHashMap<>();
+    private static volatile boolean any;
+    private static boolean logged;
+
+    /**
+     * Every widget paints in dve.Hnt(g): its background, its content, then its children (b_), then extras. Right after
+     * a VCA section has painted its children (the fader's fill and line), the red hue goes over them — the section keeps
+     * its own size and place.
+     */
+    @Hook(id = "paint-children", target = dve.class, method = "Hnt(Lcom/bitwig/graphics/SYo;)V", at = At.REPLACE_CALL,
+          callOwner = dve.class, call = "b_(Lcom/bitwig/graphics/SYo;)V", occurrence = 1)
+    public static void paintChildren(dve widget, com.bitwig.graphics.SYo g) {
+        widget.b_(g);
+        if (!any || !sections.containsKey(widget)) return;
+        try {
+            HueOverlay.tint(widget, g);
+            if (!logged) { logged = true; Vca.MOD.log("VCA fader tinted: " + widget.Sxo() + "x" + widget.yiX()); }
+        } catch (Throwable t) { if (!logged) { logged = true; Vca.MOD.log("VCA tint failed", t); } }
     }
 }

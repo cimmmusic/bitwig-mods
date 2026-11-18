@@ -2,70 +2,41 @@ package com.cimm.mixervca;
 
 import bitwig.obf.dve; // a widget
 import bitwig.obf.iok; // a colour
-import com.bitwig.base.geom.SYo; // a size
 
 /**
- * Laid over a VCA's volume section: paints red in "hue" blend mode (HSL_HUE, IOJ.ODA — Bitwig's graphics follow
- * Cairo's operators), so whatever is orange there (the fader's fill and line) turns red at the same brightness, while
- * greys, black and white stay as they are. The dB readout (a text widget, dut) is left out: the overlay starts just
- * below the lowest text near the top. It never takes the mouse (TtY: "is the point inside me" answers no), so the
- * fader underneath works as usual.
+ * Paints red in "hue" blend mode (HSL_HUE, IOJ.ODA — Bitwig's graphics follow Cairo's operators) over a VCA's volume
+ * section, right after it has painted its children: whatever is orange there (the fader's fill and line) turns red at
+ * the same brightness; greys, black and white stay. The dB readout (a text widget, dut, near the top) is left out:
+ * the tint starts just below it.
  */
-final class HueOverlay extends dve {
+final class HueOverlay {
+    private HueOverlay() {}
+
     static final iok RED = iok.cfM(226, 40, 40);
 
-    private final dve section;
-
-    HueOverlay(dve section) { this.section = section; }
-
-    @Override public SYo mK_() { return new SYo(0, 0); }
-    @Override public SYo iG_() { return new SYo(0, 0); }
-    @Override public SYo ni_() { return new SYo(100000, 100000); } // fills the stack
-
-    @Override public boolean TtY(double x, double y) { return false; } // never hit: the mouse goes to the fader
-    @Override public boolean d_(double x, double y) { return false; }
-
-    static final boolean DIAGNOSE = true; // temporary: a plain red wash + one log line, to see where the overlay sits
-    private static int logs;
-
-    @Override public void Hnt(com.bitwig.graphics.SYo g) {
-        super.Hnt(g);
-        double w = Sxo(), h = yiX();
-        if (logs < 3) {
-            logs++;
-            String at = "?";
-            try { com.bitwig.base.geom.OLR me = ihs(), s = section.ihs(); at = "overlay at " + (me == null ? "?" : me.FzB() + "," + me.hUR()) + " size " + w + "x" + h + "; section at " + (s == null ? "?" : s.FzB() + "," + s.hUR()) + " size " + section.Sxo() + "x" + section.yiX(); } catch (Throwable ignored) {}
-            Vca.MOD.log("VCA overlay painting: " + at);
-        }
-        if (DIAGNOSE) {
-            try { g.qoU(); g.Hnt(new iok(1f, 0f, 0f, 0.35f)); g.MRY(0, 0, w, h); g.wGc(); g.ucQ(); } catch (Throwable ignored) {}
-            return;
-        }
+    static void tint(dve section, com.bitwig.graphics.SYo g) {
+        double w = section.Sxo(), h = section.yiX();
         double top = 0;
         try { // below the readout: the lowest text widget in the top third of the section
-            com.bitwig.base.geom.OLR me = ihs();
+            com.bitwig.base.geom.OLR me = section.ihs();
             if (me != null) {
-                for (Object o : (Iterable<Object>) section.lYc(bitwig.obf.dut.class)::iterator) {
-                    if (!(o instanceof dve t)) continue;
+                java.util.Iterator<?> it = section.lYc(bitwig.obf.dut.class).iterator();
+                while (it.hasNext()) {
+                    if (!(it.next() instanceof dve t)) continue;
                     com.bitwig.base.geom.OLR p = t.ihs();
                     if (p == null) continue;
-                    double bottom = (p.hUR() - me.hUR()) + t.yiX();
-                    if (p.hUR() - me.hUR() < h / 3 && bottom > top) top = bottom;
+                    double y = p.hUR() - me.hUR(), bottom = y + t.yiX();
+                    if (y < h / 3 && bottom > top) top = bottom;
                 }
             }
         } catch (Throwable ignored) {}
         if (top >= h) return;
+        g.qoU();                                  // save (operator included)
         try {
-            g.qoU();                                  // save (operator included)
-            g.MRY(0, top, w, h - top); g.lYc();       // clip
-            g.cfM(com.bitwig.graphics.IOJ.ODA);       // HSL_HUE
+            g.MRY(0, top, w, h - top); g.lYc();   // clip
+            g.cfM(com.bitwig.graphics.IOJ.ODA);   // HSL_HUE
             g.Hnt(RED);
             g.MRY(0, top, w, h - top); g.wGc();
-            g.ucQ();                                  // restore
-        } catch (Throwable t) {
-            try { g.ucQ(); } catch (Throwable ignored) {}
-        }
+        } finally { g.ucQ(); }                    // restore
     }
-
-    @Override public dve MJ() { return this; }
 }

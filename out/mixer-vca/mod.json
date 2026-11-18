@@ -24,11 +24,17 @@
       "name": "cfM",
       "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;"
     },
-    "dve.init": {
+    "dve.Hnt": {
       "kind": "method",
       "owner": "dve",
-      "name": "<init>",
-      "descriptor": "()V"
+      "name": "Hnt",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "dve.b_": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "b_",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
     }
   },
   "hooks": [
@@ -53,10 +59,25 @@
         "descriptor": "(Ldve;)Ldve;",
         "args": []
       }
+    },
+    {
+      "id": "paint-children",
+      "target": "dve.Hnt",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dve.b_",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "paintChildren",
+        "descriptor": "(Ldve;Lcom/bitwig/graphics/SYo;)V",
+        "args": []
+      }
     }
   ],
   "opens": [
-    "dve.init"
+    "dve.b_"
   ],
   "resources": {
     "readme": {
