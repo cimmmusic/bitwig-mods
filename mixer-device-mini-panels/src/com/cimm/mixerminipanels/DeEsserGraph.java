@@ -65,11 +65,14 @@ final class DeEsserGraph extends MiniGraph {
         return false;
     }
 
+    /** The cut at f, dB: no resonance (user, 2026-11-18) — a smooth monotonic step from 0 below the frequency to the
+     *  full cut above it, (f/fc)^2n / (1 + (f/fc)^2n) of the cut; steeper (n = 3) in the 4-pole mode, gentle (n = 1). */
     double db(double f, double fc, double cut, boolean steep) {
         if (cut <= 0) return 0;
-        if (!steep) return EqGraph.biquadDb(EqGraph.rbj(EqGraph.Kind.HIGH_SHELF, fc, -cut, 0.8), f);
-        return 2 * EqGraph.biquadDb(EqGraph.rbj(EqGraph.Kind.HIGH_SHELF, fc, -cut / 2, 1.6), f); // two sharper halves
+        double r = Math.pow(f / fc, steep ? 6 : 2);
+        return -cut * r / (1 + r);
     }
+
 
     // ---- geometry (as the EQ views) ----
     double fx(double f, double w) { return w * Math.log(f / EqGraph.FMIN) / Math.log(EqGraph.FMAX / EqGraph.FMIN); }
