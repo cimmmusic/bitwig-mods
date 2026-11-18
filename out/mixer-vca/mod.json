@@ -13,8 +13,53 @@
     "platform": "macos",
     "architecture": "universal"
   },
-  "targets": {},
-  "hooks": [],
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.mixervca.VcaHooks"
+  },
+  "targets": {
+    "bDJ.cfM": {
+      "kind": "method",
+      "owner": "bDJ",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;LAQw;)Ldve;"
+    },
+    "duY.Hnt": {
+      "kind": "method",
+      "owner": "duY",
+      "name": "Hnt",
+      "descriptor": "(Lejt;)V"
+    }
+  },
+  "hooks": [
+    {
+      "id": "fader-channel",
+      "target": "bDJ.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "faderChannel",
+        "descriptor": "(Lcom/bitwig/flt/document/core/iface/RYd;)V",
+        "args": [
+          "arg0"
+        ]
+      }
+    },
+    {
+      "id": "fader-colour",
+      "target": "bDJ.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "duY.Hnt",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "faderColour",
+        "descriptor": "(LduY;Lejt;)V",
+        "args": []
+      }
+    }
+  ],
   "resources": {
     "readme": {
       "kind": "file",
