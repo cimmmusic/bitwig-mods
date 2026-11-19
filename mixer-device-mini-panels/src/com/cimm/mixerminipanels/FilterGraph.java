@@ -31,7 +31,12 @@ final class FilterGraph extends MiniGraph {
         super(device, 110);
         // Filter+ keeps cutoff, resonance and drive inside its swappable modules (CONTENTS/…/MODULES/n), not in its
         // top-level parameters (only PITCH_TRANSPOSE, MIX, AUTO_RELEASE): walk the contents tree.
+        long t0 = System.nanoTime();
         resolve(true);
+        if (!loggedBuild) { loggedBuild = true; MOD.log("Filter+ view built in " + (System.nanoTime() - t0) / 1_000_000 + " ms: " + slots.size()
+                + " module slots, cutoff " + (cutoff != null) + ", drive " + (drive != null) + (Names.V617 ? " (6.1.7 names)" : "")); }
+        // Filter+'s modules finish loading just after the view is built: look again often for the first 3 s.
+        forceUntil = System.currentTimeMillis() + 3000;
         typeId = firstChoice("TYPE", "MODEL", "FILTER");
         modeId = firstChoice("MODE", "RESPONSE", "SHAPE");
         ModuleMenu.init(); // start the module catalogue loading now, so it's ready for the first right-click
@@ -50,14 +55,23 @@ final class FilterGraph extends MiniGraph {
             else if (shaperSlot == null && id != null && ModuleMenu.layoutOf(id) >= 0 && !hasCutoff
                     && ModuleMenu.layoutOf(id) == ModuleMenu.layoutOf(waveshaperHint())) shaperSlot = e.getValue();
         }
+        if (shaperSlot == null) { // module catalogue not loaded yet: the other slot with knobs is the waveshaper's
+            for (java.util.Map.Entry<String, Object> e : slots.entrySet()) {
+                if (e.getValue() == filterSlot) continue;
+                boolean knobs = false;
+                for (Params.P p : nested) if (p.id().startsWith(e.getKey() + "/")) { knobs = true; break; }
+                if (knobs) { shaperSlot = e.getValue(); break; }
+            }
+        }
         String fp = pathOf(filterSlot), sp = pathOf(shaperSlot);
         cutoff = pickIn(nested, fp, "cutoff", "frequency", "freq");
         resonance = pickIn(nested, fp, "resonance", "reso");
         drive = pickIn(nested, sp, "drive", "heat", "amount", "gain");
         if (drive == null && sp != null) for (Params.P p : nested) if (p.id().startsWith(sp + "/")) { drive = p; break; } // the shaper's first knob
+        watchedCache = null; typeCache = null;
         filterModule = ModuleMenu.current(filterSlot);
         shaperModule = ModuleMenu.current(shaperSlot);
-        if (log) MOD.log("Filter+ view: filter slot " + fp + " '" + ModuleMenu.name(filterModule) + "' shaper slot " + sp + " '"
+        if (log && DEBUG) MOD.log("Filter+ view: filter slot " + fp + " '" + ModuleMenu.name(filterModule) + "' shaper slot " + sp + " '"
                 + ModuleMenu.name(shaperModule) + "' cutoff=" + EqGraphId(cutoff) + " resonance=" + EqGraphId(resonance) + " drive=" + EqGraphId(drive));
     }
 
@@ -80,30 +94,35 @@ final class FilterGraph extends MiniGraph {
         return null;
     }
 
-    private long nextCheck;
+    private long nextCheck, nextRefresh, forceUntil;
+    private static boolean loggedBuild;
     private double lastSig = Double.NaN;
     /** Every half second (and right after our own swaps): re-resolve when a slot's module changed; repaint on value changes. */
     @Override void tick() {
         long now = System.currentTimeMillis();
         if (now >= nextCheck) {
-            nextCheck = now + 500;
-            boolean stale = filterSlot == null || shaperSlot == null
+            nextCheck = now + (now < forceUntil ? 150 : 500);
+            boolean stale = (now < forceUntil && (cutoff == null || drive == null || filterModule == null)) || now >= nextRefresh
                     || !java.util.Objects.equals(ModuleMenu.current(filterSlot), filterModule)
                     || !java.util.Objects.equals(ModuleMenu.current(shaperSlot), shaperModule);
-            if (stale) resolve(false);
+            if (stale) { resolve(false); nextRefresh = now + 3000; } // module swaps made in the device panel: picked up within 3 s
         }
         double sig = (cutoff == null ? 0 : cutoff.value()) + 3.1 * (resonance == null ? 0 : resonance.value())
                 + 7.3 * (drive == null ? 0 : drive.value()) + typeText().hashCode() * 1e-6;
         if (sig != lastSig) { lastSig = sig; jbi(); }
     }
 
-    void afterSwap() { nextCheck = 0; }
+    void afterSwap() { typeCache = null; nextCheck = 0; forceUntil = System.currentTimeMillis() + 1500; } // the swap lands asynchronously
 
     /** Cutoff, resonance and drive live in Filter+'s modules, outside the top-level list. */
+    private java.util.List<Params.P> watchedCache;
     @Override java.util.List<Params.P> watched() {
-        java.util.List<Params.P> l = new java.util.ArrayList<>(params.all);
-        for (Params.P p : new Params.P[] {cutoff, resonance, drive}) if (p != null) l.add(p);
-        return l;
+        if (watchedCache == null) {
+            java.util.List<Params.P> l = new java.util.ArrayList<>(params.all);
+            for (Params.P p : new Params.P[] {cutoff, resonance, drive}) if (p != null) l.add(p);
+            watchedCache = l;
+        }
+        return watchedCache;
     }
 
     /** Right-click on the cutoff node: the filter module's menu; on the yellow node: the waveshaper's — as Filter+'s own choosers. */
@@ -124,13 +143,21 @@ final class FilterGraph extends MiniGraph {
     /** Settable parameters anywhere in the device's contents tree (Filter+'s filter / FX modules are nested objects
      *  under its contents, not top-level parameters), found by walking child lists reflectively; the tree is logged. */
     static java.util.List<Params.P> nested(jsd device, java.util.Map<String, Object> slots, java.util.Map<String, Object> choices, boolean log) {
+        long t0 = System.nanoTime();
         java.util.List<Params.P> out = new java.util.ArrayList<>();
-        java.util.Set<Object> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
-        StringBuilder sb = new StringBuilder("Filter+ contents tree:\n");
-        try { walk(Reflect.call(device, "puu"), "", 0, out, seen, sb, slots, choices); }
-        catch (Throwable t) { sb.append("  walk failed: ").append(t).append("\n"); }
-        for (Params.P p : out) sb.append("  found ").append(p.id()).append(" | ").append(p.name()).append(" [").append(p.min()).append(", ").append(p.max()).append("] = ").append(p.value()).append("\n");
-        if (log) MOD.log(sb.toString());
+        Object root = Reflect.call(device, "puu");
+        // Fast path: only follow CONTENTS / POLY / MODULES / numbered items down to the module slots, then everything in
+        // a slot. (The whole tree is ~4,400 nodes and took ~400 ms per view build — the delay selecting a channel.)
+        try { walk(root, "", 0, out, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()), true, false, slots, choices); }
+        catch (Throwable t) { MOD.log("Filter+ walk failed: " + t); }
+        boolean full = false;
+        if (slots.isEmpty()) { // unexpected layout: the full walk
+            out.clear(); choices.clear(); full = true;
+            try { walk(root, "", 0, out, java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>()), false, false, slots, choices); }
+            catch (Throwable t) { MOD.log("Filter+ walk failed: " + t); }
+        }
+        if (log && DEBUG) MOD.log("Filter+ parameters: " + out.size() + " in " + slots.size() + " module slots" + (full ? " (full walk)" : "")
+                + ", " + (System.nanoTime() - t0) / 1000 + " µs");
         return out;
     }
 
@@ -139,21 +166,21 @@ final class FilterGraph extends MiniGraph {
     /** Getters that return a nested device's contents (AxS.puu, iyP.QOl). */
     static final String[] SUB_CONTENTS = {"puu", "QOl"};
 
-    static void walk(Object o, String path, int depth, java.util.List<Params.P> out, java.util.Set<Object> seen, StringBuilder sb,
-                     java.util.Map<String, Object> slots, java.util.Map<String, Object> choices) {
-        if (o == null || depth > 9 || !seen.add(o) || sb.length() > 120000) return;
+    /** Ids followed on the way down to Filter+'s module slots (focused walk); numbered and unnamed items are followed too. */
+    /** The module slot's class (rSf on 6.1.4, ZFS on 6.1.7). */
+    static final String SLOT_CLASS = Names.cls("rSf");
+
+    static final java.util.Set<String> PATH_IDS = java.util.Set.of("CONTENTS", "POLY", "MODULES");
+
+    static void walk(Object o, String path, int depth, java.util.List<Params.P> out, java.util.Set<Object> seen, boolean focused,
+                     boolean inSlot, java.util.Map<String, Object> slots, java.util.Map<String, Object> choices) {
+        if (o == null || depth > 9 || !seen.add(o)) return;
         String id = str(getter(o, "ax_", String.class));
+        if (focused && !inSlot && depth > 0 && !id.isEmpty() && !PATH_IDS.contains(id) && !isNumber(id)) return; // prune named side branches (Pre/Post FX chains, ports…)
         String here = path.isEmpty() ? id : (id.isEmpty() ? path : path + "/" + id);
-        String indent = "  ".repeat(depth + 1);
-        if (o instanceof bitwig.obf.hSh h) {
-            String nm = str(getter(o, "aF_", String.class));
-            Params.P p = new Params.P(here, nm, h);
-            out.add(p);
-            sb.append(indent).append("P ").append(here).append(" '").append(nm).append("' [").append(p.min()).append(", ").append(p.max()).append("] = ").append(p.value()).append("\n");
-            return;
-        }
-        sb.append(indent).append(o.getClass().getName()).append(" '").append(id).append("' ").append(str(getter(o, "aF_", String.class))).append("\n");
-        if (o.getClass().getSimpleName().equals("rSf")) slots.put(here, o); // a module slot
+        if (o instanceof bitwig.obf.hSh h) { out.add(new Params.P(here, str(getter(o, "aF_", String.class)), h)); return; }
+        boolean slot = o.getClass().getSimpleName().equals(SLOT_CLASS);
+        if (slot) slots.put(here, o); // a module slot
         if (o instanceof bitwig.obf.v3U) { choices.put(here, o); return; } // other parameter kinds (choices, switches): leaves
         for (String m : CHILD_LISTS) {
             Object r = getter(o, m, java.util.List.class, java.util.stream.Stream.class);
@@ -161,20 +188,37 @@ final class FilterGraph extends MiniGraph {
             if (r instanceof java.util.List<?> l) items = new java.util.ArrayList<>(l);
             else if (r instanceof java.util.stream.Stream<?> st) items = st.limit(200).toList();
             if (items == null) continue;
-            for (Object c : items) walk(c, here, depth + 1, out, seen, sb, slots, choices);
+            for (Object c : items) walk(c, here, depth + 1, out, seen, focused, inSlot || slot, slots, choices);
         }
-        for (String m : SUB_CONTENTS) walk(getter(o, m, Object.class), here, depth + 1, out, seen, sb, slots, choices);
+        for (String m : SUB_CONTENTS) walk(getter(o, m, Object.class), here, depth + 1, out, seen, focused, inSlot || slot, slots, choices);
     }
+
+    static boolean isNumber(String s) {
+        if (s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); i++) if (!Character.isDigit(s.charAt(i))) return false;
+        return true;
+    }
+
+    /** Public zero-argument methods by class and name (null when missing), so the walk doesn't look each one up again. */
+    private static final ClassValue<java.util.concurrent.ConcurrentHashMap<String, java.util.Optional<java.lang.reflect.Method>>> METHODS =
+            new ClassValue<>() {
+                @Override protected java.util.concurrent.ConcurrentHashMap<String, java.util.Optional<java.lang.reflect.Method>> computeValue(Class<?> c) {
+                    return new java.util.concurrent.ConcurrentHashMap<>();
+                }
+            };
 
     /** Calls the public zero-argument method only if it returns one of the given types (never a void/other method that
      *  happens to share the obfuscated name). */
     static Object getter(Object o, String name, Class<?>... types) {
         try {
-            java.lang.reflect.Method m = o.getClass().getMethod(name);
+            java.lang.reflect.Method m = METHODS.get(o.getClass()).computeIfAbsent(name, k -> {
+                try { java.lang.reflect.Method x = o.getClass().getMethod(Names.method(k)); x.setAccessible(true); return java.util.Optional.of(x); }
+                catch (Throwable t) { return java.util.Optional.empty(); }
+            }).orElse(null);
+            if (m == null) return null;
             boolean ok = false;
             for (Class<?> t : types) ok |= t.isAssignableFrom(m.getReturnType());
             if (!ok) return null;
-            m.setAccessible(true);
             return m.invoke(o);
         } catch (Throwable t) { return null; }
     }
@@ -221,7 +265,24 @@ final class FilterGraph extends MiniGraph {
     }
     double res() { return resonance == null ? 0.2 : clamp(resonance.norm(), 0, 1); }
 
+    private String typeCache;
+    private long typeAt;
+    private EqGraph.Kind kindCache = EqGraph.Kind.LOW_PASS;
+    private int polesCache = 2;
+    static final java.util.regex.Pattern DIGITS = java.util.regex.Pattern.compile("(\\d+)");
+
+    /** The filter type's text, refreshed at most every 200 ms (it reads the module catalogue and the slot's choices). */
     String typeText() {
+        long now = System.currentTimeMillis();
+        if (typeCache == null || now - typeAt > 200) {
+            String t = computeTypeText();
+            typeAt = now;
+            if (!t.equals(typeCache)) { typeCache = t; kindCache = computeKind(t); polesCache = computePoles(t); }
+        }
+        return typeCache;
+    }
+
+    String computeTypeText() {
         String t = (typeId == null ? "" : params.text(typeId)) + " " + (modeId == null ? "" : params.text(modeId))
                 + " " + ModuleMenu.name(filterModule);
         String fp = pathOf(filterSlot);
@@ -230,27 +291,31 @@ final class FilterGraph extends MiniGraph {
         return t.toLowerCase(Locale.ROOT);
     }
 
-    EqGraph.Kind kind() {
-        String t = typeText();
+    EqGraph.Kind kind() { typeText(); return kindCache; }
+    int poles() { typeText(); return polesCache; }
+
+    static EqGraph.Kind computeKind(String t) {
         if (t.contains("notch") || t.contains("band-reject") || t.contains("br")) return EqGraph.Kind.NOTCH;
         if (t.contains("band") || t.contains("bp")) return EqGraph.Kind.BAND_PASS;
         if (t.contains("high") || t.contains("hp")) return EqGraph.Kind.HIGH_PASS;
         return EqGraph.Kind.LOW_PASS;
     }
 
-    int poles() {
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(typeText());
+    static int computePoles(String t) {
+        java.util.regex.Matcher m = DIGITS.matcher(t);
         int n = 2;
         while (m.find()) { int v = Integer.parseInt(m.group(1)); if (v == 1 || v == 2 || v == 3 || v == 4 || v == 6 || v == 8) { n = v; break; } if (v == 12 || v == 18 || v == 24) { n = v / 6; break; } }
         return n;
     }
 
     /** Response in dB at f: Butterworth sections, the last one's Q raised by the resonance. */
-    double db(double f) {
+    double db(double f) { return db(f, res()); }
+
+    double db(double f, double rs) {
         EqGraph.Kind k = kind();
-        double fc = hz(), qRes = 0.707 + res() * 9;
+        double fc = hz(), qRes = 0.707 + rs * 9;
         if (k == EqGraph.Kind.BAND_PASS || k == EqGraph.Kind.NOTCH) {
-            double q = 0.5 + res() * 8;
+            double q = 0.5 + rs * 8;
             return EqGraph.biquadDb(EqGraph.rbj(k, fc, 0, q), f);
         }
         int n = poles();
@@ -316,11 +381,19 @@ final class FilterGraph extends MiniGraph {
         final Object undo = new Object();
         final double[] pos = {k[0]};
         final double[] r0 = {res()};
-        return (ddx, ddy) -> { // left/right: cutoff; up/down: resonance
+        final double[] py = {k[1]};
+        final boolean[] held = {Math.abs(k[1] - h / 2) < 1};
+        return (ddx, ddy) -> { // left/right: cutoff; up/down: resonance (the 0 dB line is sticky)
             pos[0] += ddx;
             set(cutoff, cutoffValue(xf(clamp(pos[0], 0, w), w)), undo, "Change cutoff");
             if (resonance != null) {
+                py[0] += ddy;
                 r0[0] = clamp(r0[0] - ddy / (h * 0.8), 0, 1);
+                if (sticky(held, py[0] - h / 2)) {
+                    double fc = clamp(hz(), EqGraph.FMIN, EqGraph.FMAX);
+                    double rz = resonanceForZero(rs -> db(fc, rs));
+                    if (!Double.isNaN(rz)) r0[0] = rz; // the resonance that puts the cutoff on 0 dB
+                }
                 set(resonance, resonance.min() + (resonance.max() - resonance.min()) * r0[0], undo, "Change resonance");
             }
         };

@@ -55,12 +55,12 @@ final class Params {
             }
         }
         String dev = safeName(device);
-        if (logged.add(dev)) {
+        if (MiniGraph.DEBUG && logged.add(dev)) {
             StringBuilder sb = new StringBuilder("PARAMS of '" + dev + "' (" + all.size() + "):\n");
             for (P p : all) sb.append("  ").append(p.id).append(" | ").append(p.name)
                     .append(" | v=").append(p.value()).append(" [").append(p.min()).append(", ").append(p.max()).append("]\n");
             for (String o : other) sb.append("  (other) ").append(o).append("\n");
-            MOD.log(sb.toString());
+            if (MiniGraph.DEBUG) MOD.log(sb.toString());
         }
     }
 

@@ -15,8 +15,8 @@ import java.util.WeakHashMap;
 final class Kinds {
     private Kinds() {}
 
-    static final String EQ_PLUS = "EQ+", EQ5 = "EQ-5", EQ2 = "EQ-2", COMP = "Compressor", COMP_PLUS = "Compressor+", VU = "VU Meter", DYN = "Dynamics", SAT = "Saturator", TOOL = "Tool", FILTER = "Filter+", GATE = "Gate";
-    private static final Set<String> NAMES = Set.of(EQ_PLUS, EQ5, EQ2, COMP, COMP_PLUS, VU, DYN, SAT, TOOL, FILTER, GATE);
+    static final String EQ_PLUS = "EQ+", EQ5 = "EQ-5", EQ2 = "EQ-2", COMP = "Compressor", COMP_PLUS = "Compressor+", VU = "VU Meter", DYN = "Dynamics", SAT = "Saturator", TOOL = "Tool", FILTER = "Filter+", GATE = "Gate", LIMITER = "Peak Limiter", TRANSIENT = "Transient Control", PLAIN_FILTER = "Filter", OVER = "Over", DE_ESSER = "De-Esser";
+    private static final Set<String> NAMES = Set.of(EQ_PLUS, EQ5, EQ2, COMP, COMP_PLUS, VU, DYN, SAT, TOOL, FILTER, GATE, LIMITER, TRANSIENT, PLAIN_FILTER, OVER, DE_ESSER);
     private static final Map<jsd, String> cache = java.util.Collections.synchronizedMap(new WeakHashMap<>());
 
     /** The kind of device this is (one of the names above), or null when it gets no mini view. */
@@ -40,7 +40,7 @@ final class Kinds {
         else if (ids.contains("CONTENTS/THRESHOLD") && ids.contains("CONTENTS/RATIO") && ids.contains("CONTENTS/SMOOTH")) k = COMP_PLUS;
         else if (ids.contains("CONTENTS/THRESHOLD") && ids.contains("CONTENTS/RATIO") && ids.contains("CONTENTS/INPUT")
                 && !ids.contains("CONTENTS/SMOOTH")) k = COMP;
-        if (k != null) MiniGraph.MOD.log("recognised '" + Params.safeName(device) + "' as " + k + " (by its parameters)");
+        if (k != null) if (MiniGraph.DEBUG) MiniGraph.MOD.log("recognised '" + Params.safeName(device) + "' as " + k + " (by its parameters)");
         return k;
     }
 
@@ -59,6 +59,11 @@ final class Kinds {
             case TOOL: return new ToolGraph(device);
             case FILTER: return new FilterGraph(device);
             case GATE: return new GateGraph(device);
+            case LIMITER: return new LimiterGraph(device);
+            case TRANSIENT: return new TransientGraph(device);
+            case PLAIN_FILTER: return new PlainFilterGraph(device);
+            case OVER: return new OverGraph(device);
+            case DE_ESSER: return new DeEsserGraph(device);
             default: return null;
         }
     }
