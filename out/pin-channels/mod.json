@@ -2,10 +2,10 @@
   "manifest_version": 2,
   "mod": {
     "id": "pin-channels",
-    "name": "Pin Channels",
+    "name": "Mixer: Pin Channels",
     "version": "0.1.0-dev.1",
     "author": "Cimm",
-    "description": "Pin channels (e.g. VCAs) so they stay in view: a fixed bar at the top of the arranger and a fixed area at the left of the mixer, with mute, solo and volume.",
+    "description": "Freeze chosen channels in the arranger, Excel-style: a pinned track's row (header and lanes) stays at the top while the other tracks scroll under it.",
     "documentation": "readme"
   },
   "built_against": {
