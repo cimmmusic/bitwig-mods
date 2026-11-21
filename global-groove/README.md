@@ -2,7 +2,7 @@
 
 .agr groove files and MIDI files in Bitwig's own global Groove, plus a Manual groove you draw yourself.
 
-<img src="images/groove-file.png" width="384" alt="Play menu: Groove File source"> <img src="images/manual.png" width="372" alt="Play menu: Manual groove graph">
+<img src="images/groove-file.png" width="369" alt="Play menu: Groove File source"> <img src="images/manual.png" width="370" alt="Play menu: Manual groove graph">
 
 ## Using it
 
@@ -21,7 +21,9 @@
 
 ## Groove panel
 
-- The Groove button in the bottom bar opens the Manual graph as a panel (a lower-panel tab, or in the view stack with Panel: Streamlined Views): drag its edge to make it as big as you like; right-click the button for its scale.
+<img src="images/groove-panel.png" width="760" alt="The Groove panel: the Manual graph, full size, with four steps selected">
+
+- The Groove button in the bottom bar (<img src="images/groove-button.png" height="16" alt="Groove panel button">, the orange one) opens the Manual graph as a panel (a lower-panel tab, or in the view stack with Panel: Streamlined Views): drag its edge to make it as big as you like; right-click the button for its scale.
 - Under the graph: Use Manual, Undo, Redo, Reset, Copy from Groove File, Save as Groove… and the Base. It edits the same groove as the Play menu.
 
 ## Right-click on notes: Groove
