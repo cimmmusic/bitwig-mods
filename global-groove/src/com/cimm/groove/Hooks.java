@@ -13,6 +13,7 @@ import bitwig.obf.uWw; // one playable note occurrence (start FzB(), end MRY(), 
 import bml.api.Arg;
 import bml.api.At;
 import bml.api.Hook;
+import bml.api.Return;
 import bml.api.This;
 import com.bitwig.ramona.core.oDc; // a document object
 import com.bitwig.ramona.protocol.oRV; // a connection's request encoder
@@ -439,53 +440,72 @@ public final class Hooks {
     private static int resendLogs;
 
     static void resendGrooveSwitch() {
-        Object[][] all; synchronized (bitwigSwitches) { all = bitwigSwitches.toArray(new Object[0][]); }
-        State.MOD.log("re-sending Bitwig groove switch to " + all.length + " engine(s), ours in use: " + State.usesGroove());
-        for (Object[] s : all) {
+        Sent[] all; synchronized (switches) { all = switches.toArray(new Sent[0]); }
+        if (resendLogs++ < 12) State.MOD.log("re-sending Bitwig groove switch to " + all.length + " engine(s), ours in use: " + State.usesGroove());
+        for (Sent s : all) {
             try {
-                dfj sender = (dfj) s[0]; oDc obj = (oDc) s[2];
-                com.bitwig.ramona.core.lBQ on = ((bitwig.obf.LUI) obj).iCS();
-                dep atom = on.TMF();
-                oDc owner = on.J_();
-                boolean real = on.getBoolValue();
-                if (resendLogs++ < 12) {
-                    Object c = connectionField == null ? null : connectionField.get(sender);
-                    boolean passes = c instanceof com.bitwig.ramona.protocol.Dgc d && d.cfM(atom, owner);
-                    State.MOD.log("  switch " + obj.getClass().getSimpleName() + (obj instanceof KAR ? " (KAR)" : "") + ", owner "
-                            + owner.getClass().getSimpleName() + (owner == obj ? " (same)" : " (other)") + ", atom " + (atom == s[1] ? "same" : "other")
-                            + ", passes " + passes + ", value " + real);
-                }
-                sender.cfM(atom, owner, real); // through Bitwig's own sender: our hook makes it "off" while a groove of ours is used
+                // Bitwig's own sender (dfj) won't pass a value outside its own changes ("passes false"), so this goes
+                // straight to the connection's encoder: only connections that were already sent this switch, so the
+                // engine knows the object.
+                boolean real = ((bitwig.obf.LUI) s.obj).iCS().getBoolValue();
+                boolean out = real && !State.snap(switchDoc.get(s.obj)).usesGroove();
+                s.enc.cfM(s.atom, s.obj, out);
             } catch (Throwable t) { State.MOD.log("re-sending Groove on/off failed", t); }
         }
     }
 
-    /**
-     * The engine became ready again (g2L.tp2(true), Bitwig logs "FloatDocument.isEngineReadyChanged(false->true)"):
-     * it was re-synced with the whole project, Enable Groove and Shuffle as they really are, so Bitwig's own groove
-     * plays again on top of ours. That happens on its own while working and in the middle of every Bounce (tracks are
-     * bypassed for rendering, the engine re-syncs, then renders), so a bounce got the groove file's timing plus
-     * Bitwig's shuffle. Mute Bitwig's groove again right away, before the render starts, and once more shortly after.
-     */
-    private static int readyLogs;
+    // ---- Whole-project syncs to the engine (engine reset, the middle of every Bounce, project open)
+    //
+    // When the engine (re)starts it gets every object written out in full, not as value changes, so the change hooks
+    // above never see Enable Groove or Shuffle/Accent: Bitwig's own groove came back on under ours (a bounce had the
+    // groove file's swing plus Bitwig's shuffle). Each engine connection writes with its own serialization context,
+    // which its change sender hands out (dfj.Hnt()); writes with one of those contexts get Enable Groove = off and
+    // Shuffle/Accent = 0 while a groove of ours is used. Saving the project uses other contexts and is left alone.
 
-    @Hook(id = "engine-ready", target = com.bitwig.flt.document.core.master.g2L.class, method = "tp2(Z)V", at = At.ENTRY)
-    public static void engineReady(@Arg(0) boolean ready) {
-        if (!ready) return;
+    private static final Set<Object> engineContexts = Collections.synchronizedSet(Collections.newSetFromMap(new java.util.IdentityHashMap<>()));
+    private static final ThreadLocal<Object> writing = new ThreadLocal<>();
+    private static int syncLogs;
+
+    @Hook(id = "engine-context", target = dfj.class, method = "Hnt()Lcom/bitwig/ramona/serial/iYN;", at = At.WRAP_RETURN)
+    public static com.bitwig.ramona.serial.iYN engineContext(@Return com.bitwig.ramona.serial.iYN ctx) {
+        if (ctx != null && engineContexts.size() < 64) engineContexts.add(ctx);
+        return ctx;
+    }
+
+    @Hook(id = "write-bool-context", target = dep.class,
+          method = "cfM(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V", at = At.ENTRY)
+    public static void writeBoolContext(@Arg(1) com.bitwig.ramona.serial.iYN ctx) { writing.set(ctx); }
+
+    @Hook(id = "write-bool", target = dep.class,
+          method = "cfM(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V",
+          at = At.REPLACE_CALL, callOwner = dep.class, call = "lYc(Lcom/bitwig/ramona/core/oDc;)Z", occurrence = 1)
+    public static boolean writeBool(dep atom, oDc obj) {
+        boolean v = atom.lYc(obj);
         try {
-            if (!State.usesGroove()) return;
-            if (readyLogs++ < 20) State.MOD.log("engine ready again: muting Bitwig's own groove");
-            resendGrooveSwitch();
-            Thread t = new Thread(() -> {
-                for (long wait : new long[]{150, 600}) {
-                    try { Thread.sleep(wait); } catch (InterruptedException e) { return; }
-                    try { com.bitwig.flt.app.CHR.Grk().asyncExec(() -> { if (State.usesGroove()) resendGrooveSwitch(); }); }
-                    catch (Throwable ignored) {}
-                }
-            }, "cimm-groove-engine-ready");
-            t.setDaemon(true);
-            t.start();
-        } catch (Throwable t) { State.MOD.log("muting Bitwig's groove after an engine re-sync failed", t); }
+            if (v && obj instanceof KAR && engineContexts.contains(writing.get()) && State.snap(switchDoc.get(obj)).usesGroove()) {
+                if (syncLogs++ < 20) State.MOD.log("engine sync: Bitwig's own groove written as off");
+                return false;
+            }
+        } catch (Throwable t) { State.MOD.log("engine sync (groove switch) failed", t); }
+        return v;
+    }
+
+    @Hook(id = "write-double-context", target = bitwig.obf.dey.class,
+          method = "cfM(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V", at = At.ENTRY)
+    public static void writeDoubleContext(@Arg(1) com.bitwig.ramona.serial.iYN ctx) { writing.set(ctx); }
+
+    @Hook(id = "write-double", target = bitwig.obf.dey.class,
+          method = "cfM(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dey.class, call = "lYc(Lcom/bitwig/ramona/core/oDc;)D", occurrence = 1)
+    public static double writeDouble(bitwig.obf.dey atom, oDc obj) {
+        double v = atom.lYc(obj);
+        try {
+            if (v != 0 && bitwigGrooveAmount(obj) && engineContexts.contains(writing.get()) && State.usesGroove()) {
+                if (syncLogs++ < 20) State.MOD.log("engine sync: Bitwig's " + (obj instanceof bitwig.obf.j12 ? "shuffle" : "accent") + " written as 0");
+                return 0;
+            }
+        } catch (Throwable t) { State.MOD.log("engine sync (groove amount) failed", t); }
+        return v;
     }
 
     // ------------------------------------------------------------------------------------------------ Undo / Redo

@@ -3,7 +3,7 @@
   "mod": {
     "id": "global-groove",
     "name": "Transport: Global Groove Files",
-    "version": "0.9.0-dev.12",
+    "version": "0.9.0-dev.13",
     "author": "Cimm",
     "description": ".agr and MIDI groove files, plus a hand-drawn Manual groove, in Bitwig's global Groove: every note clip and sliced audio clip plays with it, saved per project. The project's notes are never changed.",
     "documentation": "readme"
@@ -108,11 +108,35 @@
       "name": "cfM",
       "descriptor": "(LdeH;Lcom/bitwig/ramona/core/oDc;I)V"
     },
-    "com.bitwig.flt.document.core.master.g2L.tp2": {
+    "dfj.Hnt": {
       "kind": "method",
-      "owner": "com/bitwig/flt/document/core/master/g2L",
-      "name": "tp2",
-      "descriptor": "(Z)V"
+      "owner": "dfj",
+      "name": "Hnt",
+      "descriptor": "()Lcom/bitwig/ramona/serial/iYN;"
+    },
+    "dep.cfM": {
+      "kind": "method",
+      "owner": "dep",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V"
+    },
+    "dep.lYc": {
+      "kind": "method",
+      "owner": "dep",
+      "name": "lYc",
+      "descriptor": "(Lcom/bitwig/ramona/core/oDc;)Z"
+    },
+    "dey.cfM": {
+      "kind": "method",
+      "owner": "dey",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V"
+    },
+    "dey.lYc": {
+      "kind": "method",
+      "owner": "dey",
+      "name": "lYc",
+      "descriptor": "(Lcom/bitwig/ramona/core/oDc;)D"
     },
     "com.bitwig.ramona.core.XKG.cfM": {
       "kind": "method",
@@ -453,15 +477,67 @@
       }
     },
     {
-      "id": "engine-ready",
-      "target": "com.bitwig.flt.document.core.master.g2L.tp2",
+      "id": "engine-context",
+      "target": "dfj.Hnt",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "engineContext",
+        "descriptor": "(Lcom/bitwig/ramona/serial/iYN;)Lcom/bitwig/ramona/serial/iYN;",
+        "args": []
+      }
+    },
+    {
+      "id": "write-bool-context",
+      "target": "dep.cfM",
       "transform": "INSERT_AT_ENTRY",
       "bridge": {
-        "method": "engineReady",
-        "descriptor": "(Z)V",
+        "method": "writeBoolContext",
+        "descriptor": "(Lcom/bitwig/ramona/serial/iYN;)V",
         "args": [
-          "arg1"
+          "arg2"
         ]
+      }
+    },
+    {
+      "id": "write-bool",
+      "target": "dep.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dep.lYc",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "writeBool",
+        "descriptor": "(Ldep;Lcom/bitwig/ramona/core/oDc;)Z",
+        "args": []
+      }
+    },
+    {
+      "id": "write-double-context",
+      "target": "dey.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "writeDoubleContext",
+        "descriptor": "(Lcom/bitwig/ramona/serial/iYN;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "write-double",
+      "target": "dey.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dey.lYc",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "writeDouble",
+        "descriptor": "(Ldey;Lcom/bitwig/ramona/core/oDc;)D",
+        "args": []
       }
     },
     {
