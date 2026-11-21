@@ -116,9 +116,21 @@ def main():
     shutil.copytree(mod / "src", out / "src"); shutil.copy2(mod / "build.json", out)
     print("BUILT", out)
     if "--install" in sys.argv:
-        dest = BML / "mods" / mod_id
-        shutil.rmtree(dest, ignore_errors=True); shutil.copytree(out, dest)
-        print("INSTALLED", dest)
+        # Into the BML that Patchbay Launcher runs now (its current.txt names it), and the standalone one in Downloads
+        launcher = HOME / "Library/Application Support/PatchbayLauncher"
+        targets = [BML]
+        try:
+            current = (launcher / "current.txt").read_text().strip()
+            if current:
+                targets.insert(0, launcher / "installs" / f"BML-{current}-macos")
+        except OSError:
+            pass
+        for root in targets:
+            if not (root / "mods").is_dir():
+                continue
+            dest = root / "mods" / mod_id
+            shutil.rmtree(dest, ignore_errors=True); shutil.copytree(out, dest)
+            print("INSTALLED", dest)
 
 
 if __name__ == "__main__":
