@@ -3,7 +3,7 @@
   "mod": {
     "id": "global-groove",
     "name": "Transport: Global Groove Files",
-    "version": "0.9.0-dev.13",
+    "version": "0.9.0-dev.14",
     "author": "Cimm",
     "description": ".agr and MIDI groove files, plus a hand-drawn Manual groove, in Bitwig's global Groove: every note clip and sliced audio clip plays with it, saved per project. The project's notes are never changed.",
     "documentation": "readme"
@@ -482,8 +482,10 @@
       "transform": "WRAP_OBJECT_RETURN",
       "bridge": {
         "method": "engineContext",
-        "descriptor": "(Lcom/bitwig/ramona/serial/iYN;)Lcom/bitwig/ramona/serial/iYN;",
-        "args": []
+        "descriptor": "(Lcom/bitwig/ramona/serial/iYN;Ldfj;)Lcom/bitwig/ramona/serial/iYN;",
+        "args": [
+          "this"
+        ]
       }
     },
     {

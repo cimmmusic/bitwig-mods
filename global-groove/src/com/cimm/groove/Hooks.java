@@ -452,6 +452,16 @@ public final class Hooks {
                 s.enc.cfM(s.atom, s.obj, out);
             } catch (Throwable t) { State.MOD.log("re-sending Groove on/off failed", t); }
         }
+        // Shuffle and Accent too: the engine uses Shuffle when it records notes even with Groove off, so recorded
+        // notes came out shifted by Bitwig's 50% while a groove file played (moving the knob to 0 put them in time).
+        SentAmount[] am; synchronized (amounts) { am = amounts.toArray(new SentAmount[0]); }
+        if (resendLogs < 14) State.MOD.log("  and Shuffle/Accent to " + am.length + " engine object(s): " + (State.usesGroove() ? "0" : "Bitwig's own"));
+        for (SentAmount a : am) {
+            try {
+                double real = a.atom.lYc(a.obj);
+                a.enc.cfM(a.atom, a.obj, State.usesGroove() ? 0 : real);
+            } catch (Throwable t) { State.MOD.log("re-sending Shuffle/Accent failed", t); }
+        }
     }
 
     // ---- Whole-project syncs to the engine (engine reset, the middle of every Bounce, project open)
@@ -467,10 +477,22 @@ public final class Hooks {
     private static int syncLogs;
 
     @Hook(id = "engine-context", target = dfj.class, method = "Hnt()Lcom/bitwig/ramona/serial/iYN;", at = At.WRAP_RETURN)
-    public static com.bitwig.ramona.serial.iYN engineContext(@Return com.bitwig.ramona.serial.iYN ctx) {
-        if (ctx != null && engineContexts.size() < 64) engineContexts.add(ctx);
+    public static com.bitwig.ramona.serial.iYN engineContext(@Return com.bitwig.ramona.serial.iYN ctx, @This dfj sender) {
+        try {
+            if (ctx != null && engineContexts.size() < 64 && engineContexts.add(ctx)) {
+                if (encoderField == null)
+                    for (java.lang.reflect.Field f : dfj.class.getDeclaredFields())
+                        if (oRV.class.isAssignableFrom(f.getType())) { f.setAccessible(true); encoderField = f; }
+                Object enc = encoderField == null ? null : encoderField.get(sender);
+                if (enc instanceof oRV e) contextEncoder.put(ctx, e);
+            }
+        } catch (Throwable t) { State.MOD.log("noting an engine connection failed", t); }
         return ctx;
     }
+
+    /** Each engine context's encoder: Shuffle/Accent/Enable Groove written to that engine can be sent again to it. */
+    private static final Map<Object, oRV> contextEncoder = Collections.synchronizedMap(new java.util.IdentityHashMap<>());
+    private static java.lang.reflect.Field encoderField;
 
     @Hook(id = "write-bool-context", target = dep.class,
           method = "cfM(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/serial/iYN;Lcom/bitwig/base/serial/Wkj;Lcom/bitwig/ramona/serial/RYd;)V", at = At.ENTRY)
@@ -482,6 +504,7 @@ public final class Hooks {
     public static boolean writeBool(dep atom, oDc obj) {
         boolean v = atom.lYc(obj);
         try {
+            if (obj instanceof KAR) { oRV enc = contextEncoder.get(writing.get()); if (enc != null) remember(enc, atom, obj, v); }
             if (v && obj instanceof KAR && engineContexts.contains(writing.get()) && State.snap(switchDoc.get(obj)).usesGroove()) {
                 if (syncLogs++ < 20) State.MOD.log("engine sync: Bitwig's own groove written as off");
                 return false;
@@ -500,6 +523,15 @@ public final class Hooks {
     public static double writeDouble(bitwig.obf.dey atom, oDc obj) {
         double v = atom.lYc(obj);
         try {
+            if (bitwigGrooveAmount(obj)) {
+                oRV enc = contextEncoder.get(writing.get());
+                if (enc != null) synchronized (amounts) {
+                    SentAmount found = null;
+                    for (SentAmount a : amounts) if (a.enc == enc && a.obj == obj) found = a;
+                    if (found == null) { found = new SentAmount(enc, atom, obj); amounts.add(found); }
+                    found.value = v;
+                }
+            }
             if (v != 0 && bitwigGrooveAmount(obj) && engineContexts.contains(writing.get()) && State.usesGroove()) {
                 if (syncLogs++ < 20) State.MOD.log("engine sync: Bitwig's " + (obj instanceof bitwig.obf.j12 ? "shuffle" : "accent") + " written as 0");
                 return 0;
