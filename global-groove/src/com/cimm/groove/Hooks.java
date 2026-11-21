@@ -460,6 +460,34 @@ public final class Hooks {
         }
     }
 
+    /**
+     * The engine became ready again (g2L.tp2(true), Bitwig logs "FloatDocument.isEngineReadyChanged(false->true)"):
+     * it was re-synced with the whole project, Enable Groove and Shuffle as they really are, so Bitwig's own groove
+     * plays again on top of ours. That happens on its own while working and in the middle of every Bounce (tracks are
+     * bypassed for rendering, the engine re-syncs, then renders), so a bounce got the groove file's timing plus
+     * Bitwig's shuffle. Mute Bitwig's groove again right away, before the render starts, and once more shortly after.
+     */
+    private static int readyLogs;
+
+    @Hook(id = "engine-ready", target = com.bitwig.flt.document.core.master.g2L.class, method = "tp2(Z)V", at = At.ENTRY)
+    public static void engineReady(@Arg(0) boolean ready) {
+        if (!ready) return;
+        try {
+            if (!State.usesGroove()) return;
+            if (readyLogs++ < 20) State.MOD.log("engine ready again: muting Bitwig's own groove");
+            resendGrooveSwitch();
+            Thread t = new Thread(() -> {
+                for (long wait : new long[]{150, 600}) {
+                    try { Thread.sleep(wait); } catch (InterruptedException e) { return; }
+                    try { com.bitwig.flt.app.CHR.Grk().asyncExec(() -> { if (State.usesGroove()) resendGrooveSwitch(); }); }
+                    catch (Throwable ignored) {}
+                }
+            }, "cimm-groove-engine-ready");
+            t.setDaemon(true);
+            t.start();
+        } catch (Throwable t) { State.MOD.log("muting Bitwig's groove after an engine re-sync failed", t); }
+    }
+
     // ------------------------------------------------------------------------------------------------ Undo / Redo
 
     /** When Bitwig's own undo steps were made (a stack, so Undo / Redo can keep the two histories in time order). */
