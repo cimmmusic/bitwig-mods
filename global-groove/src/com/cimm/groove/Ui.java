@@ -9,9 +9,6 @@ import bitwig.obf.dve; // a widget
 import bitwig.obf.dyW; // styles a menu button (we leave it as is)
 import com.bitwig.flt.app.CHR; // the application: asyncExec runs on the UI thread
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -166,52 +163,34 @@ final class Ui {
         } catch (Throwable t) { State.MOD.log("groove menu failed", t); }
     }
 
-    /** macOS's own save dialog (in a Custom folder next to the grooves), then writes the Manual groove there. */
+    /** The system's own save dialog (in a Custom folder next to the grooves), then writes the Manual groove there. */
     static void saveAs() {
         Thread t = new Thread(() -> {
             try {
-                Path folder = Path.of(System.getProperty("user.home"), "Desktop", "Grooves", "Custom");
+                Path folder = grooveFolder().resolve("Custom");
                 Files.createDirectories(folder);
-                String script = "set f to choose file name with prompt \"Save the Manual groove as an Ableton groove (.agr)\" "
-                        + "default name \"My Groove.agr\" default location (POSIX file \"" + folder.toString().replace("\"", "") + "\")\n"
-                        + "return POSIX path of f";
-                Process p = new ProcessBuilder("osascript", "-e", script).start();
-                String out;
-                try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
-                    out = r.readLine();
-                }
-                p.waitFor();
-                if (out == null || out.isBlank()) return; // cancelled
-                String path = out.trim();
-                if (!path.toLowerCase().endsWith(".agr")) path += ".agr";
-                Path file = Path.of(path);
-                CHR.Grk().asyncExec(() -> State.saveManual(file));
+                Path file = FileDialogs.save("Save the Manual groove as an Ableton groove (.agr)", folder, "My Groove.agr");
+                if (file == null) return; // cancelled
+                if (!file.getFileName().toString().toLowerCase().endsWith(".agr")) file = file.resolveSibling(file.getFileName() + ".agr");
+                Path chosen = file;
+                CHR.Grk().asyncExec(() -> State.saveManual(chosen));
             } catch (Throwable e) { State.MOD.log("save dialog failed", e); }
         }, "cimm-groove-save");
         t.setDaemon(true);
         t.start();
     }
 
-    /** macOS's own file chooser (several files at once), off the UI thread; the files load on the UI thread. */
+    /** The system's own file chooser (several files at once), off the UI thread; the files load on the UI thread. */
     static void browse() {
         Thread t = new Thread(() -> {
             try {
-                String start = State.MOD.settings().get("browse_folder", "");
-                if (start.isEmpty() || !Files.isDirectory(Path.of(start))) {
-                    Path g = Path.of(System.getProperty("user.home"), "Desktop", "Grooves");
-                    start = Files.isDirectory(g) ? g.toString() : System.getProperty("user.home");
-                }
-                String script = "set f to choose file with prompt \"Choose grooves: Ableton .agr or MIDI files\" of type {\"agr\", \"mid\", \"midi\"} "
-                        + "default location (POSIX file \"" + start.replace("\"", "") + "\") with multiple selections allowed\n"
-                        + "set out to \"\"\nrepeat with x in f\nset out to out & POSIX path of x & linefeed\nend repeat\nreturn out";
-                Process p = new ProcessBuilder("osascript", "-e", script).redirectErrorStream(false).start();
-                List<Path> files = new ArrayList<>();
-                try (BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream(), StandardCharsets.UTF_8))) {
-                    for (String line; (line = r.readLine()) != null; ) if (!line.isBlank()) files.add(Path.of(line.trim()));
-                }
-                p.waitFor();
+                String last = State.MOD.settings().get("browse_folder", "");
+                Path start = !last.isEmpty() && Files.isDirectory(Path.of(last)) ? Path.of(last) : grooveFolder();
+                if (!Files.isDirectory(start)) start = Path.of(System.getProperty("user.home"));
+                List<Path> files = FileDialogs.openGrooves("Choose grooves: Ableton .agr or MIDI files", start);
                 if (files.isEmpty()) return; // cancelled
-                State.MOD.settings().put("browse_folder", files.get(0).getParent().toString());
+                Path parent = files.get(0).getParent();
+                if (parent != null) State.MOD.settings().put("browse_folder", parent.toString());
                 CHR.Grk().asyncExec(() -> {
                     try {
                         State.addFiles(files);
@@ -222,6 +201,17 @@ final class Ui {
         }, "cimm-groove-browse");
         t.setDaemon(true);
         t.start();
+    }
+
+    /** Desktop/Grooves (on Windows also a OneDrive-backed Desktop), whether or not it exists yet. */
+    static Path grooveFolder() {
+        Path home = Path.of(System.getProperty("user.home"));
+        Path desktop = home.resolve("Desktop");
+        if (!Files.isDirectory(desktop) && FileDialogs.WINDOWS) {
+            String od = System.getenv("OneDrive");
+            if (od != null && Files.isDirectory(Path.of(od, "Desktop"))) desktop = Path.of(od, "Desktop");
+        }
+        return Files.isDirectory(desktop) ? desktop.resolve("Grooves") : home.resolve("Grooves");
     }
 
 }

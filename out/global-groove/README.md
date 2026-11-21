@@ -1,11 +1,13 @@
 # Global Groove Files
 
-Ableton groove files (.agr) and MIDI files in Bitwig's own global Groove.
+.agr groove files and MIDI files in Bitwig's own global Groove, plus a Manual groove you draw yourself.
+
+<img src="images/groove-file.png" width="369" alt="Play menu: Groove File source"> <img src="images/manual.png" width="370" alt="Play menu: Manual groove graph">
 
 ## Using it
 
 - Open the Play menu. Under Enable Groove, set Source to Groove File.
-- Browse… to load one or more .agr files (both Ableton formats work) or MIDI files (.mid): every note-on becomes a groove hit, with its velocity; up to 16 bars, 4/4. The name field lists every loaded groove; the arrows step through them while playing.
+- Browse… to load one or more .agr files (both .agr formats work) or MIDI files (.mid): every note-on becomes a groove hit, with its velocity; up to 16 bars, 4/4. The name field lists every loaded groove; the arrows step through them while playing.
 - Every note clip plays with the groove, as with Bitwig's Shuffle, and so do sliced or consolidated audio clips (each audio hit moves with its step). Your notes and audio are never moved: turn Enable Groove off, or set Source back to Bitwig, and everything plays as written.
 - The groove settings are saved in the project (with Bitwig's own Undo / Redo); a new project starts from the defaults. Each open project tab keeps its own groove.
 
@@ -14,12 +16,14 @@ Ableton groove files (.agr) and MIDI files in Bitwig's own global Groove.
 - Set Source to Manual to draw a groove by hand: one bar, a line per Base step.
 - Drag a node left or right to play that step earlier or later (up to half a step), up or down for its velocity. It snaps to straight, ±25 %, ±50 % and to the 100 % velocity line; hold Shift for fine moves without snapping. Drag a box to select several nodes and move them together. Double-click or right-click > Reset to put a node back.
 - Reset straightens the bar; Copy from Groove File starts it from the selected groove file.
-- Save as Groove… writes the drawing as an Ableton .agr (in Desktop/Grooves/Custom by default) and adds it to the Groove File list.
+- Save as Groove… writes the drawing as an .agr file (in Desktop/Grooves/Custom by default) and adds it to the Groove File list.
 - Manual keeps its own knob settings and drawing for each Base.
 
 ## Groove panel
 
-- The Groove button in the bottom bar opens the Manual graph as a panel (a lower-panel tab, or in the view stack with Panel: Streamlined Views): drag its edge to make it as big as you like; right-click the button for its scale.
+<img src="images/groove-panel.png" width="760" alt="The Groove panel: the Manual graph, full size, with four steps selected">
+
+- The Groove button in the bottom bar (<img src="images/groove-button.png" height="16" alt="Groove panel button">, the orange one) opens the Manual graph as a panel (a lower-panel tab, or in the view stack with Panel: Streamlined Views): drag its edge to make it as big as you like; right-click the button for its scale.
 - Under the graph: Use Manual, Undo, Redo, Reset, Copy from Groove File, Save as Groove… and the Base. It edits the same groove as the Play menu.
 
 ## Right-click on notes: Groove
