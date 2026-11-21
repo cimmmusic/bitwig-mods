@@ -1,0 +1,55 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "global-groove",
+    "name": "Transport: Global Groove Files",
+    "version": "0.9.0-dev.10",
+    "author": "Cimm",
+    "description": "Ableton .agr and MIDI groove files, plus a hand-drawn Manual groove, in Bitwig's global Groove: every note clip and sliced audio clip plays with it, saved per project. The project's notes are never changed.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    },
+    "groove_icon": {
+      "kind": "bitwig",
+      "path": "icons/groove.svg"
+    }
+  },
+  "registrations": [
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
+    },
+    {
+      "id": "panels",
+      "consumer": "panel-management-framework",
+      "descriptor": "panels.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
+    },
+    {
+      "id": "piano-roll-framework",
+      "min_version": "0.2.0-dev.1"
+    },
+    {
+      "id": "panel-management-framework",
+      "min_version": "0.2.0-dev.2"
+    }
+  ]
+}

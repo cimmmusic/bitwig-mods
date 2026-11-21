@@ -1,0 +1,600 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "global-groove",
+    "name": "Transport: Global Groove Files",
+    "version": "0.9.0-dev.10",
+    "author": "Cimm",
+    "description": "Ableton .agr and MIDI groove files, plus a hand-drawn Manual groove, in Bitwig's global Groove: every note clip and sliced audio clip plays with it, saved per project. The project's notes are never changed.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.groove.Hooks"
+  },
+  "targets": {
+    "aCf.cfM": {
+      "kind": "method",
+      "owner": "aCf",
+      "name": "cfM",
+      "descriptor": "(LaBF;)Ldve;"
+    },
+    "com.bitwig.flt.prefs.EYY.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/prefs/EYY",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/flt/prefs/DQC;)V"
+    },
+    "cIJ.MRY": {
+      "kind": "method",
+      "owner": "cIJ",
+      "name": "MRY",
+      "descriptor": "(LaBF;)V"
+    },
+    "HEL.cfM": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(Ljava/util/List;Z)[B"
+    },
+    "bpM.JhA": {
+      "kind": "method",
+      "owner": "bpM",
+      "name": "JhA",
+      "descriptor": "()V"
+    },
+    "HEL.cfM-2": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(Ljava/util/List;LuWw;ID)V"
+    },
+    "uWw.FzB": {
+      "kind": "method",
+      "owner": "uWw",
+      "name": "FzB",
+      "descriptor": "()D"
+    },
+    "uWw.MRY": {
+      "kind": "method",
+      "owner": "uWw",
+      "name": "MRY",
+      "descriptor": "()D"
+    },
+    "n1.UNj": {
+      "kind": "method",
+      "owner": "n1",
+      "name": "UNj",
+      "descriptor": "()D"
+    },
+    "uWw.hUR": {
+      "kind": "method",
+      "owner": "uWw",
+      "name": "hUR",
+      "descriptor": "()D"
+    },
+    "dfj.cfM": {
+      "kind": "method",
+      "owner": "dfj",
+      "name": "cfM",
+      "descriptor": "(Ldep;Lcom/bitwig/ramona/core/oDc;Z)V"
+    },
+    "com.bitwig.ramona.protocol.oRV.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/ramona/protocol/oRV",
+      "name": "cfM",
+      "descriptor": "(Ldep;Lcom/bitwig/ramona/core/oDc;Z)V"
+    },
+    "dfj.cfM-2": {
+      "kind": "method",
+      "owner": "dfj",
+      "name": "cfM",
+      "descriptor": "(Ldey;Lcom/bitwig/ramona/core/oDc;D)V"
+    },
+    "com.bitwig.ramona.protocol.oRV.cfM-2": {
+      "kind": "method",
+      "owner": "com/bitwig/ramona/protocol/oRV",
+      "name": "cfM",
+      "descriptor": "(Ldey;Lcom/bitwig/ramona/core/oDc;D)V"
+    },
+    "dfj.cfM-3": {
+      "kind": "method",
+      "owner": "dfj",
+      "name": "cfM",
+      "descriptor": "(LdeH;Lcom/bitwig/ramona/core/oDc;I)V"
+    },
+    "com.bitwig.ramona.core.XKG.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/ramona/core/XKG",
+      "name": "cfM",
+      "descriptor": "(Z)Z"
+    },
+    "aBW.Ktv": {
+      "kind": "method",
+      "owner": "aBW",
+      "name": "Ktv",
+      "descriptor": "()V"
+    },
+    "com.bitwig.flt.document.core.iface.pHd.Mb2": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/document/core/iface/pHd",
+      "name": "Mb2",
+      "descriptor": "()V"
+    },
+    "aBW.d3": {
+      "kind": "method",
+      "owner": "aBW",
+      "name": "d3",
+      "descriptor": "()V"
+    },
+    "com.bitwig.flt.document.core.iface.pHd.LIK": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/document/core/iface/pHd",
+      "name": "LIK",
+      "descriptor": "()V"
+    },
+    "com.bitwig.flt.widget.core.timeline.huU.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/timeline/huU",
+      "name": "cfM",
+      "descriptor": "(LHQy;LICh;Ldve;)Lcom/bitwig/flt/widget/core/timeline/huU;"
+    },
+    "com.bitwig.flt.widget.core.timeline.huU.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/timeline/huU",
+      "name": "MRY",
+      "descriptor": "(LHQy;LICh;Ldve;)V"
+    },
+    "com.bitwig.flt.widget.core.timeline.huU.IwV": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/timeline/huU",
+      "name": "IwV",
+      "descriptor": "(Ldve;)V"
+    },
+    "com.bitwig.flt.widget.core.timeline.huU.cfM-2": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/timeline/huU",
+      "name": "cfM",
+      "descriptor": "(I)V"
+    },
+    "com.bitwig.flt.widget.core.timeline.huU.cfM-3": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/timeline/huU",
+      "name": "cfM",
+      "descriptor": "(LICh;)V"
+    },
+    "dWb.MRY": {
+      "kind": "method",
+      "owner": "dWb",
+      "name": "MRY",
+      "descriptor": "(I[Ldve;)LdWb;"
+    },
+    "aoA.init": {
+      "kind": "method",
+      "owner": "aoA",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "aoA.cfM": {
+      "kind": "method",
+      "owner": "aoA",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Liok;DZ)V"
+    },
+    "avb.cfM": {
+      "kind": "method",
+      "owner": "avb",
+      "name": "cfM",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    },
+    "bpM.hb_": {
+      "kind": "method",
+      "owner": "bpM",
+      "name": "hb_",
+      "descriptor": "()Z"
+    },
+    "dAd.init": {
+      "kind": "method",
+      "owner": "dAd",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dLh.init": {
+      "kind": "method",
+      "owner": "dLh",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dnI.iG_": {
+      "kind": "method",
+      "owner": "dnI",
+      "name": "iG_",
+      "descriptor": "()Lcom/bitwig/base/geom/SYo;"
+    },
+    "dnI.mK_": {
+      "kind": "method",
+      "owner": "dnI",
+      "name": "mK_",
+      "descriptor": "()Lcom/bitwig/base/geom/SYo;"
+    },
+    "drX.init": {
+      "kind": "method",
+      "owner": "drX",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dve.init": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dve.MRY": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "MRY",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    },
+    "dve.cfM": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "cfM",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    }
+  },
+  "hooks": [
+    {
+      "id": "window-project",
+      "target": "aCf.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "windowProject",
+        "descriptor": "(LaBF;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "audible-project",
+      "target": "com.bitwig.flt.prefs.EYY.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "audibleProject",
+        "descriptor": "(Lcom/bitwig/flt/prefs/DQC;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "play-menu-project",
+      "target": "cIJ.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "playMenuProject",
+        "descriptor": "(LaBF;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "audio-groove",
+      "target": "HEL.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "audioEvents",
+        "descriptor": "(Ljava/util/List;)V",
+        "args": [
+          "arg0"
+        ]
+      }
+    },
+    {
+      "id": "track-timeline",
+      "target": "bpM.JhA",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "packing",
+        "descriptor": "(LbpM;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "note",
+      "target": "HEL.cfM-2",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "note",
+        "descriptor": "(LuWw;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "note-start",
+      "target": "HEL.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "uWw.FzB",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "start",
+        "descriptor": "(LuWw;)D",
+        "args": []
+      }
+    },
+    {
+      "id": "note-end",
+      "target": "HEL.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "uWw.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "end",
+        "descriptor": "(LuWw;)D",
+        "args": []
+      }
+    },
+    {
+      "id": "note-velocity",
+      "target": "HEL.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "n1.UNj",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "velocity",
+        "descriptor": "(Ln1;)D",
+        "args": []
+      }
+    },
+    {
+      "id": "repeat-velocity",
+      "target": "HEL.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "uWw.hUR",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "repeatVelocity",
+        "descriptor": "(LuWw;)D",
+        "args": []
+      }
+    },
+    {
+      "id": "groove-switch",
+      "target": "dfj.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.ramona.protocol.oRV.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sendBool",
+        "descriptor": "(Lcom/bitwig/ramona/protocol/oRV;Ldep;Lcom/bitwig/ramona/core/oDc;Z)V",
+        "args": []
+      }
+    },
+    {
+      "id": "groove-amounts",
+      "target": "dfj.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.ramona.protocol.oRV.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sendDouble",
+        "descriptor": "(Lcom/bitwig/ramona/protocol/oRV;Ldey;Lcom/bitwig/ramona/core/oDc;D)V",
+        "args": []
+      }
+    },
+    {
+      "id": "sender-double",
+      "target": "dfj.cfM-2",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "senderDouble",
+        "descriptor": "(Ldfj;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "sender-bool",
+      "target": "dfj.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "senderBool",
+        "descriptor": "(Ldfj;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "sender-int",
+      "target": "dfj.cfM-3",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "senderInt",
+        "descriptor": "(Ldfj;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "bitwig-step",
+      "target": "com.bitwig.ramona.core.XKG.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "bitwigStep",
+        "descriptor": "()V",
+        "args": []
+      }
+    },
+    {
+      "id": "undo",
+      "target": "aBW.Ktv",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.flt.document.core.iface.pHd.Mb2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "undo",
+        "descriptor": "(Lcom/bitwig/flt/document/core/iface/pHd;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "redo",
+      "target": "aBW.d3",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.flt.document.core.iface.pHd.LIK",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "redo",
+        "descriptor": "(Lcom/bitwig/flt/document/core/iface/pHd;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "probe-quantize-open",
+      "target": "com.bitwig.flt.widget.core.timeline.huU.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "probeQuantizeOpen",
+        "descriptor": "()V",
+        "args": []
+      }
+    },
+    {
+      "id": "quantize-tabs",
+      "target": "com.bitwig.flt.widget.core.timeline.huU.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.flt.widget.core.timeline.huU.IwV",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "quantizeTabs",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/timeline/huU;Ldve;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "quantize-ok",
+      "target": "com.bitwig.flt.widget.core.timeline.huU.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.flt.widget.core.timeline.huU.cfM-3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "quantizeOk",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/timeline/huU;LICh;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "groove-section",
+      "target": "cIJ.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKESTATIC",
+        "target": "dWb.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "section",
+        "descriptor": "(I[Ldve;)LdWb;",
+        "args": []
+      }
+    }
+  ],
+  "opens": [
+    "aoA.cfM",
+    "aoA.init",
+    "avb.cfM",
+    "bpM.JhA",
+    "bpM.hb_",
+    "dAd.init",
+    "dLh.init",
+    "dfj.cfM",
+    "dnI.iG_",
+    "dnI.mK_",
+    "drX.init",
+    "dve.MRY",
+    "dve.cfM",
+    "dve.init"
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    },
+    "groove_icon": {
+      "kind": "bitwig",
+      "path": "icons/groove.svg"
+    }
+  },
+  "registrations": [
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
+    },
+    {
+      "id": "panels",
+      "consumer": "panel-management-framework",
+      "descriptor": "panels.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
+    },
+    {
+      "id": "piano-roll-framework",
+      "min_version": "0.2.0-dev.1"
+    },
+    {
+      "id": "panel-management-framework",
+      "min_version": "0.2.0-dev.2"
+    }
+  ]
+}
