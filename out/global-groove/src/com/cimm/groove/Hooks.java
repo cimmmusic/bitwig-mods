@@ -441,27 +441,53 @@ public final class Hooks {
 
     static void resendGrooveSwitch() {
         Sent[] all; synchronized (switches) { all = switches.toArray(new Sent[0]); }
-        if (resendLogs++ < 12) State.MOD.log("re-sending Bitwig groove switch to " + all.length + " engine(s), ours in use: " + State.usesGroove());
+        SentAmount[] am; synchronized (amounts) { am = amounts.toArray(new SentAmount[0]); }
+        int viaSender = 0, passed = 0;
+        // Through each engine connection's OWN change sender (dfj), as when the knob is moved: written straight to the
+        // encoder it never reached the engine, and another connection's sender filters it out ("passes false": that
+        // connection doesn't sync the value). The send hooks above make the value off / 0 while a groove of ours is used.
         for (Sent s : all) {
             try {
-                // Bitwig's own sender (dfj) won't pass a value outside its own changes ("passes false"), so this goes
-                // straight to the connection's encoder: only connections that were already sent this switch, so the
-                // engine knows the object.
-                boolean real = ((bitwig.obf.LUI) s.obj).iCS().getBoolValue();
-                boolean out = real && !State.snap(switchDoc.get(s.obj)).usesGroove();
-                s.enc.cfM(s.atom, s.obj, out);
+                dfj d = senderOf(s.enc);
+                if (d == null) continue;
+                viaSender++;
+                if (passes(d, s.atom, s.obj)) passed++;
+                d.cfM(s.atom, s.obj, ((bitwig.obf.LUI) s.obj).iCS().getBoolValue());
             } catch (Throwable t) { State.MOD.log("re-sending Groove on/off failed", t); }
         }
-        // Shuffle and Accent too: the engine uses Shuffle when it records notes even with Groove off, so recorded
-        // notes came out shifted by Bitwig's 50% while a groove file played (moving the knob to 0 put them in time).
-        SentAmount[] am; synchronized (amounts) { am = amounts.toArray(new SentAmount[0]); }
-        if (resendLogs < 14) State.MOD.log("  and Shuffle/Accent to " + am.length + " engine object(s): " + (State.usesGroove() ? "0" : "Bitwig's own"));
         for (SentAmount a : am) {
             try {
-                double real = a.atom.lYc(a.obj);
-                a.enc.cfM(a.atom, a.obj, State.usesGroove() ? 0 : real);
+                dfj d = senderOf(a.enc);
+                if (d == null) continue;
+                viaSender++;
+                if (passes(d, a.atom, a.obj)) passed++;
+                d.cfM(a.atom, a.obj, a.atom.lYc(a.obj));
             } catch (Throwable t) { State.MOD.log("re-sending Shuffle/Accent failed", t); }
         }
+        if (resendLogs++ < 20) State.MOD.log("re-sending Bitwig's groove (" + (State.usesGroove() ? "off, Shuffle/Accent 0" : "as it is")
+                + "): " + all.length + " switch(es), " + am.length + " amount(s), " + viaSender + " through their sender, " + passed + " passed");
+    }
+
+    /** The change sender (dfj) that writes to this encoder: one per connection. */
+    private static dfj senderOf(oRV enc) {
+        try {
+            if (encoderField == null)
+                for (java.lang.reflect.Field f : dfj.class.getDeclaredFields())
+                    if (oRV.class.isAssignableFrom(f.getType())) { f.setAccessible(true); encoderField = f; }
+            if (encoderField == null) return null;
+            dfj[] all; synchronized (senders) { all = senders.toArray(new dfj[0]); }
+            for (dfj d : all) if (encoderField.get(d) == enc) return d;
+        } catch (Throwable t) { State.MOD.log("finding a connection's sender failed", t); }
+        return null;
+    }
+
+    private static boolean passes(dfj d, Object atom, oDc obj) {
+        try {
+            if (connectionField == null)
+                for (java.lang.reflect.Field f : dfj.class.getDeclaredFields())
+                    if (com.bitwig.ramona.protocol.Dgc.class.isAssignableFrom(f.getType())) { f.setAccessible(true); connectionField = f; }
+            return connectionField.get(d) instanceof com.bitwig.ramona.protocol.Dgc c && c.cfM((bitwig.obf.deN) atom, obj);
+        } catch (Throwable t) { return false; }
     }
 
     // ---- Whole-project syncs to the engine (engine reset, the middle of every Bounce, project open)
@@ -479,6 +505,7 @@ public final class Hooks {
     @Hook(id = "engine-context", target = dfj.class, method = "Hnt()Lcom/bitwig/ramona/serial/iYN;", at = At.WRAP_RETURN)
     public static com.bitwig.ramona.serial.iYN engineContext(@Return com.bitwig.ramona.serial.iYN ctx, @This dfj sender) {
         try {
+            senders.add(sender);
             if (ctx != null && engineContexts.size() < 64 && engineContexts.add(ctx)) {
                 if (encoderField == null)
                     for (java.lang.reflect.Field f : dfj.class.getDeclaredFields())
