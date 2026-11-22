@@ -30,6 +30,9 @@ final class State {
     static volatile int mode = BITWIG;
     /** A groove of ours (file or manual) is in use, so Bitwig's own shuffle/accent is paused. */
     static boolean usesGroove() { return mode != BITWIG; }
+
+    /** Bitwig's own Shuffle / Accent from before a groove of ours set them to 0 (NaN: nothing kept). Per project. */
+    static double savedShuffle = Double.NaN, savedAccent = Double.NaN;
     /** Bitwig's own Enable Groove, read from the project (off until it has been read, so nothing is grooved by
      *  mistake while a project opens). */
     static volatile boolean grooveOn = false;
@@ -423,6 +426,8 @@ final class State {
         if (e != null) p.setProperty("current", e.path.toString());
         putAmounts(p, "", fileAmounts);
         putAmounts(p, "m_", manualAmounts);
+        if (!Double.isNaN(savedShuffle)) p.setProperty("bitwig_shuffle", "" + savedShuffle);
+        if (!Double.isNaN(savedAccent)) p.setProperty("bitwig_accent", "" + savedAccent);
         synchronized (State.class) {
             for (var m : manual.entrySet()) {
                 StringBuilder line = new StringBuilder();
@@ -444,6 +449,8 @@ final class State {
         if (cur != null) { int i = indexOf(Path.of(cur)); if (i >= 0) current = i; }
         fileAmounts = getAmounts(p, "", fileDefaults());
         manualAmounts = getAmounts(p, "m_", manualDefaults());
+        savedShuffle = num(p.getProperty("bitwig_shuffle"), Double.NaN);
+        savedAccent = num(p.getProperty("bitwig_accent"), Double.NaN);
         synchronized (State.class) {
             manual.clear();
             for (int b = 0; b < Groove.BASES.length; b++) {

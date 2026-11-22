@@ -62,6 +62,7 @@ final class ProjectStore {
         String c = comment(p);
         lastSeen = c;
         State.fromProject(blob(c));
+        if (BitwigGroove.needsChange(p)) changed(); // e.g. a project saved before Shuffle/Accent were set to 0
     }
 
     /** The settings changed: write them into the project shortly (one undo step for a burst of changes). */
@@ -82,12 +83,20 @@ final class ProjectStore {
         if (p == null) return;
         try {
             String c = comment(p);
-            String text = userText(c) + MARK + Base64.getEncoder().encodeToString(State.dumpProject().getBytes(StandardCharsets.UTF_8));
-            if (text.equals(c)) return;
+            boolean values = BitwigGroove.needsChange(p);
             com.bitwig.flt.document.core.master.cXR m = master(p);
             if (m == null) { State.MOD.log("no master track to keep the groove in"); return; }
-            p.cfM("Change Groove", false); // one undo step
-            try { m.TtY(text); } finally { p.cfM(false); }
+            if (!values) {
+                String text = userText(c) + MARK + Base64.getEncoder().encodeToString(State.dumpProject().getBytes(StandardCharsets.UTF_8));
+                if (text.equals(c)) return;
+            }
+            p.cfM("Change Groove", false); // one undo step: Bitwig's Shuffle/Accent and the settings that keep them
+            String text;
+            try {
+                if (values) BitwigGroove.apply(p);
+                text = userText(c) + MARK + Base64.getEncoder().encodeToString(State.dumpProject().getBytes(StandardCharsets.UTF_8));
+                if (!text.equals(c)) m.TtY(text);
+            } finally { p.cfM(false); }
             lastSeen = text;
         } catch (Throwable t) { State.MOD.log("couldn't store the groove in the project", t); }
     }
