@@ -50,5 +50,5 @@ Needs Framework: Actions and Menus, Framework: Piano Roll and Framework: Panels.
 
 ## Notes
 
-- While a groove file or Manual is used, Bitwig's own Shuffle and Accent are paused (their settings are kept).
+- While a groove file or Manual is used, Bitwig's own Shuffle and Accent are set to 0, so they never add to the groove (in playback, recording or bounces). Your own values are kept with the project and come back when Source is set to Bitwig; Undo covers both.
 - Audio: each audio event moves as a whole with the groove (best on sliced or consolidated hits). One long audio event (a whole loop longer than a bar) is not stretched to the groove yet.
