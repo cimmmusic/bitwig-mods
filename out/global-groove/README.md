@@ -1,6 +1,18 @@
 # Global Groove Files
 
-.agr groove files and MIDI files in Bitwig's own global Groove, plus a Manual groove you draw yourself.
+**Bring the groove of an MPC, an Ableton .agr file or any MIDI file into Bitwig's own global Groove, or draw your own.**
+
+Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groove File** and **Manual**. Load .agr grooves or MIDI files, step through them while the track plays, or draw a one-bar groove by hand, step by step. Every note clip in the project plays with it, and so do sliced and consolidated audio clips. Your notes are never moved: switch the source back to Bitwig, or turn Enable Groove off, and everything plays exactly as written.
+
+- **Groove files:** .agr (both formats) and MIDI (.mid), up to 16 bars. Each note becomes a groove hit, with its timing and velocity.
+- **Manual groove:** drag each step earlier, later, louder or softer, with snapping to straight, ±25 % and ±50 %. Save it as an .agr file to reuse anywhere.
+- **Strength, Timing, Velocity, Random and Quantize** knobs, and a Base from 1/4 to 1/32 (triplets included).
+- **What you hear is what you get:** playback, MIDI recording and bounces all follow the same groove. Bitwig's own Shuffle and Accent are set to 0 while a groove file or Manual is in use, and come back when you switch to Bitwig.
+- **Saved with the project**, with Bitwig's Undo / Redo. Each open project keeps its own groove.
+- **A resizable Groove panel** for drawing the Manual groove at full size.
+- **macOS and Windows:** Browse and Save as Groove… open the system's own file dialogs on each (Linux: zenity or kdialog). Developed and tested on macOS; on Windows, please report anything that behaves differently.
+
+*Requires the Patchbay Mod Loader (BML). An unofficial mod, not made or supported by Bitwig.*
 
 <img src="images/groove-file.png" width="369" alt="Play menu: Groove File source"> <img src="images/manual.png" width="370" alt="Play menu: Manual groove graph">
 
