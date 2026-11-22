@@ -1,16 +1,18 @@
 # Global Groove Files
 
-**Bring the groove of an MPC, an Ableton .agr file or any MIDI file into Bitwig's own global Groove, or draw your own.**
+**Bring the groove of an MPC, an Ableton .agr file or any MIDI file into Bitwig, or draw your own: for the whole project, or for a single track, clip, note or audio hit.**
 
-Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groove File** and **Manual**. Load .agr grooves or MIDI files, step through them while the track plays, or draw a one-bar groove by hand, step by step. Every note clip in the project plays with it, and so do sliced and consolidated audio clips. Your notes are never moved: switch the source back to Bitwig, or turn Enable Groove off, and everything plays exactly as written.
+Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groove File** and **Manual**. Load .agr grooves or MIDI files, step through them while the track plays, or draw grooves by hand, step by step. Every note clip in the project plays with it, and so do audio clips, separate hits and consolidated ones alike. And any track, clip, note or audio event can have a groove of its own, set in Bitwig's Inspector: swing the hats with an MPC groove, keep the kick straight, push one snare with a hand-drawn feel. Your notes and audio are never moved: switch a groove off and everything plays exactly as written.
 
 - **Groove files:** .agr (both formats) and MIDI (.mid), up to 16 bars. Each note becomes a groove hit, with its timing and velocity.
-- **Manual groove:** drag each step earlier, later, louder or softer, with snapping to straight, ±25 % and ±50 %. Save it as an .agr file to reuse anywhere.
-- **Strength, Timing, Velocity, Random and Quantize** knobs, and a Base from 1/4 to 1/32 (triplets included).
-- **What you hear is what you get:** playback, MIDI recording and bounces all follow the same groove. Bitwig's own Shuffle and Accent are set to 0 while a groove file or Manual is in use, and come back when you switch to Bitwig.
-- **Saved with the project**, with Bitwig's Undo / Redo. Each open project keeps its own groove.
-- **A resizable Groove panel** for drawing the Manual groove at full size.
-- **A groove of their own for single notes, clips, tracks and audio events**, set in Bitwig's Inspector, marked with a white corner, kept when copied and saved with the project.
+- **Manual grooves A–D:** four hand-drawn grooves. Drag each step earlier, later, louder or softer, with snapping to straight, ±25 % and ±50 %. Save any of them as an .agr file to reuse anywhere.
+- **A groove of their own for tracks, clips, notes and audio events:** a Groove block in Bitwig's Inspector, with its own source and amounts. A note's groove wins over its clip's, the clip's over its track's, the track's over the global one.
+- **A white corner** on every note, clip and audio event with a groove of its own (hollow when set to play straight).
+- **Strength, Timing, Velocity, Random and Quantize**, and a Base from 1/4 to 1/32 (triplets included), globally and for each track, clip, note or event.
+- **What you hear is what you get:** playback, MIDI recording and bounces all follow the same groove. Bitwig's own Shuffle never adds to it.
+- **Copy, paste and duplicate** notes and clips with their grooves.
+- **Saved with the project**, with Bitwig's own Undo / Redo for every groove change.
+- **A resizable Groove panel** for drawing Manual grooves at full size.
 - **macOS and Windows:** Browse and Save as Groove… open the system's own file dialogs on each (Linux: zenity or kdialog). Developed and tested on macOS; on Windows, please report anything that behaves differently.
 
 *Requires the Patchbay Mod Loader (BML). An unofficial mod, not made or supported by Bitwig.*
