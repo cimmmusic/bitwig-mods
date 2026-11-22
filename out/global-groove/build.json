@@ -4,6 +4,7 @@
   "classpath_mods": [
     "action-menu-composition-framework@0.8.0-dev.1",
     "piano-roll-framework@0.2.0-dev.1",
-    "panel-management-framework@0.2.0-dev.2"
+    "panel-management-framework@0.2.0-dev.2",
+    "inspector-composition-framework@0.3.0-dev.2"
   ]
 }

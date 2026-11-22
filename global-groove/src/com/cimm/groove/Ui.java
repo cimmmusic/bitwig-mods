@@ -47,6 +47,14 @@ final class Ui {
             int m = i;
             source.HL(Native.option(names[i], widths[i], value(new Native.Bool(() -> State.mode == m, () -> State.setMode(m)))));
         }
+        // Manual [A][B][C][D]: which drawing the global Manual source plays (editing another one doesn't change it)
+        source.Hnt(10);
+        for (int i = 0; i < State.SLOT_NAMES.length; i++) {
+            int at = i;
+            if (i > 0) source.Hnt(3);
+            source.HL(Native.option(State.SLOT_NAMES[i], 30, value(new Native.Bool(() -> State.playSlot == at,
+                    () -> { State.setPlaySlot(at); if (State.mode != State.MANUAL) State.setMode(State.MANUAL); }))));
+        }
 
         // [groove name           ▾]  [◀] [▶] [Browse]
         dWb grooveRow = row();
@@ -84,6 +92,15 @@ final class Ui {
         Graph graph = new Graph();
         knobs.add(graph);
         dWb manualButtons = row();
+        // Slot [A][B][C][D]: which drawing is edited (and played by the global Manual source)
+        manualButtons.HL(dut.TMF("Edit"));
+        manualButtons.Hnt(10);
+        for (int i = 0; i < State.SLOT_NAMES.length; i++) {
+            int at = i;
+            if (i > 0) manualButtons.Hnt(4);
+            manualButtons.HL(Native.option(State.SLOT_NAMES[i], 38, value(new Native.Bool(() -> State.slot == at, () -> State.setSlot(at)))));
+        }
+        manualButtons.Hnt(16);
         manualButtons.HL(Native.action("Undo", 80, State::manualUndo));
         manualButtons.Hnt(8);
         manualButtons.HL(Native.action("Redo", 80, State::manualRedo));

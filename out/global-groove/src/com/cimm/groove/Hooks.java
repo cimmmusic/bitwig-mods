@@ -40,6 +40,8 @@ public final class Hooks {
 
     /** The note HEL is packing right now: its start, and its groove shift (computed once per note). */
     private static final ThreadLocal<double[]> current = ThreadLocal.withInitial(() -> new double[]{Double.NaN, 0});
+    /** The note being packed: its groove and amounts ({Groove, Groove.Amounts}; a null groove plays it straight). */
+    private static final ThreadLocal<Object[]> noteGroove = ThreadLocal.withInitial(() -> new Object[2]);
     /** Every clip timeline that has been packed, so a change can re-pack them all. */
     private static final Set<bpM> timelines = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
     private static int logged, repacks, manualNotes, repackFails;
@@ -162,6 +164,40 @@ public final class Hooks {
     @Hook(id = "audio-groove", target = HEL.class, method = "cfM(Ljava/util/List;Z)[B", at = At.ENTRY)
     public static void audioEvents(@Arg(0) java.util.List<?> events) { if (AudioGroove.ENABLED) AudioGroove.apply(events); }
 
+    /** The content being packed (a clip's notes or audio): its own groove (Inspector) wins over the global one. */
+    static final ThreadLocal<Object> packingContent = new ThreadLocal<>();
+
+    @Hook(id = "pack-content-lSj", target = HEL.class, method = "cfM(LlSj;)[B", at = At.ENTRY)
+    public static void packContent1(@Arg(0) Object c) { packingContent.set(c); }
+
+    @Hook(id = "pack-content-ocL", target = HEL.class, method = "cfM(LocL;)[B", at = At.ENTRY)
+    public static void packContent2(@Arg(0) Object c) { packingContent.set(c); }
+
+    @Hook(id = "pack-content-iav", target = HEL.class, method = "cfM(Liav;)[B", at = At.ENTRY)
+    public static void packContent3(@Arg(0) Object c) { packingContent.set(c); }
+
+    @Hook(id = "pack-content-GVR", target = HEL.class, method = "cfM(LGVR;)[B", at = At.ENTRY)
+    public static void packContent4(@Arg(0) Object c) { packingContent.set(c); }
+
+    /** Audio hits being packed -> the project's audio event each was made from (for a groove of its own). */
+    static final ThreadLocal<java.util.Map<Object, Object>> audioSources = ThreadLocal.withInitial(java.util.IdentityHashMap::new);
+    private static final ThreadLocal<uWw> hitFrom = new ThreadLocal<>();
+
+    /** HEL makes an audio hit's start (ZKD) from a playback event (uWw), whose cfM() is the project's audio event. */
+    @Hook(id = "audio-hit-from", target = HEL.class, method = "cfM(Ljava/util/List;ILuWw;DDD)V", at = At.ENTRY)
+    public static void audioHitFrom(@Arg(2) uWw event) { hitFrom.set(event); }
+
+    @Hook(id = "audio-hit-made", target = HEL.class, method = "cfM(Ljava/util/List;ILuWw;DDD)V", at = At.REPLACE_CALL,
+          callOwner = java.util.List.class, call = "add(Ljava/lang/Object;)Z", occurrence = 1)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static boolean audioHitMade(java.util.List list, Object hit) {
+        try {
+            uWw from = hitFrom.get();
+            if (from != null && Overrides.any()) audioSources.get().put(hit, from.cfM());
+        } catch (Throwable ignored) {}
+        return list.add(hit);
+    }
+
     /** The clip being packed (HEL runs inside its JhA): its project's groove is the one used. */
     private static final ThreadLocal<Object> packingDoc = new ThreadLocal<>();
 
@@ -191,12 +227,19 @@ public final class Hooks {
     public static void note(@Arg(1) uWw note) {
         double[] c = current.get();
         c[0] = Double.NaN; c[1] = 0;
+        Object[] ng = noteGroove.get();
+        ng[0] = null; ng[1] = null;
         try {
-            State.PSnap sn = packingSnap();
-            Groove g = sn.active();
+            // the note's own groove, its clip's or its track's (Inspector), else the global one
+            Object source = note.Hnt;
+            Overrides.Res r = Overrides.resolve(source);
+            Groove g; Groove.Amounts amounts;
+            if (r != null) { g = r.groove; amounts = r.amounts; }
+            else { State.PSnap sn = packingSnap(); g = sn.active(); amounts = sn.amounts; }
             if (g == null) return;
+            ng[0] = g; ng[1] = amounts;
             double t = note.FzB();
-            double out = g.time(t, sn.amounts, seed(t));
+            double out = g.time(t, amounts, seed(t));
             if (t >= 0 && out < 0) out = 0; // nothing before the clip's start
             c[0] = t;
             c[1] = out - t;
@@ -215,12 +258,12 @@ public final class Hooks {
         double[] c = current.get();
         if (Double.isNaN(c[0])) return end;
         try {
-            State.PSnap sn = packingSnap();
-            Groove g = sn.active();
+            Object[] ng = noteGroove.get();
+            Groove g = (Groove) ng[0];
             if (g == null) return end;
             double start = c[0] + c[1];
             // a note keeps at least half its length (a short note on a step pushed +50 % would otherwise shrink to nothing)
-            return Math.max(g.time(end, sn.amounts, seed(end)), start + Math.max(0.004, (end - c[0]) * 0.5));
+            return Math.max(g.time(end, (Groove.Amounts) ng[1], seed(end)), start + Math.max(0.004, (end - c[0]) * 0.5));
         } catch (Throwable e) { State.MOD.log("groove note end failed", e); return end + c[1]; }
     }
 
@@ -234,12 +277,164 @@ public final class Hooks {
 
     private static double grooveVelocity(double v) {
         try {
-            State.PSnap sn = packingSnap();
-            Groove g = sn.active();
+            Object[] ng = noteGroove.get();
+            Groove g = (Groove) ng[0];
             double t = current.get()[0];
             if (g == null || Double.isNaN(t)) return v;
-            return g.velocity(t, v, sn.amounts);
+            return g.velocity(t, v, (Groove.Amounts) ng[1]);
         } catch (Throwable e) { State.MOD.log("groove velocity failed", e); return v; }
+    }
+
+
+    // ---- copied notes keep their groove: Bitwig copies a note's values from the original into the new note one by
+    //      one (dey.cfM(to, from, ...): numbers such as position and velocity) ----
+    @Hook(id = "note-copy", target = bitwig.obf.dey.class,
+          method = "cfM(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/core/RKg;Lcom/bitwig/ramona/core/bbQ;)V",
+          at = At.ENTRY)
+    public static void valueCopied(@Arg(0) oDc to, @Arg(1) oDc from) { Overrides.copied(to, from); }
+
+    // ---- a mark on notes with a groove of their own (Inspector): a small corner flag, drawn after Bitwig paints the note.
+    //      Filled: the note has its own groove; hollow: the note is set to Off (plays straight).
+
+    /** The rectangle of the note being painted: Bitwig checks it against what's visible right after building it. */
+    private static final ThreadLocal<com.bitwig.base.geom.DoubleRectangle> painting = new ThreadLocal<>();
+
+    @Hook(id = "note-mark-where", target = bitwig.obf.bro.class,
+          method = "cfM(Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V", at = At.REPLACE_CALL,
+          callOwner = com.bitwig.base.geom.DoubleRectangle.class, call = "cfM(Lcom/bitwig/base/geom/DoubleRectangle;)Z", occurrence = 1)
+    public static boolean noteWhere(com.bitwig.base.geom.DoubleRectangle note, com.bitwig.base.geom.DoubleRectangle visible) {
+        painting.set(Overrides.any() ? note : null);
+        return note.cfM(visible);
+    }
+
+    private static final bitwig.obf.iok MARK = new bitwig.obf.iok(1f, 1f, 1f, 0.92f),
+            MARK_EDGE = new bitwig.obf.iok(0f, 0f, 0f, 0.55f);
+    private static int markFails;
+
+    /** Widgets the marks are drawn in (note editors, clip lanes, launcher clips): repainted when a groove changes, so
+     *  a mark shows at once, not at Bitwig's next repaint. */
+    private static final java.util.Set<bitwig.obf.dve> markWidgets = Collections.synchronizedSet(Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static volatile bitwig.obf.dve lastMarkWidget;
+
+    static void markWidget(bitwig.obf.dve w) {
+        if (w == null || w == lastMarkWidget) return;
+        lastMarkWidget = w;
+        markWidgets.add(w);
+    }
+
+    /** A groove changed (Inspector, copy): repaint everything that shows marks. UI thread. */
+    static void repaintMarks() {
+        try { resendClipShuffles(); } catch (Throwable ignored) {}
+        bitwig.obf.dve[] all; synchronized (markWidgets) { all = markWidgets.toArray(new bitwig.obf.dve[0]); }
+        for (bitwig.obf.dve w : all) { try { w.jbi(); } catch (Throwable ignored) {} }
+    }
+
+    /** The groove mark: a corner flag at (x, y). Filled: a groove of its own; hollow: Off (straight). */
+    static void corner(com.bitwig.graphics.SYo g, double x, double top, double size, boolean off) {
+        g.MRY(x, top); g.cfM(x + size, top); g.cfM(x, top + size); g.cfM(x, top);
+        if (off) { g.Hnt(MARK); g.IwV(1.2); g.hbP(); }
+        else {
+            g.Hnt(MARK); g.wGc();
+            g.MRY(x + size, top); g.cfM(x, top + size); g.Hnt(MARK_EDGE); g.IwV(1); g.hbP(); // its edge, against light colours
+        }
+    }
+
+    /** Arranger clips: the clip lane paints a clip (boZ.cfM(Ob ...) -> cfM(kPd ...)), then its mark goes in the corner
+     *  of the clip's rectangle (boZ.cfM(clip, x, y)). */
+    @Hook(id = "clip-mark-arranger", target = bitwig.obf.boZ.class, method = "cfM(LOb;DDDDZ)V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.boZ.class, call = "cfM(LkPd;DDDDZ)V", occurrence = 1)
+    public static void arrangerClip(bitwig.obf.boZ painter, bitwig.obf.kPd clip, double a, double b, double c, double d, boolean z) {
+        painter.cfM(clip, a, b, c, d, z); // Bitwig paints the clip
+        if (!Overrides.any()) return;
+        try {
+            Overrides.Ov v = Overrides.get(clip);
+            if (v == null || v.source == Overrides.DEFAULT) return;
+            bitwig.obf.bpa p = (bitwig.obf.bpa) (Object) painter;
+            markWidget(p.MRY);
+            com.bitwig.base.geom.DoubleRectangle r = painter.cfM(clip, a, b);
+            if (r == null || r.FzB < 6 || r.IwV < 6) return;
+            corner(p.cfM, r.MRY + 2, r.Hnt + 2, Math.min(9, Math.min(r.FzB, r.IwV) - 4), v.source == Overrides.OFF);
+        } catch (Throwable t) { if (markFails++ < 3) State.MOD.log("arranger clip mark failed", t); }
+    }
+
+    /** Audio events (in the audio editor and clips): Bitwig paints the event, then its mark goes in the top-left corner
+     *  of the event's rectangle (the painter's last argument). */
+    private static int audioMarkLogs;
+
+    @Hook(id = "audio-event-mark", target = bitwig.obf.bro.class,
+          method = "cfM(LlbB;LLA1;LMQG;LiKU;DDDDDDIZZZZZZ)V", at = At.REPLACE_CALL, callOwner = bitwig.obf.bro.class,
+          call = "cfM(Lcom/bitwig/graphics/SYo;LlbB;LLA1;LMQG;LiKU;IDDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V", occurrence = 1)
+    public static void paintAudioEvent(bitwig.obf.bro painter, com.bitwig.graphics.SYo g, bitwig.obf.lbB l, bitwig.obf.LA1 event,
+            bitwig.obf.MQG m, bitwig.obf.iKU k, int i, double a, double b, double c, double d, double e, double f,
+            boolean z1, boolean z2, boolean z3, boolean z4, boolean z5, com.bitwig.base.geom.DoubleRectangle r) {
+        painter.cfM(g, l, event, m, k, i, a, b, c, d, e, f, z1, z2, z3, z4, z5, r); // Bitwig paints the audio event
+        if (!Overrides.any() || r == null) return;
+        try {
+            Overrides.Ov v = Overrides.get(event);
+            if (v == null) { Object original = standIns.get(event); if (original != null) v = Overrides.get(original); }
+            if (v == null || v.source == Overrides.DEFAULT) return;
+            markWidget(((bitwig.obf.bpa) (Object) painter).MRY);
+            if (audioMarkLogs++ < 2) State.MOD.log("audio event mark at x " + r.MRY + " y " + r.Hnt + " w " + r.FzB + " h " + r.IwV
+                    + " (args " + a + ", " + b + ", " + c + ", " + d + ", " + e + ", " + f + ")");
+            double size = Math.min(9, Math.min(r.FzB, r.IwV) - 4);
+            if (size < 3) return;
+            corner(g, r.MRY + 2, r.Hnt + 2, size, v.source == Overrides.OFF);
+        } catch (Throwable t) { if (markFails++ < 3) State.MOD.log("audio event mark failed", t); }
+    }
+
+    /** Selected / edited notes are painted as a stand-in copy (Bitwig's preview of the note): copy -> original. */
+    private static final java.util.Map<Object, Object> standIns = Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+    @Hook(id = "note-stand-in", target = bitwig.obf.wMV.class, method = "cfM(Llh;)V", at = At.ENTRY)
+    public static void standIn(@This bitwig.obf.wMV original, @Arg(0) Object copy) {
+        if (copy != null && copy != original) standIns.put(copy, original);
+    }
+
+    /** Launcher clips: after the clip widget paints (over its slot), the mark goes in its top-left corner. */
+    @Hook(id = "clip-mark-launcher", target = bitwig.obf.bdm.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.OVERRIDE_AFTER_SUPER)
+    public static void launcherClipMark(@This bitwig.obf.bdm clipWidget, @Arg(0) com.bitwig.graphics.SYo g) {
+        if (!Overrides.any()) return;
+        try {
+            markWidget(clipWidget);
+            Object clip = ((bitwig.obf.bdn) (Object) clipWidget).LzO();
+            Overrides.Ov v = Overrides.get(clip);
+            if (v == null || v.source == Overrides.DEFAULT) return;
+            corner(g, 2, 2, 9, v.source == Overrides.OFF);
+        } catch (Throwable t) { if (markFails++ < 3) State.MOD.log("clip mark failed", t); }
+    }
+
+    @Hook(id = "note-mark-brv", target = bitwig.obf.brv.class, method = "cfM(Lcom/bitwig/graphics/SYo;LIbv;LhnT;LiKU;IDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.brv.class, call = "cfM(Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V", occurrence = 1)
+    public static void paintNote_brv(bitwig.obf.brv painter, com.bitwig.graphics.SYo g, bitwig.obf.Ibv note, bitwig.obf.kPd k,
+            double a, double b, double c, double d, double e, int i, long y, long h,
+            boolean z1, boolean z2, boolean z3, boolean z4, boolean z5) {
+        painter.cfM(g, note, k, a, b, c, d, e, i, y, h, z1, z2, z3, z4, z5); // Bitwig paints the note
+        markWidget(((bitwig.obf.bpa) (Object) painter).MRY);
+        noteMark(g, note);                                                // then its groove mark on top
+    }
+
+    @Hook(id = "note-mark-brw", target = bitwig.obf.brw.class, method = "cfM(Lcom/bitwig/graphics/SYo;LIbv;LhnT;LiKU;IDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.brw.class, call = "cfM(Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V", occurrence = 1)
+    public static void paintNote_brw(bitwig.obf.brw painter, com.bitwig.graphics.SYo g, bitwig.obf.Ibv note, bitwig.obf.kPd k,
+            double a, double b, double c, double d, double e, int i, long y, long h,
+            boolean z1, boolean z2, boolean z3, boolean z4, boolean z5) {
+        painter.cfM(g, note, k, a, b, c, d, e, i, y, h, z1, z2, z3, z4, z5); // Bitwig paints the note
+        markWidget(((bitwig.obf.bpa) (Object) painter).MRY);
+        noteMark(g, note);                                                // then its groove mark on top
+    }
+
+    static void noteMark(com.bitwig.graphics.SYo g, bitwig.obf.Ibv note) {
+        com.bitwig.base.geom.DoubleRectangle r = painting.get();
+        if (r == null) return;
+        painting.set(null);
+        try {
+            Overrides.Ov v = Overrides.get(note);
+            if (v == null) { Object original = standIns.get(note); if (original != null) v = Overrides.get(original); }
+            if (v == null || v.source == Overrides.DEFAULT) return;
+            double size = Math.min(8, Math.min(r.IwV - 2, r.FzB - 2)); // r: x MRY, y Hnt, width FzB, height IwV
+            if (size < 3) return;
+            corner(g, r.MRY + 1, r.Hnt + 1, size, v.source == Overrides.OFF);
+        } catch (Throwable t) { if (markFails++ < 3) State.MOD.log("note mark failed", t); }
     }
 
     // ------------------------------------------------------------------------------------------------ Bitwig's own groove
@@ -254,6 +449,10 @@ public final class Hooks {
         boolean out = v;
         noteConnection(enc, obj);
         try {
+            if (atom == clipShuffle()) {
+                rememberClip(enc, atom, obj);
+                if (v && Overrides.playsOwnGroove(obj)) out = false;
+            }
             if (obj instanceof KAR) {
                 remember(enc, atom, obj, v); // also starts following Bitwig's own value, which decides
                 dfj sender = senderFor(obj, switchDoc.get(obj));
@@ -397,6 +596,7 @@ public final class Hooks {
                 com.bitwig.flt.app.CHR.Grk().asyncExec(() -> {
                     if (r != null) r.run();
                     try { ProjectStore.check(); } catch (Throwable ignored) {}
+                    try { GrooveInspector.tick(); } catch (Throwable ignored) {}
                 });
             } catch (Throwable ignored) {}
         }, 500, 500, java.util.concurrent.TimeUnit.MILLISECONDS);
@@ -490,6 +690,45 @@ public final class Hooks {
         } catch (Throwable t) { return false; }
     }
 
+    // ---- each clip's own Shuffle switch: off towards the engine while the clip plays a groove of its own (or holds
+    //      notes / audio events with one, or is on a track with one), so Bitwig's shuffle never adds to it. The clip's
+    //      setting in the project is left as it is. ----
+    private static dep clipShuffleAtom;
+    private static boolean clipShuffleMissing;
+
+    static dep clipShuffle() {
+        if (clipShuffleAtom == null && !clipShuffleMissing) {
+            try { clipShuffleAtom = bitwig.obf.pnB.Hnt.uWE(); } // the clip schema's "shuffle"
+            catch (Throwable t) { clipShuffleMissing = true; State.MOD.log("clip Shuffle switch not found", t); }
+        }
+        return clipShuffleAtom;
+    }
+
+    private static final List<Object[]> clipSwitches = new ArrayList<>(); // {oRV, dep, oDc}
+
+    private static void rememberClip(oRV enc, dep atom, oDc clip) {
+        synchronized (clipSwitches) {
+            for (Object[] c : clipSwitches) if (c[0] == enc && c[2] == clip) return;
+            clipSwitches.add(new Object[]{enc, atom, clip});
+            if (clipSwitches.size() > 4096) clipSwitches.remove(0);
+        }
+    }
+
+    /** Grooves changed: every clip's Shuffle switch goes to the engine again (through its connection's own sender, so
+     *  the send hook decides on / off). UI thread. */
+    static void resendClipShuffles() {
+        Object[][] all; synchronized (clipSwitches) { all = clipSwitches.toArray(new Object[0][]); }
+        for (Object[] c : all) {
+            try {
+                dfj d = senderOf((oRV) c[0]);
+                if (d == null) continue;
+                dep atom = (dep) c[1]; oDc clip = (oDc) c[2];
+                if (clip.J_() == null) continue; // deleted
+                d.cfM(atom, clip, atom.lYc(clip));
+            } catch (Throwable t) { State.MOD.log("re-sending a clip's Shuffle failed", t); }
+        }
+    }
+
     // ---- Whole-project syncs to the engine (engine reset, the middle of every Bounce, project open)
     //
     // When the engine (re)starts it gets every object written out in full, not as value changes, so the change hooks
@@ -532,6 +771,11 @@ public final class Hooks {
         boolean v = atom.lYc(obj);
         try {
             if (obj instanceof KAR) { oRV enc = contextEncoder.get(writing.get()); if (enc != null) remember(enc, atom, obj, v); }
+            if (atom == clipShuffle() && engineContexts.contains(writing.get())) {
+                oRV enc = contextEncoder.get(writing.get());
+                if (enc != null) rememberClip(enc, atom, obj);
+                if (v && Overrides.playsOwnGroove(obj)) return false;
+            }
             if (v && obj instanceof KAR && engineContexts.contains(writing.get()) && State.snap(switchDoc.get(obj)).usesGroove()) {
                 if (syncLogs++ < 20) State.MOD.log("engine sync: Bitwig's own groove written as off");
                 return false;
@@ -575,6 +819,7 @@ public final class Hooks {
     /** Bitwig closes an undo step: remember when. */
     @Hook(id = "bitwig-step", target = com.bitwig.ramona.core.XKG.class, method = "cfM(Z)Z", at = At.ENTRY)
     public static void bitwigStep() {
+        ProjectStore.refreshInStep(); // the stored note / clip grooves follow every edit, inside the same step
         bitwigSteps.push(System.currentTimeMillis());
         while (bitwigSteps.size() > 500) bitwigSteps.removeLast();
         bitwigRedo.clear();
@@ -584,7 +829,9 @@ public final class Hooks {
     @Hook(id = "undo", target = bitwig.obf.aBW.class, method = "Ktv()V", at = At.REPLACE_CALL,
           callOwner = com.bitwig.flt.document.core.iface.pHd.class, call = "Mb2()V", occurrence = 1)
     public static void undo(com.bitwig.flt.document.core.iface.pHd doc) {
+        try { ProjectStore.flush(); } catch (Throwable ignored) {} // a groove change made just now is its own step first
         doc.Mb2(); // the groove settings are in the project: Bitwig's own undo covers them
+        try { ProjectStore.check(); } catch (Throwable ignored) {} // corners, Inspector and playback follow at once
     }
 
     /** Bitwig's Redo (Cmd+Shift+Z): whichever undone change is the older (the one undone last). */
@@ -592,6 +839,7 @@ public final class Hooks {
           callOwner = com.bitwig.flt.document.core.iface.pHd.class, call = "LIK()V", occurrence = 1)
     public static void redo(com.bitwig.flt.document.core.iface.pHd doc) {
         doc.LIK();
+        try { ProjectStore.check(); } catch (Throwable ignored) {}
     }
 
     // ------------------------------------------------------------------------------------------------ Quantize window

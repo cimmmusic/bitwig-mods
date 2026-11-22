@@ -39,6 +39,16 @@ public final class GroovePanels implements PanelProvider {
 
             dWb tools = dWb.IwV(0);
             try { tools.UNj(0.5f); } catch (Throwable ignored) {}
+            tools.HL(dut.TMF("Edit"));
+            tools.Hnt(8);
+            for (int i = 0; i < State.SLOT_NAMES.length; i++) {
+                int at = i;
+                if (i > 0) tools.Hnt(4);
+                Native.Bool on = new Native.Bool(() -> State.slot == at, () -> State.setSlot(at));
+                Graph.panelValues.add(on);
+                tools.HL(Native.option(State.SLOT_NAMES[i], 34, on));
+            }
+            tools.Hnt(16);
             Native.Bool manualOn = new Native.Bool(() -> State.mode == State.MANUAL, () -> State.setMode(State.MANUAL));
             Graph.panelValues.add(manualOn);
             tools.HL(Native.option("Use Manual", 120, manualOn));

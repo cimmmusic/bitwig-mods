@@ -16,7 +16,7 @@ import java.util.TreeSet;
 /**
  * Audio clips follow the groove: each (stretched) audio event's warp markers are rewritten on the way to the engine,
  * so the audio that was at each Base step plays where the groove puts that step, stretching smoothly in between.
- * Audio without warp markers isn't stretched by the engine and stays as it is. The project is not changed.
+ * Separate audio events (no warp markers) move as whole events; consolidated audio moves its hits through the markers. The project is not changed.
  */
 final class AudioGroove {
     private AudioGroove() {}
@@ -63,7 +63,9 @@ final class AudioGroove {
         Map<Object, Double> before = new java.util.IdentityHashMap<>();
         try {
             PSnapAccess sn = new PSnapAccess();
-            if (sn.groove == null || raw == null || raw.isEmpty() || !init()) return;
+            java.util.Map<Object, Object> sources = Hooks.audioSources.get();
+            boolean ownEvents = Overrides.any() && !sources.isEmpty();
+            if ((sn.groove == null && !ownEvents) || raw == null || raw.isEmpty() || !init()) { sources.clear(); return; }
             List<Object> list = (List<Object>) raw;
             List<Object> sorted = new ArrayList<>(list);
             java.util.Collections.sort((List) sorted);
@@ -77,10 +79,20 @@ final class AudioGroove {
                 else if (o instanceof ALv e) { Group gr = open.remove(e.FzB()); if (gr != null) gr.end = e; }
             }
             for (Group gr : hits) {
-                if (gr.start == null || gr.end == null || gr.markers.isEmpty()) continue; // not stretched: left as it is
+                if (gr.start == null || gr.end == null) continue; // a hit without its end: left as it is
+                // the audio event's own groove (Inspector), else its clip's / track's / the global one
+                Groove g = sn.groove; Groove.Amounts a = sn.amounts;
+                if (ownEvents) {
+                    Object source = sources.get(gr.start);
+                    if (source == null && missLogs++ < 3) State.MOD.log("audio event not found for hit at " + time(gr.start));
+                    Overrides.Res r = source == null ? null : Overrides.resolve(source);
+                    if (r != null) { g = r.groove; a = r.amounts; }
+                }
+                if (g == null) continue; // straight
                 remember(before, gr);
-                rewrite(list, gr.start.FzB(), gr, sn.groove, sn.amounts);
+                rewrite(list, gr.start.FzB(), gr, g, a);
             }
+            sources.clear();
             if (diag < 2 && !hits.isEmpty()) {
                 diag++;
                 StringBuilder b = new StringBuilder("audio diag: via " + caller() + ", " + hits.size() + " hit(s), " + before.size() + " event(s) moved");
@@ -107,7 +119,7 @@ final class AudioGroove {
 
     /** Test build: audio hits all half a beat late, to hear whether moving them reaches playback at all. */
     static final boolean TEST = false;
-    private static int packs;
+    private static int packs, missLogs;
     private static boolean loggedFail;
     private static int diag;
 
@@ -133,7 +145,13 @@ final class AudioGroove {
     /** The groove for the clip being packed. */
     private static final class PSnapAccess {
         final Groove groove; final Groove.Amounts amounts;
-        PSnapAccess() { State.PSnap s = Hooks.packingSnap(); groove = s.active(); amounts = s.amounts; }
+        PSnapAccess() {
+            // the audio clip's own groove (or its track's), else the global one
+            Object content = Hooks.packingContent.get();
+            Overrides.Res r = Overrides.resolve(content);
+            if (r != null) { groove = r.groove; amounts = r.amounts; }
+            else { State.PSnap s = Hooks.packingSnap(); groove = s.active(); amounts = s.amounts; }
+        }
     }
 
     private static void remember(Map<Object, Double> before, Group gr) throws IllegalAccessException {

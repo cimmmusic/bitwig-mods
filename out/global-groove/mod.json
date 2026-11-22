@@ -3,7 +3,7 @@
   "mod": {
     "id": "global-groove",
     "name": "Transport: Global Groove Files",
-    "version": "0.9.0-dev.16",
+    "version": "0.10.0",
     "author": "Cimm",
     "description": ".agr and MIDI groove files, plus a hand-drawn Manual groove, in Bitwig's global Groove: every note clip and sliced audio clip plays with it, saved per project. The project's notes are never changed.",
     "documentation": "readme"
@@ -42,13 +42,43 @@
       "name": "cfM",
       "descriptor": "(Ljava/util/List;Z)[B"
     },
+    "HEL.cfM-2": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(LlSj;)[B"
+    },
+    "HEL.cfM-3": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(LocL;)[B"
+    },
+    "HEL.cfM-4": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(Liav;)[B"
+    },
+    "HEL.cfM-5": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(LGVR;)[B"
+    },
+    "HEL.cfM-6": {
+      "kind": "method",
+      "owner": "HEL",
+      "name": "cfM",
+      "descriptor": "(Ljava/util/List;ILuWw;DDD)V"
+    },
     "bpM.JhA": {
       "kind": "method",
       "owner": "bpM",
       "name": "JhA",
       "descriptor": "()V"
     },
-    "HEL.cfM-2": {
+    "HEL.cfM-7": {
       "kind": "method",
       "owner": "HEL",
       "name": "cfM",
@@ -77,6 +107,88 @@
       "owner": "uWw",
       "name": "hUR",
       "descriptor": "()D"
+    },
+    "dey.cfM": {
+      "kind": "method",
+      "owner": "dey",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/core/RKg;Lcom/bitwig/ramona/core/bbQ;)V"
+    },
+    "bro.cfM": {
+      "kind": "method",
+      "owner": "bro",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/base/geom/DoubleRectangle;)Z"
+    },
+    "boZ.cfM": {
+      "kind": "method",
+      "owner": "boZ",
+      "name": "cfM",
+      "descriptor": "(LOb;DDDDZ)V"
+    },
+    "boZ.cfM-2": {
+      "kind": "method",
+      "owner": "boZ",
+      "name": "cfM",
+      "descriptor": "(LkPd;DDDDZ)V"
+    },
+    "bro.cfM-2": {
+      "kind": "method",
+      "owner": "bro",
+      "name": "cfM",
+      "descriptor": "(LlbB;LLA1;LMQG;LiKU;DDDDDDIZZZZZZ)V"
+    },
+    "bro.cfM-3": {
+      "kind": "method",
+      "owner": "bro",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;LlbB;LLA1;LMQG;LiKU;IDDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V"
+    },
+    "wMV.cfM": {
+      "kind": "method",
+      "owner": "wMV",
+      "name": "cfM",
+      "descriptor": "(Llh;)V"
+    },
+    "bdm": {
+      "kind": "class",
+      "class": "bdm"
+    },
+    "bcW.cfM": {
+      "kind": "method",
+      "owner": "bcW",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "brv.cfM": {
+      "kind": "method",
+      "owner": "brv",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;LIbv;LhnT;LiKU;IDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V"
+    },
+    "brv.cfM-2": {
+      "kind": "method",
+      "owner": "brv",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V"
+    },
+    "brw.cfM": {
+      "kind": "method",
+      "owner": "brw",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;LIbv;LhnT;LiKU;IDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V"
+    },
+    "brw.cfM-2": {
+      "kind": "method",
+      "owner": "brw",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V"
     },
     "dfj.cfM": {
       "kind": "method",
@@ -126,7 +238,7 @@
       "name": "lYc",
       "descriptor": "(Lcom/bitwig/ramona/core/oDc;)Z"
     },
-    "dey.cfM": {
+    "dey.cfM-2": {
       "kind": "method",
       "owner": "dey",
       "name": "cfM",
@@ -203,6 +315,48 @@
       "owner": "dWb",
       "name": "MRY",
       "descriptor": "(I[Ldve;)LdWb;"
+    },
+    "bpa.MRY": {
+      "kind": "field",
+      "owner": "bpa",
+      "name": "MRY",
+      "descriptor": "Ldve;"
+    },
+    "bpa.cfM": {
+      "kind": "field",
+      "owner": "bpa",
+      "name": "cfM",
+      "descriptor": "Lcom/bitwig/graphics/SYo;"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.FzB": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "FzB",
+      "descriptor": "D"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.Hnt": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "Hnt",
+      "descriptor": "D"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.IwV": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "IwV",
+      "descriptor": "D"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.MRY": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "MRY",
+      "descriptor": "D"
+    },
+    "uWw.Hnt": {
+      "kind": "field",
+      "owner": "uWw",
+      "name": "Hnt",
+      "descriptor": "LdpB;"
     },
     "aoA.init": {
       "kind": "method",
@@ -327,6 +481,83 @@
       }
     },
     {
+      "id": "pack-content-lSj",
+      "target": "HEL.cfM-2",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "packContent1",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg0"
+        ]
+      }
+    },
+    {
+      "id": "pack-content-ocL",
+      "target": "HEL.cfM-3",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "packContent2",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg0"
+        ]
+      }
+    },
+    {
+      "id": "pack-content-iav",
+      "target": "HEL.cfM-4",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "packContent3",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg0"
+        ]
+      }
+    },
+    {
+      "id": "pack-content-GVR",
+      "target": "HEL.cfM-5",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "packContent4",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg0"
+        ]
+      }
+    },
+    {
+      "id": "audio-hit-from",
+      "target": "HEL.cfM-6",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "audioHitFrom",
+        "descriptor": "(LuWw;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "audio-hit-made",
+      "target": "HEL.cfM-6",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "owner": "java/util/List",
+        "name": "add",
+        "descriptor": "(Ljava/lang/Object;)Z",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "audioHitMade",
+        "descriptor": "(Ljava/util/List;Ljava/lang/Object;)Z",
+        "args": []
+      }
+    },
+    {
       "id": "track-timeline",
       "target": "bpM.JhA",
       "transform": "INSERT_AT_ENTRY",
@@ -340,7 +571,7 @@
     },
     {
       "id": "note",
-      "target": "HEL.cfM-2",
+      "target": "HEL.cfM-7",
       "transform": "INSERT_AT_ENTRY",
       "bridge": {
         "method": "note",
@@ -352,7 +583,7 @@
     },
     {
       "id": "note-start",
-      "target": "HEL.cfM-2",
+      "target": "HEL.cfM-7",
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEVIRTUAL",
@@ -367,7 +598,7 @@
     },
     {
       "id": "note-end",
-      "target": "HEL.cfM-2",
+      "target": "HEL.cfM-7",
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEVIRTUAL",
@@ -382,7 +613,7 @@
     },
     {
       "id": "note-velocity",
-      "target": "HEL.cfM-2",
+      "target": "HEL.cfM-7",
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEVIRTUAL",
@@ -397,7 +628,7 @@
     },
     {
       "id": "repeat-velocity",
-      "target": "HEL.cfM-2",
+      "target": "HEL.cfM-7",
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEVIRTUAL",
@@ -407,6 +638,126 @@
       "bridge": {
         "method": "repeatVelocity",
         "descriptor": "(LuWw;)D",
+        "args": []
+      }
+    },
+    {
+      "id": "note-copy",
+      "target": "dey.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "valueCopied",
+        "descriptor": "(Lcom/bitwig/ramona/core/oDc;Lcom/bitwig/ramona/core/oDc;)V",
+        "args": [
+          "arg1",
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "note-mark-where",
+      "target": "bro.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.base.geom.DoubleRectangle.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "noteWhere",
+        "descriptor": "(Lcom/bitwig/base/geom/DoubleRectangle;Lcom/bitwig/base/geom/DoubleRectangle;)Z",
+        "args": []
+      }
+    },
+    {
+      "id": "clip-mark-arranger",
+      "target": "boZ.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "boZ.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "arrangerClip",
+        "descriptor": "(LboZ;LkPd;DDDDZ)V",
+        "args": []
+      }
+    },
+    {
+      "id": "audio-event-mark",
+      "target": "bro.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "bro.cfM-3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "paintAudioEvent",
+        "descriptor": "(Lbro;Lcom/bitwig/graphics/SYo;LlbB;LLA1;LMQG;LiKU;IDDDDDDZZZZZLcom/bitwig/base/geom/DoubleRectangle;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "note-stand-in",
+      "target": "wMV.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "standIn",
+        "descriptor": "(LwMV;Ljava/lang/Object;)V",
+        "args": [
+          "this",
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "clip-mark-launcher",
+      "target": "bdm",
+      "transform": "ADD_METHOD",
+      "method": {
+        "from_target": "bcW.cfM"
+      },
+      "body": {
+        "template": "CALL_SUPER_THEN_STATIC"
+      },
+      "bridge": {
+        "method": "launcherClipMark",
+        "descriptor": "(Lbdm;Lcom/bitwig/graphics/SYo;)V",
+        "args": [
+          "this",
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "note-mark-brv",
+      "target": "brv.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "brv.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "paintNote_brv",
+        "descriptor": "(Lbrv;Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V",
+        "args": []
+      }
+    },
+    {
+      "id": "note-mark-brw",
+      "target": "brw.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "brw.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "paintNote_brw",
+        "descriptor": "(Lbrw;Lcom/bitwig/graphics/SYo;LIbv;LkPd;DDDDDIJJZZZZZ)V",
         "args": []
       }
     },
@@ -517,7 +868,7 @@
     },
     {
       "id": "write-double-context",
-      "target": "dey.cfM",
+      "target": "dey.cfM-2",
       "transform": "INSERT_AT_ENTRY",
       "bridge": {
         "method": "writeDoubleContext",
@@ -529,7 +880,7 @@
     },
     {
       "id": "write-double",
-      "target": "dey.cfM",
+      "target": "dey.cfM-2",
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEVIRTUAL",
@@ -644,6 +995,14 @@
     "avb.cfM",
     "bpM.JhA",
     "bpM.hb_",
+    "bpa.MRY",
+    "bpa.cfM",
+    "bro.cfM",
+    "bro.cfM-3",
+    "com.bitwig.base.geom.DoubleRectangle.FzB",
+    "com.bitwig.base.geom.DoubleRectangle.Hnt",
+    "com.bitwig.base.geom.DoubleRectangle.IwV",
+    "com.bitwig.base.geom.DoubleRectangle.MRY",
     "dAd.init",
     "dLh.init",
     "dfj.cfM",
@@ -653,7 +1012,8 @@
     "drX.init",
     "dve.MRY",
     "dve.cfM",
-    "dve.init"
+    "dve.init",
+    "uWw.Hnt"
   ],
   "resources": {
     "readme": {
@@ -678,6 +1038,12 @@
       "consumer": "panel-management-framework",
       "descriptor": "panels.properties",
       "jar": "helper.jar"
+    },
+    {
+      "id": "inspector",
+      "consumer": "inspector-composition-framework",
+      "descriptor": "inspector-blocks.properties",
+      "jar": "helper.jar"
     }
   ],
   "requires": [
@@ -692,6 +1058,10 @@
     {
       "id": "panel-management-framework",
       "min_version": "0.2.0-dev.2"
+    },
+    {
+      "id": "inspector-composition-framework",
+      "min_version": "0.3.0-dev.2"
     }
   ]
 }

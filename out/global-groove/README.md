@@ -10,6 +10,7 @@ Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groov
 - **What you hear is what you get:** playback, MIDI recording and bounces all follow the same groove. Bitwig's own Shuffle and Accent are set to 0 while a groove file or Manual is in use, and come back when you switch to Bitwig.
 - **Saved with the project**, with Bitwig's Undo / Redo. Each open project keeps its own groove.
 - **A resizable Groove panel** for drawing the Manual groove at full size.
+- **A groove of their own for single notes, clips, tracks and audio events**, set in Bitwig's Inspector, marked with a white corner, kept when copied and saved with the project.
 - **macOS and Windows:** Browse and Save as Groove… open the system's own file dialogs on each (Linux: zenity or kdialog). Developed and tested on macOS; on Windows, please report anything that behaves differently.
 
 *Requires the Patchbay Mod Loader (BML). An unofficial mod, not made or supported by Bitwig.*
@@ -23,9 +24,24 @@ Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groov
 - Every note clip plays with the groove, as with Bitwig's Shuffle, and so do sliced or consolidated audio clips (each audio hit moves with its step). Your notes and audio are never moved: turn Enable Groove off, or set Source back to Bitwig, and everything plays as written.
 - The groove settings are saved in the project (with Bitwig's own Undo / Redo); a new project starts from the defaults. Each open project tab keeps its own groove.
 
+## Notes, clips, tracks and audio events
+
+Select notes, a clip (arranger or launcher), a track, or audio events inside an audio clip, and the Inspector shows a **Groove** block at its end:
+
+- **Source:** Default (follow the clip, track or global groove), Off (play straight), Groove File, or Manual A–D.
+- **Groove**, **Strength, Timing, Velocity, Random, Quantize** and **Base**, as in the Play menu, for that selection only.
+- The first line says what the selection plays with now, e.g. "Global: Tempest 16 Swing 60" or "From track: Manual B".
+- Order: a note's own groove wins over its clip's, the clip's over its track's, the track's over the global groove. It applies whether the global Enable Groove is on or off.
+- Notes, clips and audio events with a groove of their own get a **white corner** (hollow when set to Off).
+- Copy, paste, duplicate or Alt-drag a note or clip and the copy keeps its groove.
+- Saved with the project, and followed by Bitwig's Undo / Redo.
+- Audio: separate audio events move as a whole; consolidated audio moves its hits through its warp markers.
+- Bitwig's own Shuffle never adds to these: a clip that plays a groove of its own (or holds notes or audio events with one) has its Shuffle kept off towards the audio engine. The clip's Shuffle switch in the project stays as you set it.
+
 ## Manual
 
 - Set Source to Manual to draw a groove by hand: one bar, a line per Base step.
+- Four drawings, **A–D**. **Edit [A][B][C][D]** (Play menu and Groove panel) picks the drawing you work on; **Manual [A][B][C][D]** next to the Source buttons picks the one the global groove plays. Draw B, C and D for notes, clips and audio events while the global groove stays on A.
 - Drag a node left or right to play that step earlier or later (up to half a step), up or down for its velocity. It snaps to straight, ±25 %, ±50 % and to the 100 % velocity line; hold Shift for fine moves without snapping. Drag a box to select several nodes and move them together. Double-click or right-click > Reset to put a node back.
 - Reset straightens the bar; Copy from Groove File starts it from the selected groove file.
 - Save as Groove… writes the drawing as an .agr file (in Desktop/Grooves/Custom by default) and adds it to the Groove File list.

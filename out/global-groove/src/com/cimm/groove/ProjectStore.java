@@ -78,6 +78,9 @@ final class ProjectStore {
         t.start();
     }
 
+    /** A change still waiting to be written goes in now (before Bitwig's Undo, so Undo takes back that change). */
+    static void flush() { if (pending > 0) { pending = 0; write(); } }
+
     private static void write() {
         g2L p = project;
         if (p == null) return;
@@ -101,6 +104,32 @@ final class ProjectStore {
         } catch (Throwable t) { State.MOD.log("couldn't store the groove in the project", t); }
     }
 
+    private static boolean refreshing, hadOverrides;
+    private static int refreshFails;
+
+    /**
+     * Bitwig is closing an undo step (any edit): the stored paths of notes and clips with a groove of their own are
+     * brought up to date inside that same step, so a save always has them right, Undo / Redo keep them in step with the
+     * notes, and no undo step of our own is added. UI thread.
+     */
+    static void refreshInStep() {
+        if (refreshing || pending > 0) return;
+        g2L p = project;
+        boolean any = Overrides.any();
+        if (p == null || (!any && !hadOverrides)) return;
+        refreshing = true;
+        try {
+            String c = comment(p);
+            String text = userText(c) + MARK + Base64.getEncoder().encodeToString(State.dumpProject().getBytes(StandardCharsets.UTF_8));
+            if (!text.equals(c)) {
+                com.bitwig.flt.document.core.master.cXR m = master(p);
+                if (m != null) { m.TtY(text); lastSeen = text; }
+            }
+            hadOverrides = any;
+        } catch (Throwable t) { if (refreshFails++ < 3) State.MOD.log("couldn't refresh the stored grooves", t); }
+        finally { refreshing = false; }
+    }
+
     /** Called twice a second: the block changed from outside (Bitwig's Undo / Redo): follow it. UI thread. */
     static void check() {
         g2L p = project;
@@ -113,6 +142,6 @@ final class ProjectStore {
     }
 
     /** Bitwig's own Undo / Redo (for the Undo / Redo buttons). */
-    static void undo() { try { if (project != null) project.Mb2(); } catch (Throwable t) { State.MOD.log("undo failed", t); } }
-    static void redo() { try { if (project != null) project.LIK(); } catch (Throwable t) { State.MOD.log("redo failed", t); } }
+    static void undo() { try { flush(); if (project != null) project.Mb2(); check(); } catch (Throwable t) { State.MOD.log("undo failed", t); } }
+    static void redo() { try { if (project != null) project.LIK(); check(); } catch (Throwable t) { State.MOD.log("redo failed", t); } }
 }
