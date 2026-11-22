@@ -17,7 +17,7 @@ Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groov
 
 *Requires the Patchbay Mod Loader (BML). An unofficial mod, not made or supported by Bitwig.*
 
-<img src="images/groove-file.png" width="369" alt="Play menu: Groove File source"> <img src="images/manual.png" width="370" alt="Play menu: Manual groove graph">
+<img src="images/groove-file.png" width="369" alt="Play menu: Groove File source"> <img src="images/manual.png" width="370" alt="Play menu: Manual grooves A–D, the graph and Edit A–D">
 
 ## Using it
 
@@ -29,6 +29,8 @@ Global Groove Files adds two new sources to Bitwig's Groove (Play menu): **Groov
 ## Notes, clips, tracks and audio events
 
 Select notes, a clip (arranger or launcher), a track, or audio events inside an audio clip, and the Inspector shows a **Groove** block at its end:
+
+<img src="images/inspector.png" width="760" alt="The Inspector's Groove block for selected notes, and notes with a groove of their own marked with a white corner">
 
 - **Source:** Default (follow the clip, track or global groove), Off (play straight), Groove File, or Manual A–D.
 - **Groove**, **Strength, Timing, Velocity, Random, Quantize** and **Base**, as in the Play menu, for that selection only.
