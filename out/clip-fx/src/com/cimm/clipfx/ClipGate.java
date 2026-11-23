@@ -102,12 +102,34 @@ final class ClipGate {
                 if (o != null && shownAtom instanceof bitwig.obf.dep d && wasShown instanceof Boolean b) {
                     if (laneLogs++ < 3) ClipFx.MOD.log("Clip FX: automation shown after: " + d.lYc(o));
                     if (d.lYc(o) != b) d.cfM(o, b.booleanValue());
+                    if (laneLogs < 4) ClipFx.MOD.log("Clip FX: automation shown after putting back: " + d.lYc(o));
+                    if (!b) closeLater(c.track, o, d);
                 }
                 if (o != null && selAtom instanceof bitwig.obf.deU u && !java.util.Objects.equals(u.MRY(o), wasSel)) u.MRY(o, wasSel);
             } catch (Throwable t) { ClipFx.MOD.log("Clip FX: hiding the track's automation again failed", t); }
         }
     }
     private static int laneLogs;
+
+    /** Bitwig opens the lanes again after the step (when it sees the new lanes): closed again shortly after,
+     *  checked a few times; each close is a small undo step of its own only when needed. */
+    private static void closeLater(Object track, com.bitwig.ramona.core.oDc settings, bitwig.obf.dep shown) {
+        for (int ms : new int[]{0, 120, 400, 1000}) {
+            Runnable check = () -> {
+                try {
+                    if (!shown.lYc(settings)) return;
+                    g2L project = null;
+                    for (Object x = track; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
+                    if (project == null) return;
+                    project.cfM("Clip FX On", false);
+                    try { shown.cfM(settings, false); } finally { project.cfM(false); }
+                    if (laneLogs++ < 8) ClipFx.MOD.log("Clip FX: closed the track's automation again (" + ms + " ms)");
+                } catch (Throwable t) { ClipFx.MOD.log("Clip FX: closing the track's automation later failed", t); }
+            };
+            if (ms == 0) com.bitwig.flt.app.CHR.Grk().asyncExec(check);
+            else { javax.swing.Timer tm = new javax.swing.Timer(ms, e -> com.bitwig.flt.app.CHR.Grk().asyncExec(check)); tm.setRepeats(false); tm.start(); }
+        }
+    }
 
     private static void writeGate(Ctx c, AxS unit, boolean on) {
         bitwig.obf.rce[] vol = GateTest.volumes(unit);
