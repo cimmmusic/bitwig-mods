@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "author": "Cimm",
     "description": "Effects for a single arranger clip, like Studio One's Event FX: turn on Clip FX in the Inspector and add effects that only that clip plays through. Beta.",
     "documentation": "readme"
