@@ -63,10 +63,14 @@ final class GateTest {
                     Boolean.FALSE,                           // should_adjust_previous_curvature
                     clipRef(project, clip),                  // clip (the transport's view of it)
                     0,                                       // clip_loop_iteration
-                    null));                                  // selection
+                    arrangerSelection(project)));            // selection (the arranger's own)
             // by name: getter names differ between Bitwig versions, operation names don't
             Object found = ((bitwig.obf.der) (Object) bitwig.obf.BTS.cfM).cfM("insert_arranger_clip_automation_events");
             if (!(found instanceof bitwig.obf.deV op)) { ClipFx.MOD.log("GATE: operation not found (" + found + ")"); return; }
+            // never call into Bitwig with a missing argument: its implementation fails half-way and the undo step
+            // stays open, which crashes Bitwig
+            for (int i = 0; i < args.size(); i++)
+                if (args.get(i) == null) { ClipFx.MOD.log("GATE: argument " + i + " is missing, nothing written"); return; }
             project.cfM("Clip FX gate", false);
             try {
                 // the operation belongs to one of the clip's owners (lane, arrangement, track...): the first that has it
@@ -98,6 +102,15 @@ final class GateTest {
             }
             finally { project.cfM(false); }
         } catch (Throwable e) { ClipFx.MOD.log("GATE: failed", e); }
+    }
+
+    /** The arranger's selection (Bitwig passes its own to this operation). */
+    static Object arrangerSelection(com.bitwig.flt.document.core.master.g2L project) {
+        try {
+            Object r = project.EV().iAj();
+            ClipFx.MOD.log("GATE: arranger selection " + (r == null ? "null" : r.getClass().getSimpleName() + " " + Probe.path(r)));
+            return r;
+        } catch (Throwable t) { ClipFx.MOD.log("GATE: arranger selection failed", t); return null; }
     }
 
     /** The clip as the automation operation wants it: the transport's la1 for the clip. */
