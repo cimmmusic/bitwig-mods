@@ -52,7 +52,6 @@ public final class ClipFxInspector implements InspectorProvider {
                 Rows.when(context, () -> ClipFx.shown(first(selection)).on,
                         Rows.text(context, "Inserts", () -> inserts(first(selection)).isEmpty() ? "none yet" : ""),
                         list.group,
-                        Rows.button(context, "+", () -> addInsert(context, first(selection))),
                         Rows.button(context, "Show FX", () -> showFx(context, first(selection)))));
     }
 
