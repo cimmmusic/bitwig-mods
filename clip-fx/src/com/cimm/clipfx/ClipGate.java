@@ -101,8 +101,8 @@ final class ClipGate {
                 com.bitwig.ramona.core.oDc o = (com.bitwig.ramona.core.oDc) settings;
                 if (o != null && shownAtom instanceof bitwig.obf.dep d && wasShown instanceof Boolean b) {
                     if (laneLogs++ < 3) ClipFx.MOD.log("Clip FX: automation shown after: " + d.lYc(o));
-                    if (d.lYc(o) != b) d.cfM(o, b.booleanValue());
-                    if (laneLogs < 4) ClipFx.MOD.log("Clip FX: automation shown after putting back: " + d.lYc(o));
+                    if (d.lYc(o) != b || !b) hideLanes(o, b.booleanValue());
+                    if (laneLogs < 4) ClipFx.MOD.log("Clip FX: automation shown after putting back: " + d.lYc(o) + ", in the arranger: " + shownInView(o));
                     if (!b) closeLater(c.track, o, d);
                 }
                 if (o != null && selAtom instanceof bitwig.obf.deU u && !java.util.Objects.equals(u.MRY(o), wasSel)) u.MRY(o, wasSel);
@@ -111,18 +111,39 @@ final class ClipGate {
     }
     private static int laneLogs;
 
+    /** Through the arranger's own track model (the display settings are a yBZ): it stores the value and tells the
+     *  arranger, which a write of the document value alone doesn't. */
+    private static void hideLanes(com.bitwig.ramona.core.oDc settings, boolean shown) {
+        try {
+            java.lang.reflect.Method m = bitwig.obf.yBZ.class.getDeclaredMethod("lYc", boolean.class);
+            m.setAccessible(true);
+            m.invoke(settings, shown);
+        } catch (Throwable t) {
+            ClipFx.MOD.log("Clip FX: the arranger's lanes switch failed; writing the value", t);
+            try {
+                Object a = ((bitwig.obf.der) (Object) settings.ng_()).cfM("are_automation_lanes_shown_in_arranger");
+                if (a instanceof bitwig.obf.dep d) d.cfM(settings, shown);
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    /** What the arranger shows (its model's own value). */
+    private static boolean shownInView(com.bitwig.ramona.core.oDc settings) {
+        try { return ((bitwig.obf.yBZ) (Object) settings).cfM(); } catch (Throwable t) { return false; }
+    }
+
     /** Bitwig opens the lanes again after the step (when it sees the new lanes): closed again shortly after,
      *  checked a few times; each close is a small undo step of its own only when needed. */
     private static void closeLater(Object track, com.bitwig.ramona.core.oDc settings, bitwig.obf.dep shown) {
         for (int ms : new int[]{0, 120, 400, 1000}) {
             Runnable check = () -> {
                 try {
-                    if (!shown.lYc(settings)) return;
+                    if (!shown.lYc(settings) && !shownInView(settings)) return;
                     g2L project = null;
                     for (Object x = track; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
                     if (project == null) return;
                     project.cfM("Clip FX On", false);
-                    try { shown.cfM(settings, false); } finally { project.cfM(false); }
+                    try { hideLanes(settings, false); } finally { project.cfM(false); }
                     if (laneLogs++ < 8) ClipFx.MOD.log("Clip FX: closed the track's automation again (" + ms + " ms)");
                 } catch (Throwable t) { ClipFx.MOD.log("Clip FX: closing the track's automation later failed", t); }
             };
