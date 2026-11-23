@@ -31,6 +31,24 @@ final class ChainBuilder {
         return bitwig.obf.zlI.cfM(data, new com.bitwig.flt.document.core.master.IbI(new com.bitwig.base.io.z2y(preset), null, null));
     }
 
+    /** The track's own device chain: the object among the track's getters whose path in the project ends in
+     *  "/device_chain" (sWR() gives a detached chain), else the parent of its first device. */
+    static Object trackChain(bitwig.obf.xJo track) {
+        Class<?> c = track.getClass();
+        for (int up = 0; up < 8 && c != null && c != Object.class; up++, c = c.getSuperclass()) {
+            for (java.lang.reflect.Method m : c.getDeclaredMethods()) {
+                if (m.getParameterCount() != 0 || !java.lang.reflect.Modifier.isPublic(m.getModifiers())
+                        || java.lang.reflect.Modifier.isStatic(m.getModifiers()) || !oDc.class.isAssignableFrom(m.getReturnType())) continue;
+                try {
+                    Object o = m.invoke(track);
+                    String p = Probe.path(o);
+                    if (p.endsWith("/device_chain")) { ClipFx.MOD.log("TEST: chain from " + c.getSimpleName() + "." + m.getName() + "()"); return o; }
+                } catch (Throwable ignored) {}
+            }
+        }
+        try { Object first = track.mcL(); return first == null ? null : Probe.parent(first); } catch (Throwable t) { return null; }
+    }
+
     /** Test: the container at the start of the selected clip's track (one undo step), and what it holds. UI thread. */
     static void test(List<Object> selection) {
         if (selection.isEmpty()) { ClipFx.MOD.log("TEST: nothing selected"); return; }
@@ -48,10 +66,15 @@ final class ChainBuilder {
         try {
             xlG fx = load(container);
             ClipFx.MOD.log("TEST: loaded container " + fx.getClass().getName());
-            com.bitwig.flt.document.core.master.device.ISf chain = track.sWR();
+            Object chainObj = trackChain(track);
+            ClipFx.MOD.log("TEST: track chain " + (chainObj == null ? "not found" : chainObj.getClass().getName() + " " + Probe.path(chainObj)));
+            if (!(chainObj instanceof com.bitwig.flt.document.core.master.device.IPO chain)) {
+                if (chainObj != null) Probe.describe("track chain", chainObj, 1);
+                return;
+            }
             project.cfM("Add Clip FX", false); // one undo step
             try { chain.cfM(fx, 0); } finally { project.cfM(false); }
-            ClipFx.MOD.log("TEST: inserted; the track's chain now has " + chain.HL().size() + " device(s)");
+            ClipFx.MOD.log("TEST: inserted at " + Probe.path(fx) + "; the track's chain now has " + chain.HL().size() + " device(s)");
             Probe.describe("container", fx, 1);
             if (gate != null) { xlG g = load(gate); ClipFx.MOD.log("TEST: loaded gate " + g.getClass().getName()); Probe.describe("gate", g, 1); }
         } catch (Throwable t) { ClipFx.MOD.log("TEST: building failed", t); }
