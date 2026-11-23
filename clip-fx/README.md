@@ -2,7 +2,7 @@
 
 Effects for a single clip, like Studio One's Event FX. Select a clip in the arranger, turn on **Clip FX** in the Inspector, and add effects that only that clip plays through. The rest of the track stays dry, and effect tails (reverb, delay) ring out after the clip ends.
 
-**Beta.**
+**Arrangement only, and in beta.** Clip FX works on clips in the Arranger, not in the Clip Launcher. A couple of things don't work properly yet (dragging clips and Undo after deleting a clip): see **Known limits** below, and save before you rearrange.
 
 <img src="clip-fx.png" alt="A Hi-Hat clip with Clip FX: the Inspector's Clip FX block is On, with Treemonster, FabFilter Saturn 2, Comb and Rotary as its inserts, and Show FX">
 
@@ -35,7 +35,7 @@ These devices are hidden from the track's device chain and from the mixer: you s
 
 ## Known limits
 
-- **Arranger clips only.** Launcher clips and single audio events aren't supported yet.
+- **Arrangement only.** Clips in the Clip Launcher and single audio events aren't supported.
 - **Copy and paste:** a pasted clip plays through the **same** effects as the original.
 - **Undo after deleting a clip:** may not bring the clip's effects back. This is being worked on.
 
