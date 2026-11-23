@@ -22,4 +22,13 @@ final class ClipFx {
     static Fx shown(Object o) { Fx f = o == null ? null : byObject.get(o); return f != null ? f : new Fx(); }
 
     static Fx edit(Object o) { return byObject.computeIfAbsent(o, k -> new Fx()); }
+
+    /** Every Clip FX Unit the mod made (to know whether a device is one of a clip's inserts). */
+    static final java.util.Set<Object> units = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+    /** Whether a device is an insert of a clip: inside a unit made by the mod. */
+    static boolean isInsert(Object device) {
+        for (Object x = Probe.parent(device); x != null; x = Probe.parent(x)) if (units.contains(x)) return true;
+        return false;
+    }
 }

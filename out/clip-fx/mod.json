@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.22",
+    "version": "0.1.0-dev.23",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -77,12 +77,22 @@
       "consumer": "inspector-composition-framework",
       "descriptor": "inspector-blocks.properties",
       "jar": "helper.jar"
+    },
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
     }
   ],
   "requires": [
     {
       "id": "inspector-composition-framework",
       "min_version": "0.3.0-dev.2"
+    },
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
     }
   ]
 }

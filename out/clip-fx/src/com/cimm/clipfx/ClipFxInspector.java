@@ -35,9 +35,11 @@ public final class ClipFxInspector implements InspectorProvider {
                                 f.on = v == 1;
                                 boolean on = f.on;
                                 // the project is edited after Bitwig has finished handling this change (never inside it)
+                                List<Object> was = selected(selection);
                                 com.bitwig.flt.app.CHR.Grk().asyncExec(() -> {
                                     if (f.unit == null) { if (on) f.unit = ClipGate.turnOn(o); }
                                     else ClipGate.set(o, (com.bitwig.flt.document.core.master.device.AxS) f.unit, on);
+                                    reselect(selection, was); // writing the gate moves Bitwig's selection: back to the clip
                                     Rows.refresh(context);
                                 });
                             }
@@ -45,7 +47,8 @@ public final class ClipFxInspector implements InspectorProvider {
                 Rows.when(context, () -> ClipFx.shown(first(selection)).on,
                         Rows.text(context, "Inserts", () -> inserts(first(selection)).isEmpty() ? "none yet" : ""),
                         list.group,
-                        Rows.button(context, "+", () -> addInsert(context, first(selection)))));
+                        Rows.button(context, "+", () -> addInsert(context, first(selection))),
+                        Rows.button(context, "Show FX", () -> showFx(context, first(selection)))));
     }
 
     /** The clip's inserts: the devices of its unit's FX layer after the gate. */
@@ -64,6 +67,27 @@ public final class ClipFxInspector implements InspectorProvider {
 
     static String name(Object device) {
         try { return ((com.bitwig.flt.document.core.master.device.xlG) device).aF_(); } catch (Throwable t) { return device.getClass().getSimpleName(); }
+    }
+
+    /** Selects these clips again (Bitwig's own selection controller for the Inspector's selection). */
+    static void reselect(Object selection, List<Object> items) {
+        try {
+            if (items.isEmpty() || !(selection instanceof bitwig.obf.OXq s)) return;
+            bitwig.obf.ICh controller = s.wYK();
+            if (items.size() == 1) controller.UNj((com.bitwig.ramona.core.OLR) items.get(0)); else controller.cfM(items);
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: selecting the clip again failed", t); }
+    }
+
+    /** Shows the clip's effect chain in the device panel, as double-clicking an insert does. */
+    private static void showFx(BlockContext context, Object clip) {
+        Object unit = ClipFx.shown(clip).unit;
+        if (!(unit instanceof com.bitwig.flt.document.core.master.device.AxS u)) { ClipFx.MOD.log("Clip FX: turn Clip FX on first"); return; }
+        com.bitwig.flt.document.core.master.device.ISf fx = ClipGate.fxChain(u);
+        if (fx == null || fx.HL().isEmpty()) return;
+        List<?> devices = fx.HL();
+        Object show = devices.size() > 1 ? devices.get(1) : devices.get(0); // the first insert, else the gate
+        try { com.bitwig.flt.widget.core.device.g2L.cfM((bitwig.obf.dve) (Object) context.panel(), (bitwig.obf.jsd) show); }
+        catch (Throwable t) { ClipFx.MOD.log("Clip FX: showing the effects failed", t); }
     }
 
     /** Bitwig's own insert browser, adding at the end of the clip's FX layer (after its gate). */

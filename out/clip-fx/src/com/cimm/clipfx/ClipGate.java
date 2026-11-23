@@ -58,6 +58,7 @@ final class ClipGate {
             try {
                 c.chain.cfM(u, c.chain.HL().size());
                 gate(c, (AxS) u, true);
+                ClipFx.units.add(u);
                 ClipFx.MOD.log("Clip FX: on (new unit " + Probe.path(u) + "), clip " + c.start + " .. " + c.end);
                 return (AxS) u;
             } finally { c.project.cfM(false); }
@@ -86,14 +87,28 @@ final class ClipGate {
         write(c.op, c.lanes, vol[0], c.start, c.end, on ? 0 : dryOpen, hold, c.selection); // Dry layer
     }
 
-    /** A Volume knob's normalized position for 0 dB (plain value 1.0), through the parameter's own value type. */
-    static double zeroDb(bitwig.obf.rce volume) {
+    /** Deletes a device the way Bitwig does (the project's delete_devices), as one undo step. UI thread. */
+    static void delete(Object device) {
+        g2L project = null;
+        for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
+        if (project == null) { ClipFx.MOD.log("Clip FX: no project above the device"); return; }
+        Object found = ((bitwig.obf.der) (Object) com.bitwig.flt.document.core.master.Ljp.cfM).cfM("delete_devices");
+        if (!(found instanceof bitwig.obf.deV op)) { ClipFx.MOD.log("Clip FX: delete_devices not found"); return; }
+        project.cfM("Remove Clip FX Insert", false);
         try {
-            double n = ((bitwig.obf.Opy) (Object) volume).jHi().FzB(1.0); // plain -> normalized
-            if (n > 0 && n < 1) { if (zeroLogs++ < 2) ClipFx.MOD.log("Clip FX: 0 dB is at " + n + " on the Volume knob"); return n; }
-            ClipFx.MOD.log("Clip FX: unexpected 0 dB position " + n);
-        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: reading the Volume knob's scale failed", t); }
-        return 0.8;
+            op.cfM(project, new ArrayList<>(List.of(new ArrayList<>(List.of(device)))));
+            ClipFx.MOD.log("Clip FX: removed " + Probe.path(device));
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: removing failed", t); }
+        finally { project.cfM(false); }
+    }
+
+    /**
+     * A Tool Volume knob's normalized position for 0 dB. Its automation is cubic up to +18 dB (gain 8 x position^3:
+     * 1.0 = +18.1 dB, 0.8 = +12 dB, as seen in Bitwig), so 0 dB (gain 1) is at 0.5.
+     */
+    static double zeroDb(bitwig.obf.rce volume) {
+        if (zeroLogs++ < 1) ClipFx.MOD.log("Clip FX: open gate at 0.5 (0 dB on the Tool's Volume)");
+        return 0.5;
     }
     private static int zeroLogs;
 
