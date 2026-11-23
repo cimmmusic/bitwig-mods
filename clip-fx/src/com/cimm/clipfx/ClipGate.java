@@ -29,8 +29,9 @@ final class ClipGate {
         if (track == null || project == null) { ClipFx.MOD.log("Clip FX: no track / project above the clip"); return null; }
         if (!(clip instanceof bitwig.obf.Ob c)) { ClipFx.MOD.log("Clip FX: only arranger clips so far (" + clip.getClass().getSimpleName() + ")"); return null; }
         try {
-            double start = ((bitwig.obf.asx) (Object) clip).nfq(), end = ((bitwig.obf.SMz) (Object) clip).x3t();
-            if (!(end > start)) { double len = c.iCS(); end = start + len; }
+            // as Bitwig's DAWproject export reads a clip: time = x3t(), duration = nfq()
+            bitwig.obf.zZi z = (bitwig.obf.zZi) (Object) clip;
+            double start = z.x3t(), end = start + z.nfq();
             ClipFx.MOD.log("Clip FX: clip " + start + " .. " + end);
 
             Object chainObj = ChainBuilder.trackChain(track);
