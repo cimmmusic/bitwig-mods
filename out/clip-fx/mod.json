@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.36",
+    "version": "0.1.0-dev.37",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -47,30 +47,6 @@
       "owner": "com/bitwig/flt/document/core/master/device/zTz",
       "name": "wZs",
       "descriptor": "()Lcom/bitwig/flt/document/core/master/device/ISf;"
-    },
-    "drX.init": {
-      "kind": "method",
-      "owner": "drX",
-      "name": "<init>",
-      "descriptor": "()V"
-    },
-    "dve.init": {
-      "kind": "method",
-      "owner": "dve",
-      "name": "<init>",
-      "descriptor": "()V"
-    },
-    "dve.MRY": {
-      "kind": "method",
-      "owner": "dve",
-      "name": "MRY",
-      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
-    },
-    "dve.cfM": {
-      "kind": "method",
-      "owner": "dve",
-      "name": "cfM",
-      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
     },
     "dve.kJ_": {
       "kind": "method",
@@ -150,10 +126,6 @@
   "opens": [
     "SEJ.cfM",
     "com.bitwig.flt.document.core.master.device.zTz.wZs",
-    "drX.init",
-    "dve.MRY",
-    "dve.cfM",
-    "dve.init",
     "dve.kJ_",
     "xJo.DxJ",
     "xJo.mcL",

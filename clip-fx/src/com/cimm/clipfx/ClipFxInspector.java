@@ -24,10 +24,10 @@ public final class ClipFxInspector implements InspectorProvider {
     private static Object content(BlockContext context) {
         Object selection = selectionOf(context.panel());
         InsertRows list = new InsertRows();
-        list.update(inserts(first(selection)));
+        list.show(fxChainOf(first(selection)));
         remember(context, () -> {
             Object clip = first(selection);
-            list.update(inserts(clip));
+            list.show(fxChainOf(clip));
             Object unit = ClipFx.shown(clip).unit;
             if (unit != null) ClipGate.followName(clip, unit); // a renamed clip renames its unit
         });
@@ -54,6 +54,14 @@ public final class ClipFxInspector implements InspectorProvider {
                         list.group,
                         Rows.button(context, "+", () -> addInsert(context, first(selection))),
                         Rows.button(context, "Show FX", () -> showFx(context, first(selection)))));
+    }
+
+    /** The clip's FX layer chain (its gate and inserts), or null. */
+    static Object fxChainOf(Object clip) {
+        try {
+            Object unit = ClipFx.shown(clip).unit;
+            return unit instanceof com.bitwig.flt.document.core.master.device.AxS u ? ClipGate.fxChain(u) : null;
+        } catch (Throwable t) { return null; }
     }
 
     /** The clip's inserts: the devices of its unit's FX layer after the gate. */

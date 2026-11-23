@@ -18,6 +18,16 @@ public final class MixerHide {
         catch (Throwable t) { return false; }
     }
 
+    /** A clip's gate: the first device in the FX layer of a Clip FX Unit (shown in the Inspector's insert list). */
+    static boolean isGate(Object device) {
+        try {
+            Object chain = Probe.parent(device);
+            if (!(chain instanceof com.bitwig.flt.document.core.master.device.ISf c) || c.HL().indexOf(device) != 0) return false;
+            for (Object x = Probe.parent(chain); x != null; x = Probe.parent(x)) if (isUnit(x)) return true;
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
     /** "Clip FX Unit" (as loaded) or "Clip FX – <clip name>" (named after its clip). */
     static boolean isUnitName(String n) { return n != null && (n.equals("Clip FX Unit") || n.equals("Clip FX") || n.startsWith("Clip FX – ")); }
 
@@ -95,7 +105,7 @@ public final class MixerHide {
           method = "MRY(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;", at = At.WRAP_RETURN)
     public static com.bitwig.flt.widget.core.device.gRj row(@Return com.bitwig.flt.widget.core.device.gRj row, @Arg(0) bitwig.obf.jsd device) {
         try {
-            if (row != null && isUnit(device)) {
+            if (row != null && (isUnit(device) || isGate(device))) {
                 bitwig.obf.dve w = (bitwig.obf.dve) (Object) row;
                 w.t_(false);                                  // not shown
                 try { w.MRY(ZERO); } catch (Throwable ignored) {}  // no height
