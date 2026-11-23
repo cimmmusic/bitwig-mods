@@ -53,7 +53,9 @@ final class GateTest {
                     null,                                    // clip
                     0,                                       // clip_loop_iteration
                     null));                                  // selection
-            bitwig.obf.deV op = bitwig.obf.BTS.cfM.LaE(); // insert_arranger_clip_automation_events
+            // by name: getter names differ between Bitwig versions, operation names don't
+            Object found = ((bitwig.obf.der) (Object) bitwig.obf.BTS.cfM).cfM("insert_arranger_clip_automation_events");
+            if (!(found instanceof bitwig.obf.deV op)) { ClipFx.MOD.log("GATE: operation not found (" + found + ")"); return; }
             project.cfM("Clip FX gate", false);
             try { Object r = op.cfM(track, args); ClipFx.MOD.log("GATE: written, result " + r); }
             finally { project.cfM(false); }
