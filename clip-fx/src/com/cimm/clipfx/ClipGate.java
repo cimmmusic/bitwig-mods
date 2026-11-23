@@ -164,32 +164,6 @@ final class ClipGate {
         write(c.op, c.lanes, vol[0], start, end, on ? 0 : dryOpen, hold, c.selection); // Dry layer
     }
 
-    /**
-     * The clip moved or changed length: its gate follows, inside the undo step that is open now (one Undo puts both
-     * back). On: the old span is closed (FX shut, Dry open), then the new span opened. Off: nothing to move.
-     */
-    static void follow(Object clip, ClipFx.Fx f) {
-        if (f.unit == null || !(f.unit instanceof AxS unit)) return;
-        if (!(clip instanceof bitwig.obf.zZi z)) return; // arranger clips only
-        double start = z.x3t(), end = start + z.nfq();
-        if (Double.isNaN(f.start)) { f.start = start; f.end = end; return; } // first seen: in step with the clip
-        if (Math.abs(start - f.start) < 1e-9 && Math.abs(end - f.end) < 1e-9) return;
-        if (f.on) {
-            Ctx c = context(clip);
-            if (c == null) return;
-            if (!sameTrack(c, unit)) { ClipFx.MOD.log("Clip FX: the clip moved to another track: its effects stay on the old one"); f.start = start; f.end = end; return; }
-            writeGate(c, unit, false, f.start, f.end); // the old span plays dry
-            gate(c, unit, true);                       // the new span plays through the effects
-            ClipFx.MOD.log("Clip FX: gate moved with the clip: " + f.start + ".." + f.end + " -> " + start + ".." + end);
-        }
-        f.start = start; f.end = end;
-    }
-
-    private static boolean sameTrack(Ctx c, Object unit) {
-        for (Object x = unit; x != null; x = Probe.parent(x)) if (x == c.track) return true;
-        return false;
-    }
-
     /** "Clip FX – <clip name>", so the units can be told apart in the device chain and in automation lanes. */
     static String unitName(Object clip) {
         String n = null;
@@ -258,23 +232,15 @@ final class ClipGate {
     }
 
     /** Deletes a device the way Bitwig does (the project's delete_devices), as one undo step. UI thread. */
-    /** Deletes a device inside the undo step that is open now (no step of its own). */
-    static boolean deleteInStep(Object device) {
-        g2L project = null;
-        for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
-        Object found = ((bitwig.obf.der) (Object) com.bitwig.flt.document.core.master.Ljp.cfM).cfM("delete_devices");
-        if (project == null || !(found instanceof bitwig.obf.deV op)) return false;
-        op.cfM(project, new ArrayList<>(List.of(new ArrayList<>(List.of(device)))));
-        return true;
-    }
+    static void delete(Object device) { delete(device, "Remove Clip FX Insert"); }
 
-    static void delete(Object device) {
+    static void delete(Object device, String label) {
         g2L project = null;
         for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
         if (project == null) { ClipFx.MOD.log("Clip FX: no project above the device"); return; }
         Object found = ((bitwig.obf.der) (Object) com.bitwig.flt.document.core.master.Ljp.cfM).cfM("delete_devices");
         if (!(found instanceof bitwig.obf.deV op)) { ClipFx.MOD.log("Clip FX: delete_devices not found"); return; }
-        project.cfM("Remove Clip FX Insert", false);
+        project.cfM(label, false);
         try {
             op.cfM(project, new ArrayList<>(List.of(new ArrayList<>(List.of(device)))));
             ClipFx.MOD.log("Clip FX: removed " + Probe.path(device));

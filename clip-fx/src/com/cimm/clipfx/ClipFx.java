@@ -33,7 +33,7 @@ final class ClipFx {
         return f != null ? f : new Fx();
     }
 
-    static void forget(Object clip) { byObject.remove(clip); }
+    static void forget(Object clip) { byObject.remove(clip); checked.remove(clip); } // an Undo can bring it back: looked up again
 
     /** The setting now belongs to another clip object (Bitwig re-created the clip when it moved). */
     static void moveTo(Object from, Object to, Fx f) { byObject.remove(from); byObject.put(to, f); checked.put(to, Boolean.TRUE); }

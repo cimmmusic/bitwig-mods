@@ -47,20 +47,20 @@ public final class Store {
                     ClipFx.MOD.log("Clip FX: the clip moved (re-created by Bitwig): its Clip FX follows");
                     continue;
                 }
-                try {
-                    String was = path(f.unit);
-                    if (ClipGate.deleteInStep(f.unit)) {
-                        ClipFx.forget(e.getKey());
+                // removed just after Bitwig has finished this edit, in a step of its own: deleting a device while the
+                // step closes crashed the audio engine
+                Object clip = e.getKey(), unit = f.unit;
+                ClipFx.forget(clip);
+                com.bitwig.flt.app.CHR.Grk().asyncExec(() -> {
+                    try {
+                        if (path(clip) != null || path(unit) == null) return; // came back (Undo) or already gone
+                        String was = path(unit);
+                        ClipGate.delete(unit, "Remove Clip FX");
                         ClipFx.MOD.log("Clip FX: the clip was deleted: removed its unit " + was);
-                    }
-                } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: removing a deleted clip's unit failed", t); }
+                    } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: removing a deleted clip's unit failed", t); }
+                });
             }
-            // a moved / resized clip takes its gate with it, in the same undo step
-            for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
-                if (path(e.getKey()) == null || path(e.getValue().unit) == null) continue;
-                try { ClipGate.follow(e.getKey(), e.getValue()); }
-                catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: moving the gate failed", t); }
-            }
+            // (a moved clip needs nothing more: its gate is clip automation and travels with it)
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) remember(e.getKey(), e.getValue());
             Map<g2L, StringBuilder> byProject = new HashMap<>();
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
