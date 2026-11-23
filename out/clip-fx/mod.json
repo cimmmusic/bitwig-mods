@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.38",
+    "version": "0.1.0-dev.39",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -35,6 +35,12 @@
       "owner": "com/bitwig/flt/widget/core/device/uMi",
       "name": "MRY",
       "descriptor": "(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;"
+    },
+    "com.bitwig.ramona.core.XKG.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/ramona/core/XKG",
+      "name": "cfM",
+      "descriptor": "(Z)Z"
     },
     "SEJ.cfM": {
       "kind": "method",
@@ -120,6 +126,16 @@
         "args": [
           "arg1"
         ]
+      }
+    },
+    {
+      "id": "store-in-step",
+      "target": "com.bitwig.ramona.core.XKG.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "inStep",
+        "descriptor": "()V",
+        "args": []
       }
     }
   ],

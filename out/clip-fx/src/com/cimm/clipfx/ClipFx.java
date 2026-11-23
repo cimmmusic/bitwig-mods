@@ -19,9 +19,26 @@ final class ClipFx {
 
     private static final Map<Object, Fx> byObject = Collections.synchronizedMap(new WeakHashMap<>());
 
-    static Fx shown(Object o) { Fx f = o == null ? null : byObject.get(o); return f != null ? f : new Fx(); }
+    static Fx shown(Object o) {
+        if (o == null) return new Fx();
+        Fx f = byObject.get(o);
+        if (f != null && f.unit != null && Probe.parent(f.unit) == null) { byObject.remove(o); f = null; } // its unit was undone / deleted
+        if (f == null && checked.put(o, Boolean.TRUE) == null) { // stored in the project (opening it)
+            f = Store.restore(o);
+            if (f != null) byObject.put(o, f);
+        }
+        return f != null ? f : new Fx();
+    }
 
-    static Fx edit(Object o) { return byObject.computeIfAbsent(o, k -> new Fx()); }
+    /** Clips already looked up in the project's stored settings. */
+    private static final Map<Object, Boolean> checked = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** A copy of every clip's setting (for storing). */
+    static java.util.List<Map.Entry<Object, Fx>> entries() {
+        synchronized (byObject) { return new java.util.ArrayList<>(new java.util.HashMap<>(byObject).entrySet()); }
+    }
+
+    static Fx edit(Object o) { Fx f = shown(o); byObject.putIfAbsent(o, f); return byObject.get(o); }
 
     /** Every Clip FX Unit the mod made (to know whether a device is one of a clip's inserts). */
     static final java.util.Set<Object> units = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));

@@ -75,11 +75,11 @@ public final class MixerHide {
                 for (Object k : kids) b.append(' ').append(k == child ? "[UNIT]" : k.getClass().getSimpleName());
                 ClipFx.MOD.log(b.toString());
             }
-            if (at >= 0) {
-                Object next = at + 1 < kids.size() ? kids.get(at + 1) : null, prev = at > 0 ? kids.get(at - 1) : null;
-                Object plus = next instanceof com.bitwig.flt.widget.core.device.tLF ? next
-                            : prev instanceof com.bitwig.flt.widget.core.device.tLF && at == kids.size() - 1 ? prev : null;
-                if (plus != null) { shrink((bitwig.obf.dve) plus); return; }
+            if (at >= 0) { // every + after the unit
+                boolean any = false;
+                for (int i = at + 1; i < kids.size(); i++)
+                    if (kids.get(i) instanceof com.bitwig.flt.widget.core.device.tLF plus) { shrink((bitwig.obf.dve) plus); any = true; }
+                if (any) return;
             }
             child = parent;
         }
