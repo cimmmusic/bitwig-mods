@@ -111,7 +111,10 @@ public final class MixerHide {
         if (plusLogs++ < 4) ClipFx.MOD.log("Clip FX: chain widgets around the unit (at " + at + "): " + kidsOf(found[0]));
         for (int i = at + 1; i < kids.size(); i++) {
             Object k = kids.get(i);
-            if (isPlus(k) && shrunk.add(k)) { shrink((bitwig.obf.dve) k); ClipFx.MOD.log("Clip FX: hid a + after the unit (" + k.getClass().getSimpleName() + ")"); }
+            if (isPlus(k)) {
+                if (shrunk.add(k)) { shrink((bitwig.obf.dve) k); ClipFx.MOD.log("Clip FX: hid a + after the unit (" + k.getClass().getSimpleName() + ")"); }
+                break; // the unit's own +; the next ones belong to the devices after it
+            }
         }
     }
 
@@ -145,7 +148,8 @@ public final class MixerHide {
 
     /** An add-device +: Bitwig's tLF, or a widget holding one. */
     private static boolean isPlus(Object w) {
-        if (w instanceof com.bitwig.flt.widget.core.device.tLF) return true;
+        // the chain lays out "+ device + device +": the + slots are sxY (seen in the log: sxY L1F sxY)
+        if (w instanceof com.bitwig.flt.widget.core.device.sxY || w instanceof com.bitwig.flt.widget.core.device.tLF) return true;
         try { if (w instanceof bitwig.obf.dvW box) for (Object k : box.jl_()) if (k instanceof com.bitwig.flt.widget.core.device.tLF) return true; } catch (Throwable ignored) {}
         return false;
     }
