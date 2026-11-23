@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.45",
+    "version": "0.1.0-dev.47",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -157,6 +157,7 @@
     "SEJ.cfM",
     "com.bitwig.base.geom.SYo.Hnt",
     "com.bitwig.flt.document.core.master.device.zTz.wZs",
+    "com.bitwig.flt.widget.core.device.uMi.MRY",
     "dve.iG_",
     "dve.kJ_",
     "xJo.DxJ",

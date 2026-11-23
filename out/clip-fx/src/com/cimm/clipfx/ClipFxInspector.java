@@ -23,10 +23,12 @@ public final class ClipFxInspector implements InspectorProvider {
 
     private static Object content(BlockContext context) {
         Object selection = selectionOf(context.panel());
+        try { com.bitwig.flt.document.core.master.g2L p = Store.project(first(selection)); if (p != null) Store.loadAll(p); } catch (Throwable ignored) {}
         InsertRows list = new InsertRows();
         list.show(fxChainOf(first(selection)));
         remember(context, () -> {
             Object clip = first(selection);
+            try { com.bitwig.flt.document.core.master.g2L p = Store.project(clip); if (p != null) Store.loadAll(p); } catch (Throwable ignored) {}
             list.show(fxChainOf(clip));
             Object unit = ClipFx.shown(clip).unit;
             if (unit != null) ClipGate.followName(clip, unit); // a renamed clip renames its unit

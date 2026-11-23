@@ -131,6 +131,52 @@ public final class Store {
         return null;
     }
 
+    /** Projects whose stored clips were all loaded (by the comment they were loaded from). */
+    private static final Map<Object, String> loadedAll = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+    /**
+     * Every clip stored with Clip FX in this project, found by its path and given its setting now (not only when it
+     * is selected), so deleting several clips at once also removes their units. Called when a Clip FX block is
+     * shown (before any edit can shift the paths); once per stored block. UI thread.
+     */
+    static void loadAll(g2L p) {
+        try {
+            com.bitwig.flt.document.core.master.cXR m = p.PEn();
+            String c = m == null ? "" : m.AgD(); if (c == null) c = "";
+            if (c.equals(loadedAll.get(p))) return;
+            loadedAll.put(p, c);
+            int n = 0;
+            for (String clipPath : records(p).keySet()) {
+                Object clip = resolve(p, clipPath);
+                if (clip == null) continue;
+                ClipFx.Fx f = ClipFx.shown(clip); // restores it (when not known yet)
+                if (f.unit != null) n++;
+            }
+            if (n > 0) ClipFx.MOD.log("Clip FX: " + n + " stored clip(s) loaded");
+        } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: loading the stored clips failed", t); }
+    }
+
+    /** The object at a path ("float_core.float_document/track_group/owned_main_tracks#2/..."), from the project. */
+    static Object resolve(g2L p, String path) {
+        String root = path(p);
+        if (root == null) root = "float_core.float_document";
+        if (!path.startsWith(root + "/")) return null;
+        Object o = p;
+        for (String seg : path.substring(root.length() + 1).split("/")) {
+            int hash = seg.lastIndexOf('#');
+            String name = hash < 0 ? seg : seg.substring(0, hash);
+            int index = hash < 0 ? -1 : Integer.parseInt(seg.substring(hash + 1));
+            if (!(o instanceof oDc d)) return null;
+            Object atom = ((bitwig.obf.der) (Object) d.ng_()).cfM(name);
+            if (index >= 0 && atom instanceof bitwig.obf.deT list) o = list.cfM(d, index);
+            else if (atom instanceof bitwig.obf.deU one) o = one.MRY(d);
+            else return null;
+            if (o == null) return null;
+        }
+        String got = path(o);
+        return path.equals(got) ? o : null;
+    }
+
     // ---------------------------------------------------------------- helpers
 
     static String path(Object o) {
