@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.44",
+    "version": "0.1.0-dev.45",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -42,6 +42,12 @@
       "name": "MRY",
       "descriptor": "(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;"
     },
+    "com.bitwig.base.geom.SYo.Hnt": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/SYo",
+      "name": "Hnt",
+      "descriptor": "J"
+    },
     "SEJ.cfM": {
       "kind": "method",
       "owner": "SEJ",
@@ -53,6 +59,12 @@
       "owner": "com/bitwig/flt/document/core/master/device/zTz",
       "name": "wZs",
       "descriptor": "()Lcom/bitwig/flt/document/core/master/device/ISf;"
+    },
+    "dve.iG_": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "iG_",
+      "descriptor": "()Lcom/bitwig/base/geom/SYo;"
     },
     "dve.kJ_": {
       "kind": "method",
@@ -143,7 +155,9 @@
   ],
   "opens": [
     "SEJ.cfM",
+    "com.bitwig.base.geom.SYo.Hnt",
     "com.bitwig.flt.document.core.master.device.zTz.wZs",
+    "dve.iG_",
     "dve.kJ_",
     "xJo.DxJ",
     "xJo.mcL",
