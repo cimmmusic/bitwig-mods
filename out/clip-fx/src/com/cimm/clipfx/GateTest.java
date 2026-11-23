@@ -60,7 +60,14 @@ final class GateTest {
             try {
                 // the operation belongs to one of the clip's owners (lane, arrangement, track...): the first that has it
                 boolean done = false;
-                for (Object owner = Probe.parent(clip); owner != null && !done; owner = Probe.parent(owner)) {
+                // the operation is on the track's automation lanes component (schema 'automation_lanes', owner 'track')
+                final bitwig.obf.xJo tr = track;
+                List<Object> owners = new ArrayList<>();
+                try { owners.add(tr.meo()); } catch (Throwable ignored) {}
+                try { owners.add(tr.iSC()); } catch (Throwable ignored) {}
+                for (Object o = Probe.parent(clip); o != null; o = Probe.parent(o)) owners.add(o);
+                for (Object owner : owners) {
+                    if (done || !(owner instanceof com.bitwig.ramona.core.oDc)) continue;
                     try {
                         Object r = op.cfM((com.bitwig.ramona.core.oDc) owner, args);
                         ClipFx.MOD.log("GATE: written on " + owner.getClass().getSimpleName() + " " + Probe.path(owner) + ", result " + r);

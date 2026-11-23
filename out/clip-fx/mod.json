@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.11",
+    "version": "0.1.0-dev.12",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -32,6 +32,12 @@
       "name": "mcL",
       "descriptor": "()Lcom/bitwig/flt/document/core/master/device/xlG;"
     },
+    "xJo.meo": {
+      "kind": "method",
+      "owner": "xJo",
+      "name": "meo",
+      "descriptor": "()LLEn;"
+    },
     "xJo.sWR": {
       "kind": "method",
       "owner": "xJo",
@@ -44,6 +50,7 @@
     "com.bitwig.flt.document.core.master.device.zTz.wZs",
     "xJo.DxJ",
     "xJo.mcL",
+    "xJo.meo",
     "xJo.sWR"
   ],
   "resources": {
