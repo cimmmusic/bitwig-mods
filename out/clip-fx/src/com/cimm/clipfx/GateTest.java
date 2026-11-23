@@ -34,9 +34,20 @@ final class GateTest {
             ClipFx.MOD.log(t.toString());
 
             Object chainObj = ChainBuilder.trackChain(track);
-            if (!(chainObj instanceof ISf chain) || chain.HL().isEmpty()) { ClipFx.MOD.log("GATE: no unit on the track"); return; }
-            AxS unit = (AxS) chain.HL().get(chain.HL().size() - 1);
-            bitwig.obf.rce[] vol = volumes(unit);
+            if (!(chainObj instanceof ISf chain)) { ClipFx.MOD.log("GATE: the track's chain wasn't found"); return; }
+            AxS unit = null;
+            bitwig.obf.rce[] vol = new bitwig.obf.rce[2];
+            if (!chain.HL().isEmpty() && chain.HL().get(chain.HL().size() - 1) instanceof AxS last) { vol = volumes(last); if (vol[1] != null) unit = last; }
+            if (unit == null) { // no unit at the end of the track yet: add one (its own undo step)
+                java.io.File preset = ChainBuilder.preset("Clip FX Unit");
+                if (preset == null) { ClipFx.MOD.log("GATE: Clip FX Unit preset not found"); return; }
+                com.bitwig.flt.document.core.master.device.xlG u = ChainBuilder.load(preset);
+                project.cfM("Add Clip FX", false);
+                try { chain.cfM(u, chain.HL().size()); } finally { project.cfM(false); }
+                unit = (AxS) u;
+                vol = volumes(unit);
+                ClipFx.MOD.log("GATE: added a unit at " + Probe.path(unit));
+            }
             ClipFx.MOD.log("GATE: unit " + Probe.path(unit) + " dry volume " + (vol[0] != null) + ", fx volume " + (vol[1] != null));
             if (vol[1] == null) return;
 
