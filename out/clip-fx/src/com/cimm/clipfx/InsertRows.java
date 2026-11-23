@@ -35,6 +35,8 @@ final class InsertRows {
         return rowH > 0 ? rowH : 24;
     }
 
+    private static final long PLAIN = 24;
+
     /** Each insert's row height, measured as the list builds it (with a Mini Panels graph, if any). */
     private static final java.util.Map<Object, Long> heights = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
 
@@ -45,9 +47,10 @@ final class InsertRows {
         private long h() {
             try {
                 java.util.List<?> d = ((com.bitwig.flt.document.core.master.device.ISf) chain).HL();
-                long row = rowHeight(d.isEmpty() ? null : d.get(0)), sum = row + 2; // the + row
-                for (int i = 1; i < d.size(); i++) sum += heightOf(d.get(i), row);
-                return sum;
+                // the + row: a plain row (the smallest insert row seen, else Bitwig's usual 24)
+                long plain = PLAIN, sum = 0;
+                for (int i = 1; i < d.size(); i++) { long h = heightOf(d.get(i), PLAIN); sum += h; if (h < plain && h > 8) plain = h; }
+                return sum + plain + 2;
             } catch (Throwable t) { return 26; }
         }
         private long heightOf(Object device, long row) {
