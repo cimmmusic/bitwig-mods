@@ -32,7 +32,7 @@ final class Probe {
     private static Object call(Get g) { try { return g.get(); } catch (Throwable t) { return "!" + t; } }
 
     /** Logs an object's class, path and, for its no-argument getters that return lists, what they hold. */
-    private static void describe(String what, Object o, int depth) {
+    static void describe(String what, Object o, int depth) {
         if (o == null || o instanceof String) { ClipFx.MOD.log("PROBE " + what + " = " + o); return; }
         StringBuilder b = new StringBuilder("PROBE " + what + " = " + o.getClass().getName() + " " + path(o));
         Class<?> c = o.getClass();

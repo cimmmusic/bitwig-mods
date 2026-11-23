@@ -29,7 +29,8 @@ public final class ClipFxInspector implements InspectorProvider {
                         Rows.number(context, "Tail", 0, 30, 0, " s", false,
                                 () -> ClipFx.shown(first(selection)).tail,
                                 v -> { for (Object o : selected(selection)) ClipFx.edit(o).tail = v; }),
-                        Rows.button(context, "Probe (log what the mod can reach)", () -> Probe.run(selected(selection)))));
+                        Rows.button(context, "Probe (log what the mod can reach)", () -> Probe.run(selected(selection))),
+                        Rows.button(context, "Test: add the container to this track", () -> ChainBuilder.test(selected(selection)))));
     }
 
     private static Object first(Object selection) { List<Object> s = selected(selection); return s.isEmpty() ? null : s.get(0); }
