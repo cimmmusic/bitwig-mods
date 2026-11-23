@@ -115,9 +115,7 @@ final class ClipGate {
      *  arranger, which a write of the document value alone doesn't. */
     private static void hideLanes(com.bitwig.ramona.core.oDc settings, boolean shown) {
         try {
-            java.lang.reflect.Method m = bitwig.obf.yBZ.class.getDeclaredMethod("lYc", boolean.class);
-            m.setAccessible(true);
-            m.invoke(settings, shown);
+            ((bitwig.obf.yBZ) (Object) settings).lYc(shown); // protected in Bitwig: opened by the build (non-public access)
         } catch (Throwable t) {
             ClipFx.MOD.log("Clip FX: the arranger's lanes switch failed; writing the value", t);
             try {

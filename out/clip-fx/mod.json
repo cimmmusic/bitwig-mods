@@ -77,6 +77,12 @@
       "owner": "xJo",
       "name": "sWR",
       "descriptor": "()Lcom/bitwig/flt/document/core/master/device/ISf;"
+    },
+    "yBZ.lYc": {
+      "kind": "method",
+      "owner": "yBZ",
+      "name": "lYc",
+      "descriptor": "(Z)V"
     }
   },
   "hooks": [
@@ -124,7 +130,8 @@
     "xJo.DxJ",
     "xJo.mcL",
     "xJo.meo",
-    "xJo.sWR"
+    "xJo.sWR",
+    "yBZ.lYc"
   ],
   "resources": {
     "readme": {
