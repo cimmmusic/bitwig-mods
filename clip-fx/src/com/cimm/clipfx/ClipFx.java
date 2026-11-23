@@ -25,7 +25,7 @@ final class ClipFx {
     static Fx shown(Object o) {
         if (o == null) return new Fx();
         Fx f = byObject.get(o);
-        if (f != null && f.unit != null && Probe.parent(f.unit) == null) { byObject.remove(o); f = null; } // its unit was undone / deleted
+        if (f != null && f.unit != null && Probe.parent(f.unit) == null) { MOD.log("DIAG unit gone for " + Store.path(o)); byObject.remove(o); checked.remove(o); f = null; } // its unit was undone / deleted: look it up again
         if (f == null && checked.put(o, Boolean.TRUE) == null) { // stored in the project (opening it)
             f = Store.restore(o);
             if (f != null) byObject.put(o, f);
