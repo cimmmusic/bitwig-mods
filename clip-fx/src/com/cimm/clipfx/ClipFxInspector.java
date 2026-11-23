@@ -29,7 +29,8 @@ public final class ClipFxInspector implements InspectorProvider {
                         Rows.number(context, "Tail", 0, 30, 0, " s", false,
                                 () -> ClipFx.shown(first(selection)).tail,
                                 v -> { for (Object o : selected(selection)) ClipFx.edit(o).tail = v; }),
-                        Rows.button(context, "Test: add a Clip FX Unit to this track", () -> ChainBuilder.test(selected(selection)))));
+                        Rows.button(context, "Test: add a Clip FX Unit to this track", () -> ChainBuilder.test(selected(selection))),
+                        Rows.button(context, "Test: write the gate into this clip", () -> GateTest.run(selected(selection)))));
     }
 
     private static Object first(Object selection) { List<Object> s = selected(selection); return s.isEmpty() ? null : s.get(0); }
