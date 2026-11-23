@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.25",
+    "version": "0.1.0-dev.26",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -18,6 +18,18 @@
     "class": "com.cimm.clipfx.MixerHide"
   },
   "targets": {
+    "com.bitwig.flt.widget.core.device.htp.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/htp",
+      "name": "cfM",
+      "descriptor": "(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;"
+    },
+    "com.bitwig.flt.widget.core.device.htp.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/htp",
+      "name": "MRY",
+      "descriptor": "(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;"
+    },
     "com.bitwig.flt.widget.core.device.uMi.MRY": {
       "kind": "method",
       "owner": "com/bitwig/flt/widget/core/device/uMi",
@@ -68,6 +80,30 @@
     }
   },
   "hooks": [
+    {
+      "id": "hide-unit-in-chain",
+      "target": "com.bitwig.flt.widget.core.device.htp.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "chainRow",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "hide-unit-in-chain-2",
+      "target": "com.bitwig.flt.widget.core.device.htp.MRY",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "chainRow2",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
     {
       "id": "hide-unit-in-mixer",
       "target": "com.bitwig.flt.widget.core.device.uMi.MRY",
