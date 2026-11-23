@@ -63,9 +63,17 @@ final class GateTest {
                 // the operation is on the track's automation lanes component (schema 'automation_lanes', owner 'track')
                 final bitwig.obf.xJo tr = track;
                 List<Object> owners = new ArrayList<>();
-                try { owners.add(tr.meo()); } catch (Throwable ignored) {}
-                try { owners.add(tr.iSC()); } catch (Throwable ignored) {}
-                for (Object o = Probe.parent(clip); o != null; o = Probe.parent(o)) owners.add(o);
+                // only an automation lanes object that is attached to the track (its path ends in /automation_lanes):
+                // a detached one has no owner, and Bitwig's implementation fails on it
+                for (String g : new String[]{"meo", "iSC"}) {
+                    try {
+                        Object lanes = g.equals("meo") ? tr.meo() : tr.iSC();
+                        String lp = Probe.path(lanes);
+                        ClipFx.MOD.log("GATE: track." + g + "() = " + (lanes == null ? "null" : lanes.getClass().getSimpleName() + " '" + lp + "'"));
+                        if (lp.endsWith("automation_lanes") && !owners.contains(lanes)) owners.add(lanes);
+                    } catch (Throwable e) { ClipFx.MOD.log("GATE: track." + g + "() failed: " + e); }
+                }
+                if (owners.isEmpty()) { ClipFx.MOD.log("GATE: no attached automation lanes found"); return; }
                 for (Object owner : owners) {
                     if (done || !(owner instanceof com.bitwig.ramona.core.oDc)) continue;
                     try {
