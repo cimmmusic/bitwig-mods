@@ -4,7 +4,7 @@ Effects for a single clip, like Studio One's Event FX. Select a clip in the arra
 
 **Beta.**
 
-<img src="inspector.png" alt="The Clip FX block in the Inspector: Clip FX On, a list of effects, and Show FX" width="326">
+<img src="clip-fx.png" alt="A Hi-Hat clip with Clip FX: the Inspector's Clip FX block is On, with Treemonster, FabFilter Saturn 2, Comb and Rotary as its inserts, and Show FX">
 
 ## Using it
 
