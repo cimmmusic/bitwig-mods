@@ -16,9 +16,11 @@ import com.bitwig.base.geom.SYo; // a size
 final class Grip extends dve {
     private static final iok BG = iok.cfM(44, 44, 46), DOT = iok.cfM(130, 130, 136), DOT_ON = iok.cfM(235, 150, 60);
     private final Object device;
+    private final InsertRows list;
+    private final int index;
     private boolean dragging;
 
-    Grip(Object device) { this.device = device; }
+    Grip(Object device, InsertRows list, int index) { this.device = device; this.list = list; this.index = index; }
 
     @Override public SYo mK_() { return new SYo(16, 10); }
     @Override public SYo iG_() { return new SYo(16, 24); }
@@ -59,16 +61,17 @@ final class Grip extends dve {
         @Override public void cfM(dJH e) {
             super.cfM(e);
             dragging = true; acc = 0;
-            rowH = Math.max(12, yiX());
+            rowH = Math.max(12, yiX() + 3); // a row and the line under it
             jbi();
         }
         @Override public void cfM(dJM e) { // moves: counted, the insert moves on release
             super.cfM(e);
-            try { acc += e.uWE(); } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: dragging an insert failed", t); }
+            try { acc += e.uWE(); list.preview(index, (int) Math.round(acc / rowH)); } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: dragging an insert failed", t); }
         }
         @Override public void cfM(bitwig.obf.dJI e) { // released
             super.cfM(e);
             dragging = false; jbi();
+            try { list.preview(index, 0); } catch (Throwable ignored) {}
             int by = (int) Math.round(acc / rowH);
             if (by != 0) com.bitwig.flt.app.CHR.Grk().asyncExec(() -> { ClipGate.move(device, by); ClipFxInspector.refreshSoon(); });
         }
