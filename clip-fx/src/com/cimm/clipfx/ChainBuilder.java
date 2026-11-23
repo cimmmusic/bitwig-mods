@@ -68,13 +68,31 @@ final class ChainBuilder {
                     for (Object d : chain.HL()) {
                         b.append("\n  device ").append(d.getClass().getSimpleName()).append(' ').append(Probe.path(d));
                         if (d instanceof com.bitwig.flt.document.core.master.device.AxS tool) {
-                            for (Object c : tool.puu().E3()) b.append("\n    part ").append(c.getClass().getSimpleName()).append(' ').append(Probe.path(c));
+                            com.bitwig.flt.document.core.master.device.SaG tc = tool.puu();
+                            // cached lists, filled from the device's own children (reading only)
+                            listed(b, "ghS", call(() -> tc.ghS()));
+                            listed(b, "SQN", call(() -> tc.SQN()));
+                            listed(b, "NMA", call(() -> tc.NMA()));
+                            listed(b, "emh", call(() -> tc.emh()));
+                            listed(b, "jhH", call(() -> tc.jhH()));
+                            listed(b, "som", call(() -> tc.som()));
                         }
                     }
                     ClipFx.MOD.log(b.toString());
                 }
             }
         } catch (Throwable t) { ClipFx.MOD.log("describing the unit failed", t); }
+    }
+
+    interface Get { Object get() throws Throwable; }
+    private static Object call(Get g) { try { return g.get(); } catch (Throwable t) { return t; } }
+
+    private static void listed(StringBuilder b, String name, Object r) {
+        if (r instanceof Throwable t) { b.append("\n    ").append(name).append(" ! ").append(t); return; }
+        List<?> l = (List<?>) r;
+        b.append("\n    ").append(name).append(" ").append(l == null ? "null" : l.size() + "");
+        if (l != null) for (int i = 0; i < Math.min(8, l.size()); i++)
+            b.append("\n      ").append(l.get(i) == null ? "null" : l.get(i).getClass().getSimpleName() + " " + Probe.path(l.get(i)).replaceAll(".*/device_chain/", ""));
     }
 
     /** Test: the container at the start of the selected clip's track (one undo step), and what it holds. UI thread. */
