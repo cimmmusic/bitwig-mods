@@ -70,12 +70,14 @@ final class ChainBuilder {
                         if (d instanceof com.bitwig.flt.document.core.master.device.AxS tool) {
                             com.bitwig.flt.document.core.master.device.SaG tc = tool.puu();
                             // cached lists, filled from the device's own children (reading only)
-                            listed(b, "ghS", call(() -> tc.ghS()));
-                            listed(b, "SQN", call(() -> tc.SQN()));
-                            listed(b, "NMA", call(() -> tc.NMA()));
-                            listed(b, "emh", call(() -> tc.emh()));
-                            listed(b, "jhH", call(() -> tc.jhH()));
-                            listed(b, "som", call(() -> tc.som()));
+                            for (Object c : tc.ghS()) {
+                                if (!(c instanceof bitwig.obf.rce p)) continue; // a parameter
+                                b.append("\n    param ").append(Probe.path(p).replaceAll(".*/device_contents/", ""))
+                                 .append(" | qFI ").append(call(() -> p.qFI())).append(" | aF_ ").append(call(() -> p.aF_()))
+                                 .append(" | Pus ").append(call(() -> p.Pus())).append(" | fFs ").append(call(() -> p.fFs()))
+                                 .append(" | ax_ ").append(call(() -> p.ax_()))
+                                 .append(" | value ").append(call(() -> ((bitwig.obf.Opy) (Object) p).Grk().getDoubleValue()));
+                            }
                         }
                     }
                     ClipFx.MOD.log(b.toString());
