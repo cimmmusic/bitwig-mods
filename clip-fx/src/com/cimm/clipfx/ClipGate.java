@@ -80,9 +80,22 @@ final class ClipGate {
         bitwig.obf.rce[] vol = GateTest.volumes(unit);
         if (vol[0] == null || vol[1] == null) { ClipFx.MOD.log("Clip FX: the unit's gates weren't found"); return; }
         bitwig.obf.jRs hold = bitwig.obf.jRs.values()[0]; // HOLD
-        write(c.op, c.lanes, vol[1], c.start, c.end, on ? 1 : 0, hold, c.selection); // FX layer
-        write(c.op, c.lanes, vol[0], c.start, c.end, on ? 0 : 1, hold, c.selection); // Dry layer
+        // automation takes normalized positions (1.0 is the top of the knob, +18 dB): open = where 0 dB sits
+        double open = zeroDb(vol[1]), dryOpen = zeroDb(vol[0]);
+        write(c.op, c.lanes, vol[1], c.start, c.end, on ? open : 0, hold, c.selection);    // FX layer
+        write(c.op, c.lanes, vol[0], c.start, c.end, on ? 0 : dryOpen, hold, c.selection); // Dry layer
     }
+
+    /** A Volume knob's normalized position for 0 dB (plain value 1.0), through the parameter's own value type. */
+    static double zeroDb(bitwig.obf.rce volume) {
+        try {
+            double n = ((bitwig.obf.Opy) (Object) volume).jHi().FzB(1.0); // plain -> normalized
+            if (n > 0 && n < 1) { if (zeroLogs++ < 2) ClipFx.MOD.log("Clip FX: 0 dB is at " + n + " on the Volume knob"); return n; }
+            ClipFx.MOD.log("Clip FX: unexpected 0 dB position " + n);
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: reading the Volume knob's scale failed", t); }
+        return 0.8;
+    }
+    private static int zeroLogs;
 
     /** The unit's FX layer chain: the Tool (its gate) first, then the clip's inserts. */
     static ISf fxChain(AxS unit) {
