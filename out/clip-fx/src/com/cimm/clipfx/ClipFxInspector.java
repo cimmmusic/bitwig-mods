@@ -23,13 +23,9 @@ public final class ClipFxInspector implements InspectorProvider {
 
     private static Object content(BlockContext context) {
         Object selection = selectionOf(context.panel());
-        remember(context);
-        Object[] rows = new Object[SLOTS];
-        for (int i = 0; i < SLOTS; i++) {
-            int at = i;
-            rows[i] = Rows.when(context, () -> inserts(first(selection)).size() > at,
-                    Rows.text(context, null, () -> { List<Object> l = inserts(first(selection)); return l.size() > at ? "   " + name(l.get(at)) : ""; }));
-        }
+        InsertRows list = new InsertRows();
+        list.update(inserts(first(selection)));
+        remember(context, () -> list.update(inserts(first(selection))));
         return Rows.column(
                 Rows.choice(context, "Clip FX", new String[]{"Off", "On"},
                         () -> ClipFx.shown(first(selection)).on ? 1 : 0,
@@ -51,8 +47,8 @@ public final class ClipFxInspector implements InspectorProvider {
                                 () -> ClipFx.shown(first(selection)).tail,
                                 v -> { for (Object o : selected(selection)) ClipFx.edit(o).tail = v; }),
                         Rows.text(context, "Inserts", () -> inserts(first(selection)).isEmpty() ? "none yet" : ""),
-                        Rows.column(rows),
-                        Rows.button(context, "+ Add insert", () -> addInsert(context, first(selection)))));
+                        list.group,
+                        Rows.button(context, "+", () -> addInsert(context, first(selection)))));
     }
 
     /** The clip's inserts: the devices of its unit's FX layer after the gate. */
@@ -86,9 +82,11 @@ public final class ClipFxInspector implements InspectorProvider {
 
     // ---- the insert list follows what the browser adds: blocks on screen read their rows again every second ----
     private static final List<java.lang.ref.WeakReference<BlockContext>> live = new ArrayList<>();
+    private static final java.util.Map<BlockContext, Runnable> updaters = new java.util.WeakHashMap<>();
     private static java.util.concurrent.ScheduledExecutorService timer;
 
-    private static synchronized void remember(BlockContext context) {
+    private static synchronized void remember(BlockContext context, Runnable update) {
+        updaters.put(context, update);
         live.add(new java.lang.ref.WeakReference<>(context));
         while (live.size() > 8) live.remove(0);
         if (timer != null) return;
@@ -98,7 +96,12 @@ public final class ClipFxInspector implements InspectorProvider {
                 com.bitwig.flt.app.CHR.Grk().asyncExec(() -> {
                     List<java.lang.ref.WeakReference<BlockContext>> all;
                     synchronized (ClipFxInspector.class) { all = new ArrayList<>(live); }
-                    for (var r : all) { BlockContext c = r.get(); if (c != null) try { Rows.refresh(c); } catch (Throwable ignored) {} }
+                    for (var r : all) {
+                        BlockContext c = r.get();
+                        if (c == null) continue;
+                        Runnable u; synchronized (ClipFxInspector.class) { u = updaters.get(c); }
+                        try { if (u != null) u.run(); Rows.refresh(c); } catch (Throwable ignored) {}
+                    }
                 });
             } catch (Throwable ignored) {}
         }, 1, 1, java.util.concurrent.TimeUnit.SECONDS);
