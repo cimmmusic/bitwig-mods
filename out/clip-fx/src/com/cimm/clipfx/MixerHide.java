@@ -59,7 +59,7 @@ public final class MixerHide {
           method = "cfM(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;", at = At.WRAP_RETURN)
     public static com.bitwig.flt.widget.core.device.gRj chainRow(@Return com.bitwig.flt.widget.core.device.gRj row, @This com.bitwig.flt.widget.core.device.htp chain, @Arg(0) bitwig.obf.jsd device) {
         row = row(row, device);
-        if (row != null && isUnit(device)) hidePlusLater(chain, row);
+        if (row != null && (isUnit(device) || isGate(device))) hidePlusLater(chain, row);
         return row;
     }
 
@@ -67,7 +67,7 @@ public final class MixerHide {
           method = "MRY(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;", at = At.WRAP_RETURN)
     public static com.bitwig.flt.widget.core.device.gRj chainRow2(@Return com.bitwig.flt.widget.core.device.gRj row, @This com.bitwig.flt.widget.core.device.htp chain, @Arg(0) bitwig.obf.jsd device) {
         row = row(row, device);
-        if (row != null && isUnit(device)) hidePlusLater(chain, row);
+        if (row != null && (isUnit(device) || isGate(device))) hidePlusLater(chain, row);
         return row;
     }
 
