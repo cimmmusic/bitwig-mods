@@ -24,13 +24,21 @@ public final class ClipFxInspector implements InspectorProvider {
         return Rows.column(
                 Rows.choice(context, "Clip FX", new String[]{"Off", "On"},
                         () -> ClipFx.shown(first(selection)).on ? 1 : 0,
-                        v -> { for (Object o : selected(selection)) ClipFx.edit(o).on = v == 1; }).row(),
+                        v -> {
+                            for (Object o : selected(selection)) {
+                                ClipFx.Fx f = ClipFx.edit(o);
+                                boolean was = f.on;
+                                f.on = v == 1;
+                                // the project is edited after Bitwig has finished handling this change (never inside it)
+                                if (f.on && !was && f.unit == null)
+                                    com.bitwig.flt.app.CHR.Grk().asyncExec(() -> { if (f.unit == null) f.unit = ClipGate.turnOn(o); Rows.refresh(context); });
+                            }
+                        }).row(),
                 Rows.when(context, () -> ClipFx.shown(first(selection)).on,
                         Rows.number(context, "Tail", 0, 30, 0, " s", false,
                                 () -> ClipFx.shown(first(selection)).tail,
                                 v -> { for (Object o : selected(selection)) ClipFx.edit(o).tail = v; }),
-                        Rows.button(context, "Test: add a Clip FX Unit to this track", () -> ChainBuilder.test(selected(selection))),
-                        Rows.button(context, "Test: write the gate into this clip", () -> GateTest.run(selected(selection)))));
+                        Rows.text(context, null, () -> ClipFx.shown(first(selection)).unit != null ? "Inserts: in the clip's Clip FX Unit (FX layer)" : "")));
     }
 
     private static Object first(Object selection) { List<Object> s = selected(selection); return s.isEmpty() ? null : s.get(0); }
