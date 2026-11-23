@@ -50,7 +50,7 @@ final class GateTest {
                     modes[0],                                // interpolation_mode
                     new double[]{0, 0},                      // curvatures
                     Boolean.FALSE,                           // should_adjust_previous_curvature
-                    null,                                    // clip
+                    clipRef(project, clip),                  // clip (the transport's view of it)
                     0,                                       // clip_loop_iteration
                     null));                                  // selection
             // by name: getter names differ between Bitwig versions, operation names don't
@@ -79,6 +79,16 @@ final class GateTest {
             }
             finally { project.cfM(false); }
         } catch (Throwable e) { ClipFx.MOD.log("GATE: failed", e); }
+    }
+
+    /** The clip as the automation operation wants it: the transport's la1 for the clip. */
+    static Object clipRef(com.bitwig.flt.document.core.master.g2L project, Object clip) {
+        try {
+            Object transport = ((com.bitwig.flt.document.core.iface.pHd) project).ifN();
+            Object r = ((bitwig.obf.SEJ) transport).cfM((bitwig.obf.Ob) clip);
+            ClipFx.MOD.log("GATE: clip reference " + (r == null ? "null" : r.getClass().getSimpleName() + " " + Probe.path(r)));
+            return r;
+        } catch (Throwable t) { ClipFx.MOD.log("GATE: clip reference failed", t); return null; }
     }
 
     /** {Dry Tool Volume, FX Tool Volume} of a unit (layer 0 = Dry, layer 1 = FX). */
