@@ -1,0 +1,63 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "clip-fx",
+    "name": "Clip: Clip FX",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "targets": {
+    "xJo.DxJ": {
+      "kind": "method",
+      "owner": "xJo",
+      "name": "DxJ",
+      "descriptor": "()Lcom/bitwig/flt/document/core/master/device/FUR;"
+    },
+    "xJo.mcL": {
+      "kind": "method",
+      "owner": "xJo",
+      "name": "mcL",
+      "descriptor": "()Lcom/bitwig/flt/document/core/master/device/xlG;"
+    },
+    "xJo.sWR": {
+      "kind": "method",
+      "owner": "xJo",
+      "name": "sWR",
+      "descriptor": "()Lcom/bitwig/flt/document/core/master/device/ISf;"
+    }
+  },
+  "hooks": [],
+  "opens": [
+    "xJo.DxJ",
+    "xJo.mcL",
+    "xJo.sWR"
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  },
+  "registrations": [
+    {
+      "id": "inspector",
+      "consumer": "inspector-composition-framework",
+      "descriptor": "inspector-blocks.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "inspector-composition-framework",
+      "min_version": "0.3.0-dev.2"
+    }
+  ]
+}
