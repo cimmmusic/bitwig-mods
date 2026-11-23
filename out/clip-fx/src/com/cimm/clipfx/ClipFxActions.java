@@ -11,5 +11,13 @@ public final class ClipFxActions implements ActionProvider {
                .in(Menu.DEVICE)
                .visibleWhen(c -> c.device() != null && ClipFx.isInsert(c.device()))
                .onRun(c -> { Object d = c.device(); if (d != null) com.bitwig.flt.app.CHR.Grk().asyncExec(() -> ClipGate.delete(d)); });
+        actions.action("cimm_clipfx_move_earlier", "Move Earlier in Clip FX")
+               .in(Menu.DEVICE)
+               .visibleWhen(c -> c.device() != null && ClipFx.isInsert(c.device()))
+               .onRun(c -> { Object d = c.device(); if (d != null) com.bitwig.flt.app.CHR.Grk().asyncExec(() -> ClipGate.move(d, -1)); });
+        actions.action("cimm_clipfx_move_later", "Move Later in Clip FX")
+               .in(Menu.DEVICE)
+               .visibleWhen(c -> c.device() != null && ClipFx.isInsert(c.device()))
+               .onRun(c -> { Object d = c.device(); if (d != null) com.bitwig.flt.app.CHR.Grk().asyncExec(() -> ClipGate.move(d, 1)); });
     }
 }

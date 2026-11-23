@@ -131,6 +131,30 @@ final class ClipGate {
         } catch (Throwable t) { ClipFx.MOD.log("Clip FX: following the clip's name failed", t); }
     }
 
+    /**
+     * Moves one of a clip's inserts one place earlier (-1) or later (+1) in its chain, never before the gate (index 0):
+     * the chain's 'devices' list put the device at its new place (Bitwig's list insert, as a move). One undo step.
+     */
+    static void move(Object device, int by) {
+        try {
+            Object chainObj = Probe.parent(device);
+            if (!(chainObj instanceof ISf chain)) { ClipFx.MOD.log("Clip FX: the insert's chain wasn't found"); return; }
+            List<?> devices = chain.HL();
+            int at = devices.indexOf(device), to = at + by;
+            if (at < 1 || to < 1 || to >= devices.size()) return; // the gate stays first
+            g2L project = null;
+            for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
+            Object atom = ((bitwig.obf.der) (Object) chain.ng_()).cfM("devices");
+            if (project == null || !(atom instanceof bitwig.obf.deT list)) { ClipFx.MOD.log("Clip FX: can't move (devices list " + atom + ")"); return; }
+            project.cfM("Move Clip FX Insert", false);
+            try {
+                list.cfM(chain, (com.bitwig.ramona.core.oDc) device, to, true);
+                ClipFx.MOD.log("Clip FX: moved " + ((xlG) device).aF_() + " from " + at + " to " + chain.HL().indexOf(device));
+            } catch (Throwable t) { ClipFx.MOD.log("Clip FX: moving failed", t); }
+            finally { project.cfM(false); }
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: moving failed", t); }
+    }
+
     /** Deletes a device the way Bitwig does (the project's delete_devices), as one undo step. UI thread. */
     static void delete(Object device) {
         g2L project = null;
