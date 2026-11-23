@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.42",
+    "version": "0.1.0-dev.43",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -108,8 +108,9 @@
       "transform": "WRAP_OBJECT_RETURN",
       "bridge": {
         "method": "chainRow",
-        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Lcom/bitwig/flt/widget/core/device/htp;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
         "args": [
+          "this",
           "arg1"
         ]
       }
@@ -120,8 +121,9 @@
       "transform": "WRAP_OBJECT_RETURN",
       "bridge": {
         "method": "chainRow2",
-        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Lcom/bitwig/flt/widget/core/device/htp;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
         "args": [
+          "this",
           "arg1"
         ]
       }
