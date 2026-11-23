@@ -56,22 +56,35 @@ public final class MixerHide {
 
     /** The chain puts an add-device "+" (tLF) beside every device: the hidden unit's own one is hidden too, once
      *  the chain has placed its widgets (checked a few times, as they arrive late). */
-    static void hidePlusLater(Object row) {
-        for (int ms : new int[]{0, 150, 600}) {
-            Runnable r = () -> { try { hidePlus(row); } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: hiding the unit's + failed", t); } };
-            if (ms == 0) com.bitwig.flt.app.CHR.Grk().asyncExec(r);
-            else { javax.swing.Timer tm = new javax.swing.Timer(ms, e -> com.bitwig.flt.app.CHR.Grk().asyncExec(r)); tm.setRepeats(false); tm.start(); }
-        }
+    /** Hidden units' chain widgets: their + are hidden as soon as the chain has placed them, then kept hidden. */
+    static final java.util.Set<Object> hiddenRows = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static java.util.concurrent.ScheduledExecutorService sweeper;
+
+    static synchronized void hidePlusLater(Object row) {
+        hiddenRows.add(row);
+        if (sweeper != null) return;
+        sweeper = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> { Thread t = new Thread(r, "clip-fx-plus"); t.setDaemon(true); return t; });
+        sweeper.scheduleAtFixedRate(() -> {
+            try { com.bitwig.flt.app.CHR.Grk().asyncExec(MixerHide::sweep); } catch (Throwable ignored) {}
+        }, 200, 500, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
-    private static int plusLogs;
+    private static void sweep() {
+        Object[] rows; synchronized (hiddenRows) { rows = hiddenRows.toArray(); }
+        for (Object r : rows) { try { hidePlus(r); } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: hiding the unit's + failed", t); } }
+    }
+
+    private static int plusLogs, parentLogs;
+    private static final java.util.Set<Object> shrunk = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
 
     private static void hidePlus(Object row) {
         // the row may sit in a wrapper: go up until a parent lists it among siblings
         Object child = row;
-        for (int up = 0; up < 4; up++) {
-            Object parent = Probe.parent(child);
-            if (!(parent instanceof bitwig.obf.dvW box)) { child = parent; if (child == null) return; continue; }
+        for (int up = 0; up < 6; up++) {
+            Object parent = widgetParent(child);
+            if (up == 0 && parentLogs++ < 4) ClipFx.MOD.log("Clip FX: unit widget's parent: " + (parent == null ? "none yet" : parent.getClass().getName()));
+            if (parent == null) return;
+            if (!(parent instanceof bitwig.obf.dvW box)) { child = parent; continue; }
             java.util.List<?> kids = box.jl_();
             int at = kids.indexOf(child);
             if (plusLogs++ < 6) {
@@ -82,11 +95,24 @@ public final class MixerHide {
             if (at >= 0) { // every + after the unit
                 boolean any = false;
                 for (int i = at + 1; i < kids.size(); i++)
-                    if (kids.get(i) instanceof com.bitwig.flt.widget.core.device.tLF plus) { shrink((bitwig.obf.dve) plus); any = true; }
+                    if (isPlus(kids.get(i))) { if (shrunk.add(kids.get(i))) { shrink((bitwig.obf.dve) kids.get(i)); if (plusLogs < 10) ClipFx.MOD.log("Clip FX: hid a + after the unit (" + kids.get(i).getClass().getSimpleName() + ")"); } any = true; }
                 if (any) return;
             }
             child = parent;
         }
+    }
+
+    /** An add-device +: Bitwig's tLF, or a widget holding one. */
+    private static boolean isPlus(Object w) {
+        if (w instanceof com.bitwig.flt.widget.core.device.tLF) return true;
+        try { if (w instanceof bitwig.obf.dvW box) for (Object k : box.jl_()) if (k instanceof com.bitwig.flt.widget.core.device.tLF) return true; } catch (Throwable ignored) {}
+        return false;
+    }
+
+    /** A widget's parent widget (the layout tree, as widgets are document objects too). */
+    private static Object widgetParent(Object w) {
+        try { Object p = ((bitwig.obf.dve) w).Wov(); if (p != null) return p; } catch (Throwable ignored) {}
+        return Probe.parent(w);
     }
 
     private static void shrink(bitwig.obf.dve w) {
