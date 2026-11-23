@@ -80,18 +80,33 @@ final class ClipGate {
     /** On: FX layer open, Dry closed over the clip. Off: FX closed, Dry open (the clip plays dry). Inside an undo step.
      *  Bitwig opens the track's automation when automation is written: it is put back as it was (closed, usually). */
     private static void gate(Ctx c, AxS unit, boolean on) {
-        Object showAtom = null; Boolean wasShown = null;
-        try {
-            showAtom = ((bitwig.obf.der) (Object) c.track.ng_()).cfM("show_automation");
-            if (showAtom instanceof bitwig.obf.dep d) wasShown = d.lYc(c.track);
-        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: reading the track's automation view failed", t); }
+        // the shown automation lanes: on the track and on its automation lanes component, whichever has them
+        List<Object[]> snaps = new ArrayList<>(); // {atom, owner, value before}
+        for (Object owner : new Object[]{c.track, c.lanes}) {
+            try {
+                Object atom = ((bitwig.obf.der) (Object) ((com.bitwig.ramona.core.oDc) owner).ng_()).cfM("automation_lanes");
+                if (atom instanceof bitwig.obf.deU list) {
+                    Object before = list.MRY((com.bitwig.ramona.core.oDc) owner);
+                    Object copy = before instanceof java.util.Collection<?> col ? new ArrayList<>(col) : before;
+                    snaps.add(new Object[]{list, owner, copy});
+                    if (laneLogs < 4) ClipFx.MOD.log("Clip FX: shown lanes on " + owner.getClass().getSimpleName() + " before: " + copy);
+                }
+            } catch (Throwable t) { if (laneLogs < 4) ClipFx.MOD.log("Clip FX: reading shown lanes on " + owner.getClass().getSimpleName() + ": " + t); }
+        }
         try { writeGate(c, unit, on); }
         finally {
-            try {
-                if (showAtom instanceof bitwig.obf.dep d && wasShown != null && d.lYc(c.track) != wasShown) d.cfM(c.track, wasShown.booleanValue());
-            } catch (Throwable t) { ClipFx.MOD.log("Clip FX: closing the track's automation again failed", t); }
+            for (Object[] sn : snaps) {
+                try {
+                    bitwig.obf.deU list = (bitwig.obf.deU) sn[0];
+                    com.bitwig.ramona.core.oDc owner = (com.bitwig.ramona.core.oDc) sn[1];
+                    Object now = list.MRY(owner);
+                    if (laneLogs++ < 4) ClipFx.MOD.log("Clip FX: shown lanes on " + owner.getClass().getSimpleName() + " after: " + now);
+                    if (!java.util.Objects.equals(String.valueOf(now), String.valueOf(sn[2]))) list.MRY(owner, sn[2]); // as they were
+                } catch (Throwable t) { ClipFx.MOD.log("Clip FX: closing the new automation lanes failed", t); }
+            }
         }
     }
+    private static int laneLogs;
 
     private static void writeGate(Ctx c, AxS unit, boolean on) {
         bitwig.obf.rce[] vol = GateTest.volumes(unit);
