@@ -79,31 +79,32 @@ final class ClipGate {
 
     /** On: FX layer open, Dry closed over the clip. Off: FX closed, Dry open (the clip plays dry). Inside an undo step.
      *  Bitwig opens the track's automation when automation is written: it is put back as it was (closed, usually). */
+    /**
+     * Writing automation makes Bitwig show the track's automation lanes in the arranger (and select the parameter):
+     * the track's display settings (track.lnY(): are_automation_lanes_shown_in_arranger, selected_automation_parameter)
+     * are put back as they were, in the same undo step.
+     */
     private static void gate(Ctx c, AxS unit, boolean on) {
-        // the shown automation lanes: on the track and on its automation lanes component, whichever has them
-        List<Object[]> snaps = new ArrayList<>(); // {atom, owner, value before}
-        for (Object owner : new Object[]{c.track, c.lanes}) {
-            try {
-                Object atom = ((bitwig.obf.der) (Object) ((com.bitwig.ramona.core.oDc) owner).ng_()).cfM("automation_lanes");
-                if (atom instanceof bitwig.obf.deU list) {
-                    Object before = list.MRY((com.bitwig.ramona.core.oDc) owner);
-                    Object copy = before instanceof java.util.Collection<?> col ? new ArrayList<>(col) : before;
-                    snaps.add(new Object[]{list, owner, copy});
-                    if (laneLogs < 4) ClipFx.MOD.log("Clip FX: shown lanes on " + owner.getClass().getSimpleName() + " before: " + copy);
-                }
-            } catch (Throwable t) { if (laneLogs < 4) ClipFx.MOD.log("Clip FX: reading shown lanes on " + owner.getClass().getSimpleName() + ": " + t); }
-        }
+        Object settings = null, shownAtom = null, selAtom = null, wasShown = null, wasSel = null;
+        try {
+            settings = c.track.lnY();
+            bitwig.obf.der schema = (bitwig.obf.der) (Object) ((com.bitwig.ramona.core.oDc) settings).ng_();
+            shownAtom = schema.cfM("are_automation_lanes_shown_in_arranger");
+            selAtom = schema.cfM("selected_automation_parameter");
+            if (shownAtom instanceof bitwig.obf.dep d) wasShown = d.lYc((com.bitwig.ramona.core.oDc) settings);
+            if (selAtom instanceof bitwig.obf.deU u) wasSel = u.MRY((com.bitwig.ramona.core.oDc) settings);
+            if (laneLogs < 3) ClipFx.MOD.log("Clip FX: automation shown before: " + wasShown + " (" + (shownAtom == null ? "-" : shownAtom.getClass().getSimpleName()) + "), selected " + wasSel + " (" + (selAtom == null ? "-" : selAtom.getClass().getSimpleName()) + ")");
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: reading the track's automation view failed", t); }
         try { writeGate(c, unit, on); }
         finally {
-            for (Object[] sn : snaps) {
-                try {
-                    bitwig.obf.deU list = (bitwig.obf.deU) sn[0];
-                    com.bitwig.ramona.core.oDc owner = (com.bitwig.ramona.core.oDc) sn[1];
-                    Object now = list.MRY(owner);
-                    if (laneLogs++ < 4) ClipFx.MOD.log("Clip FX: shown lanes on " + owner.getClass().getSimpleName() + " after: " + now);
-                    if (!java.util.Objects.equals(String.valueOf(now), String.valueOf(sn[2]))) list.MRY(owner, sn[2]); // as they were
-                } catch (Throwable t) { ClipFx.MOD.log("Clip FX: closing the new automation lanes failed", t); }
-            }
+            try {
+                com.bitwig.ramona.core.oDc o = (com.bitwig.ramona.core.oDc) settings;
+                if (o != null && shownAtom instanceof bitwig.obf.dep d && wasShown instanceof Boolean b) {
+                    if (laneLogs++ < 3) ClipFx.MOD.log("Clip FX: automation shown after: " + d.lYc(o));
+                    if (d.lYc(o) != b) d.cfM(o, b.booleanValue());
+                }
+                if (o != null && selAtom instanceof bitwig.obf.deU u && !java.util.Objects.equals(u.MRY(o), wasSel)) u.MRY(o, wasSel);
+            } catch (Throwable t) { ClipFx.MOD.log("Clip FX: hiding the track's automation again failed", t); }
         }
     }
     private static int laneLogs;
@@ -138,9 +139,9 @@ final class ClipGate {
                 for (String f : NAME_FIELDS) { Object a = schema.cfM(f); b.append(' ').append(f).append('=').append(a == null ? "-" : a.getClass().getSimpleName()); }
                 ClipFx.MOD.log(b.toString());
             }
-            Object atom = schema.cfM("name");
-            if (atom instanceof bitwig.obf.deU text) text.MRY((com.bitwig.ramona.core.oDc) device, name);
-            else ClipFx.MOD.log("Clip FX: no 'name' on the device (" + atom + ")");
+            Object atom = schema.cfM("preset_name"); // what the device chain shows (the device has no 'name')
+            if (atom instanceof bitwig.obf.dfg text) text.cfM((com.bitwig.ramona.core.oDc) device, name);
+            else ClipFx.MOD.log("Clip FX: no 'preset_name' on the device (" + atom + ")");
         } catch (Throwable t) { ClipFx.MOD.log("Clip FX: naming the unit failed", t); }
     }
 
