@@ -46,7 +46,7 @@
       "media_type": "text/markdown"
     },
     "presets": {
-      "kind": "file",
+      "kind": "directory",
       "path": "presets"
     }
   },
