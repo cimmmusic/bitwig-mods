@@ -36,34 +36,31 @@ final class InsertRows {
     }
 
     private static final long PLAIN = 24;
+    private static int logs;
 
-    /** Each insert's row height, measured as the list builds it (with a Mini Panels graph, if any). */
-    private static final java.util.Map<Object, Long> heights = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
-
-    /** Height = each insert's row (the gate is hidden) + one row for the list's +; no stretching. */
+    /** Height = the list's own rows as Bitwig built them (each row's natural height, the hidden gate left out, the
+     *  + row included), so nothing is squeezed; no stretching. */
     private static final class RowsHeight implements bitwig.obf.svm {
         private final Object chain, list;
         RowsHeight(Object chain, Object list) { this.chain = chain; this.list = list; }
         private long h() {
             try {
-                java.util.List<?> d = ((com.bitwig.flt.document.core.master.device.ISf) chain).HL();
-                // the + row: a plain row (the smallest insert row seen, else Bitwig's usual 24)
-                long plain = PLAIN, sum = 0;
-                for (int i = 1; i < d.size(); i++) { long h = heightOf(d.get(i), PLAIN); sum += h; if (h < plain && h > 8) plain = h; }
-                return sum + plain + 2;
-            } catch (Throwable t) { return 26; }
-        }
-        private long heightOf(Object device, long row) {
-            Long known = heights.get(device);
-            if (known != null) return known;
-            long h = row;
-            try {
-                Object w = ((com.bitwig.flt.widget.core.device.uMi) list).MRY((bitwig.obf.jsd) device);
-                long n = ((bitwig.obf.dve) w).iG_().Hnt;
-                if (n > 4 && n < 1000) h = n;
-            } catch (Throwable ignored) {}
-            heights.put(device, h);
-            return h;
+                java.util.List<?> kids = ((bitwig.obf.dvW) list).jl_();
+                // the rows may sit one level down, in a single holder
+                if (kids.size() == 1 && kids.get(0) instanceof bitwig.obf.dvW only && !MixerHide.hidden.contains(only)) kids = only.jl_();
+                long sum = 0;
+                StringBuilder b = logs < 3 ? new StringBuilder() : null;
+                for (Object k : kids) {
+                    if (MixerHide.hidden.contains(k)) continue;
+                    long n = ((bitwig.obf.dve) k).iG_().Hnt;
+                    sum += Math.max(0, n);
+                    if (b != null) b.append(k.getClass().getSimpleName()).append('=').append(n).append(' ');
+                }
+                if (b != null) { logs++; ClipFx.MOD.log("Clip FX: insert list rows " + b + "-> " + sum); }
+                if (sum > 4) return sum + 2;
+            } catch (Throwable t) { if (logs++ < 3) ClipFx.MOD.log("Clip FX: measuring the insert list failed", t); }
+            // not laid out yet: one plain row per insert and the +
+            try { return (((com.bitwig.flt.document.core.master.device.ISf) chain).HL().size()) * PLAIN + 2; } catch (Throwable t) { return PLAIN + 2; }
         }
         @Override public long Hnt(bitwig.obf.ruA r) { return h(); }
         @Override public long MRY(bitwig.obf.ruA r) { return h(); }

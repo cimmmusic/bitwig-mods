@@ -45,7 +45,11 @@ public final class MixerHide {
         @Override public long cfM(bitwig.obf.ruA r) { return 0; }
     };
 
+    /** Widgets the mod has hidden (sized to nothing). */
+    static final java.util.Set<Object> hidden = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+
     private static void shrink(bitwig.obf.dve w) {
+        hidden.add(w);
         w.t_(false);
         try { w.MRY(ZERO); } catch (Throwable ignored) {}
         try { w.a_(ZERO); } catch (Throwable ignored) {}

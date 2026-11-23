@@ -4,6 +4,8 @@ Effects for a single clip, like Studio One's Event FX. Select a clip in the arra
 
 **Beta.**
 
+<img src="inspector.png" alt="The Clip FX block in the Inspector: Clip FX On, a list of effects, and Show FX" width="326">
+
 ## Using it
 
 1. Select an arranger clip.
