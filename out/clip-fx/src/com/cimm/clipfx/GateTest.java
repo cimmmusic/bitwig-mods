@@ -70,7 +70,7 @@ final class GateTest {
             // never call into Bitwig with a missing argument: its implementation fails half-way and the undo step
             // stays open, which crashes Bitwig
             for (int i = 0; i < args.size(); i++)
-                if (args.get(i) == null) { ClipFx.MOD.log("GATE: argument " + i + " is missing, nothing written"); return; }
+                if (args.get(i) == null && i != 6) { ClipFx.MOD.log("GATE: argument " + i + " is missing, nothing written"); return; } // clip (6) may be empty
             project.cfM("Clip FX gate", false);
             try {
                 // the operation belongs to one of the clip's owners (lane, arrangement, track...): the first that has it
