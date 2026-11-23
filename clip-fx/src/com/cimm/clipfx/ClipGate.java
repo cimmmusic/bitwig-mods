@@ -77,8 +77,23 @@ final class ClipGate {
         } catch (Throwable t) { ClipFx.MOD.log("Clip FX: switching failed", t); }
     }
 
-    /** On: FX layer open, Dry closed over the clip. Off: FX closed, Dry open (the clip plays dry). Inside an undo step. */
+    /** On: FX layer open, Dry closed over the clip. Off: FX closed, Dry open (the clip plays dry). Inside an undo step.
+     *  Bitwig opens the track's automation when automation is written: it is put back as it was (closed, usually). */
     private static void gate(Ctx c, AxS unit, boolean on) {
+        Object showAtom = null; Boolean wasShown = null;
+        try {
+            showAtom = ((bitwig.obf.der) (Object) c.track.ng_()).cfM("show_automation");
+            if (showAtom instanceof bitwig.obf.dep d) wasShown = d.lYc(c.track);
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: reading the track's automation view failed", t); }
+        try { writeGate(c, unit, on); }
+        finally {
+            try {
+                if (showAtom instanceof bitwig.obf.dep d && wasShown != null && d.lYc(c.track) != wasShown) d.cfM(c.track, wasShown.booleanValue());
+            } catch (Throwable t) { ClipFx.MOD.log("Clip FX: closing the track's automation again failed", t); }
+        }
+    }
+
+    private static void writeGate(Ctx c, AxS unit, boolean on) {
         bitwig.obf.rce[] vol = GateTest.volumes(unit);
         if (vol[0] == null || vol[1] == null) { ClipFx.MOD.log("Clip FX: the unit's gates weren't found"); return; }
         bitwig.obf.jRs hold = bitwig.obf.jRs.values()[0]; // HOLD
