@@ -118,19 +118,20 @@ public final class ClipFxInspector implements InspectorProvider {
         if (timer != null) return;
         timer = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> { Thread t = new Thread(r, "clip-fx-refresh"); t.setDaemon(true); return t; });
         timer.scheduleAtFixedRate(() -> {
-            try {
-                com.bitwig.flt.app.CHR.Grk().asyncExec(() -> {
-                    List<java.lang.ref.WeakReference<BlockContext>> all;
-                    synchronized (ClipFxInspector.class) { all = new ArrayList<>(live); }
-                    for (var r : all) {
-                        BlockContext c = r.get();
-                        if (c == null) continue;
-                        Runnable u; synchronized (ClipFxInspector.class) { u = updaters.get(c); }
-                        try { if (u != null) u.run(); Rows.refresh(c); } catch (Throwable ignored) {}
-                    }
-                });
-            } catch (Throwable ignored) {}
+            try { com.bitwig.flt.app.CHR.Grk().asyncExec(ClipFxInspector::refreshSoon); } catch (Throwable ignored) {}
         }, 1, 1, java.util.concurrent.TimeUnit.SECONDS);
+    }
+
+    /** Every shown Clip FX block reads its inserts again now. UI thread. */
+    static void refreshSoon() {
+        List<java.lang.ref.WeakReference<BlockContext>> all;
+        synchronized (ClipFxInspector.class) { all = new ArrayList<>(live); }
+        for (var r : all) {
+            BlockContext c = r.get();
+            if (c == null) continue;
+            Runnable u; synchronized (ClipFxInspector.class) { u = updaters.get(c); }
+            try { if (u != null) u.run(); Rows.refresh(c); } catch (Throwable ignored) {}
+        }
     }
 
     private static Object first(Object selection) { List<Object> s = selected(selection); return s.isEmpty() ? null : s.get(0); }

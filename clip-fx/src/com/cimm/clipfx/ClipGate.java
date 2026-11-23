@@ -212,8 +212,8 @@ final class ClipGate {
             Object chainObj = Probe.parent(device);
             if (!(chainObj instanceof ISf chain)) { ClipFx.MOD.log("Clip FX: the insert's chain wasn't found"); return; }
             List<?> devices = chain.HL();
-            int at = devices.indexOf(device), to = at + by;
-            if (at < 1 || to < 1 || to >= devices.size()) return; // the gate stays first
+            int at = devices.indexOf(device), to = Math.max(1, Math.min(devices.size() - 1, at + by)); // the gate stays first
+            if (at < 1 || to == at) return;
             g2L project = null;
             for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
             Object atom = ((bitwig.obf.der) (Object) chain.ng_()).cfM("devices");

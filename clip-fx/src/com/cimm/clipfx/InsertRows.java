@@ -19,7 +19,9 @@ final class InsertRows {
             for (Object r : rows) try { ((bitwig.obf.dvW) (Object) group).MJ((bitwig.obf.dve) r); } catch (Throwable ignored) {}
             rows.clear(); shown.clear();
             for (Object d : inserts) {
-                Object row = com.bitwig.flt.widget.core.device.g2L.cfM((bitwig.obf.jsd) d, false, false); // Bitwig's device row
+                Object device = com.bitwig.flt.widget.core.device.g2L.cfM((bitwig.obf.jsd) d, false, false); // Bitwig's device row
+                // the row and, at its right, a grip to drag it up or down
+                Object row = bitwig.obf.dWb.cfM(com.bitwig.base.geom.LWw.cfM, 0, new bitwig.obf.dve[]{(bitwig.obf.dve) device, new Grip(d)});
                 group.HL((bitwig.obf.dve) row);
                 rows.add(row); shown.add(d);
             }
