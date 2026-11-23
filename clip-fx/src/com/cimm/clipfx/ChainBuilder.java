@@ -22,6 +22,7 @@ final class ChainBuilder {
         } catch (Throwable t) { ClipFx.MOD.log("presets folder not found", t); }
         File user = new File(System.getProperty("user.home"), "Documents/Bitwig Studio/Library/Presets/"
                 + (name.endsWith("Gate") ? "Tool/" : "FX Layer/") + name + ".bwpreset");
+        if (!user.isFile()) user = new File(System.getProperty("user.home"), "Documents/Bitwig Studio/Library/Presets/FX Layer/" + name + ".bwpreset");
         return user.isFile() ? user : null;
     }
 
@@ -60,7 +61,7 @@ final class ChainBuilder {
             if (x instanceof com.bitwig.flt.document.core.master.g2L p) project = p;
         }
         if (track == null || project == null) { ClipFx.MOD.log("TEST: no track / project above the clip"); return; }
-        File container = preset("Clip FX Container"), gate = preset("Clip FX Gate");
+        File container = preset("Clip FX Unit"), gate = preset("Clip FX Gate");
         ClipFx.MOD.log("TEST: presets " + container + " | " + gate);
         if (container == null) return;
         try {
@@ -73,10 +74,10 @@ final class ChainBuilder {
                 return;
             }
             project.cfM("Add Clip FX", false); // one undo step
-            try { chain.cfM(fx, 0); } finally { project.cfM(false); }
+            try { chain.cfM(fx, chain.HL().size()); } finally { project.cfM(false); } // at the end of the track's chain
             ClipFx.MOD.log("TEST: inserted at " + Probe.path(fx) + "; the track's chain now has " + chain.HL().size() + " device(s)");
-            Probe.describe("container", fx, 1);
-            if (gate != null) { xlG g = load(gate); ClipFx.MOD.log("TEST: loaded gate " + g.getClass().getName()); Probe.describe("gate", g, 1); }
+            Probe.tree("unit", fx, 6);
+
         } catch (Throwable t) { ClipFx.MOD.log("TEST: building failed", t); }
     }
 }
