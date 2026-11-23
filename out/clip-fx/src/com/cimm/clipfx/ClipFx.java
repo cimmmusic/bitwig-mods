@@ -30,6 +30,8 @@ final class ClipFx {
         return f != null ? f : new Fx();
     }
 
+    static void forget(Object clip) { byObject.remove(clip); }
+
     /** Clips already looked up in the project's stored settings. */
     private static final Map<Object, Boolean> checked = Collections.synchronizedMap(new WeakHashMap<>());
 

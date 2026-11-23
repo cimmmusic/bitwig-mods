@@ -34,6 +34,18 @@ public final class Store {
         if (refreshing) return;
         refreshing = true;
         try {
+            // a deleted clip takes its Clip FX with it, in the same undo step (Undo brings both back)
+            for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
+                ClipFx.Fx f = e.getValue();
+                if (f.unit == null || path(e.getKey()) != null || path(f.unit) == null) continue;
+                try {
+                    String was = path(f.unit);
+                    if (ClipGate.deleteInStep(f.unit)) {
+                        ClipFx.forget(e.getKey());
+                        ClipFx.MOD.log("Clip FX: the clip was deleted: removed its unit " + was);
+                    }
+                } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: removing a deleted clip's unit failed", t); }
+            }
             Map<g2L, StringBuilder> byProject = new HashMap<>();
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
                 ClipFx.Fx f = e.getValue();

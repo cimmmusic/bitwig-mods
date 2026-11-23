@@ -228,6 +228,16 @@ final class ClipGate {
     }
 
     /** Deletes a device the way Bitwig does (the project's delete_devices), as one undo step. UI thread. */
+    /** Deletes a device inside the undo step that is open now (no step of its own). */
+    static boolean deleteInStep(Object device) {
+        g2L project = null;
+        for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
+        Object found = ((bitwig.obf.der) (Object) com.bitwig.flt.document.core.master.Ljp.cfM).cfM("delete_devices");
+        if (project == null || !(found instanceof bitwig.obf.deV op)) return false;
+        op.cfM(project, new ArrayList<>(List.of(new ArrayList<>(List.of(device)))));
+        return true;
+    }
+
     static void delete(Object device) {
         g2L project = null;
         for (Object x = device; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
