@@ -57,7 +57,19 @@ final class GateTest {
             Object found = ((bitwig.obf.der) (Object) bitwig.obf.BTS.cfM).cfM("insert_arranger_clip_automation_events");
             if (!(found instanceof bitwig.obf.deV op)) { ClipFx.MOD.log("GATE: operation not found (" + found + ")"); return; }
             project.cfM("Clip FX gate", false);
-            try { Object r = op.cfM(track, args); ClipFx.MOD.log("GATE: written, result " + r); }
+            try {
+                // the operation belongs to one of the clip's owners (lane, arrangement, track...): the first that has it
+                boolean done = false;
+                for (Object owner = Probe.parent(clip); owner != null && !done; owner = Probe.parent(owner)) {
+                    try {
+                        Object r = op.cfM((com.bitwig.ramona.core.oDc) owner, args);
+                        ClipFx.MOD.log("GATE: written on " + owner.getClass().getSimpleName() + " " + Probe.path(owner) + ", result " + r);
+                        done = true;
+                    } catch (IllegalStateException e) {
+                        ClipFx.MOD.log("GATE: not on " + owner.getClass().getSimpleName() + " (" + e.getMessage() + ")");
+                    }
+                }
+            }
             finally { project.cfM(false); }
         } catch (Throwable e) { ClipFx.MOD.log("GATE: failed", e); }
     }
