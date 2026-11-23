@@ -25,7 +25,12 @@ public final class ClipFxInspector implements InspectorProvider {
         Object selection = selectionOf(context.panel());
         InsertRows list = new InsertRows();
         list.update(inserts(first(selection)));
-        remember(context, () -> list.update(inserts(first(selection))));
+        remember(context, () -> {
+            Object clip = first(selection);
+            list.update(inserts(clip));
+            Object unit = ClipFx.shown(clip).unit;
+            if (unit != null) ClipGate.followName(clip, unit); // a renamed clip renames its unit
+        });
         return Rows.column(
                 Rows.choice(context, "Clip FX", new String[]{"Off", "On"},
                         () -> ClipFx.shown(first(selection)).on ? 1 : 0,

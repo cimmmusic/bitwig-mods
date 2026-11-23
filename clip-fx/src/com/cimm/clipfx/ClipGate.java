@@ -59,6 +59,7 @@ final class ClipGate {
                 c.chain.cfM(u, c.chain.HL().size());
                 gate(c, (AxS) u, true);
                 ClipFx.units.add(u);
+                rename(u, unitName(clip));
                 ClipFx.MOD.log("Clip FX: on (new unit " + Probe.path(u) + "), clip " + c.start + " .. " + c.end);
                 return (AxS) u;
             } finally { c.project.cfM(false); }
@@ -85,6 +86,49 @@ final class ClipGate {
         double open = zeroDb(vol[1]), dryOpen = zeroDb(vol[0]);
         write(c.op, c.lanes, vol[1], c.start, c.end, on ? open : 0, hold, c.selection);    // FX layer
         write(c.op, c.lanes, vol[0], c.start, c.end, on ? 0 : dryOpen, hold, c.selection); // Dry layer
+    }
+
+    /** "Clip FX – <clip name>", so the units can be told apart in the device chain and in automation lanes. */
+    static String unitName(Object clip) {
+        String n = null;
+        try { n = ((bitwig.obf.zZi) clip).dG_(); } catch (Throwable ignored) {}
+        return n == null || n.isBlank() ? "Clip FX" : "Clip FX – " + n.trim();
+    }
+
+    private static final String[] NAME_FIELDS = {"name", "custom_name", "display_name", "preset_name"};
+    private static boolean loggedFields;
+
+    /** A device's name, set through its schema's text value 'name' (inside the caller's undo step, if any). */
+    static void rename(Object device, String name) {
+        try {
+            bitwig.obf.der schema = (bitwig.obf.der) (Object) ((com.bitwig.ramona.core.oDc) device).ng_();
+            if (!loggedFields) {
+                loggedFields = true;
+                StringBuilder b = new StringBuilder("Clip FX: device name fields:");
+                for (String f : NAME_FIELDS) { Object a = schema.cfM(f); b.append(' ').append(f).append('=').append(a == null ? "-" : a.getClass().getSimpleName()); }
+                ClipFx.MOD.log(b.toString());
+            }
+            Object atom = schema.cfM("name");
+            if (atom instanceof bitwig.obf.deU text) text.MRY((com.bitwig.ramona.core.oDc) device, name);
+            else ClipFx.MOD.log("Clip FX: no 'name' on the device (" + atom + ")");
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: naming the unit failed", t); }
+    }
+
+    private static final java.util.Map<Object, String> tried = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+
+    /** The clip was renamed: its unit follows (one undo step, only when the name differs). UI thread. */
+    static void followName(Object clip, Object unit) {
+        try {
+            String want = unitName(clip);
+            String have = ((xlG) unit).aF_();
+            if (want.equals(have) || want.equals(tried.get(unit))) return; // each name tried once (no undo step every second)
+            tried.put(unit, want);
+            g2L project = null;
+            for (Object x = unit; x != null; x = Probe.parent(x)) if (x instanceof g2L p) project = p;
+            if (project == null) return;
+            project.cfM("Rename Clip FX", false);
+            try { rename(unit, want); } finally { project.cfM(false); }
+        } catch (Throwable t) { ClipFx.MOD.log("Clip FX: following the clip's name failed", t); }
     }
 
     /** Deletes a device the way Bitwig does (the project's delete_devices), as one undo step. UI thread. */

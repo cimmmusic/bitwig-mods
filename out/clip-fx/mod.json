@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.23",
+    "version": "0.1.0-dev.25",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"
@@ -13,7 +13,17 @@
     "platform": "macos",
     "architecture": "universal"
   },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.clipfx.MixerHide"
+  },
   "targets": {
+    "com.bitwig.flt.widget.core.device.uMi.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/uMi",
+      "name": "MRY",
+      "descriptor": "(Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;"
+    },
     "SEJ.cfM": {
       "kind": "method",
       "owner": "SEJ",
@@ -25,6 +35,12 @@
       "owner": "com/bitwig/flt/document/core/master/device/zTz",
       "name": "wZs",
       "descriptor": "()Lcom/bitwig/flt/document/core/master/device/ISf;"
+    },
+    "dve.kJ_": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "kJ_",
+      "descriptor": "()V"
     },
     "xJo.DxJ": {
       "kind": "method",
@@ -51,10 +67,24 @@
       "descriptor": "()Lcom/bitwig/flt/document/core/master/device/ISf;"
     }
   },
-  "hooks": [],
+  "hooks": [
+    {
+      "id": "hide-unit-in-mixer",
+      "target": "com.bitwig.flt.widget.core.device.uMi.MRY",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "row",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/gRj;Ljsd;)Lcom/bitwig/flt/widget/core/device/gRj;",
+        "args": [
+          "arg1"
+        ]
+      }
+    }
+  ],
   "opens": [
     "SEJ.cfM",
     "com.bitwig.flt.document.core.master.device.zTz.wZs",
+    "dve.kJ_",
     "xJo.DxJ",
     "xJo.mcL",
     "xJo.meo",
