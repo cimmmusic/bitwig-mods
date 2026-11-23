@@ -43,7 +43,7 @@ final class ChainBuilder {
                 try {
                     Object o = m.invoke(track);
                     String p = Probe.path(o);
-                    if (p.endsWith("/device_chain")) { ClipFx.MOD.log("TEST: chain from " + c.getSimpleName() + "." + m.getName() + "()"); return o; }
+                    if (p.endsWith("/device_chain")) { return o; }
                 } catch (Throwable ignored) {}
             }
         }

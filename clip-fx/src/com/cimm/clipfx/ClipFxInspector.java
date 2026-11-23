@@ -15,7 +15,7 @@ public final class ClipFxInspector implements InspectorProvider {
 
     @Override
     public void declare(Blocks blocks) {
-        blocks.block("clip-fx", "Clip FX").in(Context.ARRANGER_CLIP, Context.LAUNCHER_CLIP, Context.NOTE).bottom()
+        blocks.block("clip-fx", "Clip FX").in(Context.ARRANGER_CLIP).bottom()
               .content(ClipFxInspector::content);
     }
 

@@ -25,7 +25,6 @@ public final class Store {
     // ---------------------------------------------------------------- writing (inside every undo step)
 
     private static boolean refreshing;
-    private static int diag;
     private static int fails;
     /** Projects that had Clip FX settings written (to clear the block when the last one goes). */
     private static final java.util.Set<Object> written = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
@@ -40,7 +39,6 @@ public final class Store {
             // same undo step (Undo brings both back)
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
                 ClipFx.Fx f = e.getValue();
-                if (diag < 200) { diag++; ClipFx.MOD.log("DIAG step: clip " + (path(e.getKey()) == null ? "GONE (was " + f.path + ")" : path(e.getKey())) + ", unit " + path(f.unit) + ", on " + f.on); }
                 if (f.unit == null || path(e.getKey()) != null || path(f.unit) == null) continue;
                 Object moved = null;
                 try { moved = findMoved(f); } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: looking for the moved clip failed", t); }
@@ -55,7 +53,7 @@ public final class Store {
                 ClipFx.forget(clip);
                 com.bitwig.flt.app.CHR.Grk().asyncExec(() -> {
                     try {
-                        if (path(clip) != null || path(unit) == null) { ClipFx.MOD.log("DIAG delete skipped: clip " + path(clip) + ", unit " + path(unit)); return; }
+                        if (path(clip) != null || path(unit) == null) return; // came back (Undo) or already gone
                         String was = path(unit);
                         ClipGate.delete(unit, "Remove Clip FX");
                         ClipFx.MOD.log("Clip FX: the clip was deleted: removed its unit " + was);
@@ -135,7 +133,6 @@ public final class Store {
             g2L p = project(clip);
             if (cp == null || p == null) return null;
             Rec r = records(p).get(cp);
-            ClipFx.MOD.log("DIAG restore " + cp + " -> " + (r == null ? "not stored (stored: " + records(p).keySet() + ")" : r.unit + " on " + r.on));
             if (r == null) return null;
             bitwig.obf.xJo track = null;
             for (Object x = clip; x != null; x = Probe.parent(x)) if (x instanceof bitwig.obf.xJo t) { track = t; break; }
