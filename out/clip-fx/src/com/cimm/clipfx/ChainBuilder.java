@@ -60,8 +60,11 @@ final class ChainBuilder {
                 int i = 0;
                 for (Object l : layers.MIO()) {
                     if (!(l instanceof com.bitwig.flt.document.core.master.device.zTz layer)) continue;
-                    com.bitwig.flt.document.core.master.device.ISf chain = layer.wZs();
-                    StringBuilder b = new StringBuilder("UNIT layer " + i++ + " " + Probe.path(layer) + "\n  mixer " + Probe.path(layer.d3()));
+                    com.bitwig.flt.document.core.master.device.ISf w = layer.wZs(), k = layer.KAS();
+                    StringBuilder b = new StringBuilder("UNIT layer " + i++ + " " + Probe.path(layer) + "\n  mixer " + Probe.path(layer.d3())
+                            + "\n  wZs " + Probe.path(w) + " (" + w.HL().size() + " device(s))"
+                            + "\n  KAS " + Probe.path(k) + " (" + k.HL().size() + " device(s))");
+                    com.bitwig.flt.document.core.master.device.ISf chain = Probe.path(k).endsWith("/device_chain") ? k : w;
                     for (Object d : chain.HL()) {
                         b.append("\n  device ").append(d.getClass().getSimpleName()).append(' ').append(Probe.path(d));
                         if (d instanceof com.bitwig.flt.document.core.master.device.AxS tool) {
