@@ -50,6 +50,30 @@ final class ChainBuilder {
         try { Object first = track.mcL(); return first == null ? null : Probe.parent(first); } catch (Throwable t) { return null; }
     }
 
+    /** The unit's layers (Dry, FX): each layer's chain, its devices, its mixer, and the first device's contents.
+     *  Only plain getters: reading a getter that creates objects crashed Bitwig (an unfinished undo step). */
+    static void describeUnit(xlG unit) {
+        try {
+            com.bitwig.flt.document.core.master.device.SaG contents = ((com.bitwig.flt.document.core.master.device.AxS) unit).puu();
+            for (Object part : contents.E3()) {
+                if (!(part instanceof com.bitwig.flt.document.core.master.device.Dys layers)) continue;
+                int i = 0;
+                for (Object l : layers.MIO()) {
+                    if (!(l instanceof com.bitwig.flt.document.core.master.device.zTz layer)) continue;
+                    com.bitwig.flt.document.core.master.device.ISf chain = layer.wZs();
+                    StringBuilder b = new StringBuilder("UNIT layer " + i++ + " " + Probe.path(layer) + "\n  mixer " + Probe.path(layer.d3()));
+                    for (Object d : chain.HL()) {
+                        b.append("\n  device ").append(d.getClass().getSimpleName()).append(' ').append(Probe.path(d));
+                        if (d instanceof com.bitwig.flt.document.core.master.device.AxS tool) {
+                            for (Object c : tool.puu().E3()) b.append("\n    part ").append(c.getClass().getSimpleName()).append(' ').append(Probe.path(c));
+                        }
+                    }
+                    ClipFx.MOD.log(b.toString());
+                }
+            }
+        } catch (Throwable t) { ClipFx.MOD.log("describing the unit failed", t); }
+    }
+
     /** Test: the container at the start of the selected clip's track (one undo step), and what it holds. UI thread. */
     static void test(List<Object> selection) {
         if (selection.isEmpty()) { ClipFx.MOD.log("TEST: nothing selected"); return; }
@@ -70,13 +94,12 @@ final class ChainBuilder {
             Object chainObj = trackChain(track);
             ClipFx.MOD.log("TEST: track chain " + (chainObj == null ? "not found" : chainObj.getClass().getName() + " " + Probe.path(chainObj)));
             if (!(chainObj instanceof com.bitwig.flt.document.core.master.device.IPO chain)) {
-                if (chainObj != null) Probe.describe("track chain", chainObj, 1);
                 return;
             }
             project.cfM("Add Clip FX", false); // one undo step
             try { chain.cfM(fx, chain.HL().size()); } finally { project.cfM(false); } // at the end of the track's chain
             ClipFx.MOD.log("TEST: inserted at " + Probe.path(fx) + "; the track's chain now has " + chain.HL().size() + " device(s)");
-            Probe.tree("unit", fx, 6);
+            describeUnit(fx);
 
         } catch (Throwable t) { ClipFx.MOD.log("TEST: building failed", t); }
     }
