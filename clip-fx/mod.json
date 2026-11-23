@@ -1,0 +1,51 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "clip-fx",
+    "name": "Clip: Clip FX",
+    "version": "0.1.0",
+    "author": "Cimm",
+    "description": "Effects for a single arranger clip, like Studio One's Event FX: turn on Clip FX in the Inspector and add effects that only that clip plays through. Beta.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    },
+    "presets": {
+      "kind": "directory",
+      "path": "presets"
+    }
+  },
+  "registrations": [
+    {
+      "id": "inspector",
+      "consumer": "inspector-composition-framework",
+      "descriptor": "inspector-blocks.properties",
+      "jar": "helper.jar"
+    },
+    {
+      "id": "actions",
+      "consumer": "action-menu-composition-framework",
+      "descriptor": "actions.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "inspector-composition-framework",
+      "min_version": "0.3.0-dev.2"
+    },
+    {
+      "id": "action-menu-composition-framework",
+      "min_version": "0.8.0-dev.1"
+    }
+  ]
+}
