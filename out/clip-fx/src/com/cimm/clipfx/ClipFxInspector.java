@@ -43,9 +43,6 @@ public final class ClipFxInspector implements InspectorProvider {
                             }
                         }).row(),
                 Rows.when(context, () -> ClipFx.shown(first(selection)).on,
-                        Rows.number(context, "Tail", 0, 30, 0, " s", false,
-                                () -> ClipFx.shown(first(selection)).tail,
-                                v -> { for (Object o : selected(selection)) ClipFx.edit(o).tail = v; }),
                         Rows.text(context, "Inserts", () -> inserts(first(selection)).isEmpty() ? "none yet" : ""),
                         list.group,
                         Rows.button(context, "+", () -> addInsert(context, first(selection)))));

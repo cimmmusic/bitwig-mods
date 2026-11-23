@@ -14,7 +14,6 @@ final class ClipFx {
 
     static final class Fx {
         boolean on;
-        double tail = 0; // seconds the effects keep ringing after the clip ends
         Object unit;     // the clip's Clip FX Unit on its track
     }
 
