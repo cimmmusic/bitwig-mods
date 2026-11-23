@@ -59,6 +59,7 @@ final class ClipGate {
                 c.chain.cfM(u, c.chain.HL().size());
                 gate(c, (AxS) u, true);
                 ClipFx.units.add(u);
+                ClipFx.Fx f = ClipFx.edit(clip); f.start = c.start; f.end = c.end;
                 rename(u, unitName(clip));
                 ClipFx.MOD.log("Clip FX: on (new unit " + Probe.path(u) + "), clip " + c.start + " .. " + c.end);
                 return (AxS) u;
@@ -73,6 +74,7 @@ final class ClipGate {
         try {
             c.project.cfM(on ? "Clip FX On" : "Clip FX Off", false);
             try { gate(c, unit, on); } finally { c.project.cfM(false); }
+            ClipFx.Fx f = ClipFx.shown(clip); f.start = c.start; f.end = c.end;
             ClipFx.MOD.log("Clip FX: " + (on ? "on" : "off") + ", clip " + c.start + " .. " + c.end);
         } catch (Throwable t) { ClipFx.MOD.log("Clip FX: switching failed", t); }
     }
@@ -150,14 +152,42 @@ final class ClipGate {
         }
     }
 
-    private static void writeGate(Ctx c, AxS unit, boolean on) {
+    private static void writeGate(Ctx c, AxS unit, boolean on) { writeGate(c, unit, on, c.start, c.end); }
+
+    private static void writeGate(Ctx c, AxS unit, boolean on, double start, double end) {
         bitwig.obf.rce[] vol = GateTest.volumes(unit);
         if (vol[0] == null || vol[1] == null) { ClipFx.MOD.log("Clip FX: the unit's gates weren't found"); return; }
         bitwig.obf.jRs hold = bitwig.obf.jRs.values()[0]; // HOLD
         // automation takes normalized positions (1.0 is the top of the knob, +18 dB): open = where 0 dB sits
         double open = zeroDb(vol[1]), dryOpen = zeroDb(vol[0]);
-        write(c.op, c.lanes, vol[1], c.start, c.end, on ? open : 0, hold, c.selection);    // FX layer
-        write(c.op, c.lanes, vol[0], c.start, c.end, on ? 0 : dryOpen, hold, c.selection); // Dry layer
+        write(c.op, c.lanes, vol[1], start, end, on ? open : 0, hold, c.selection);    // FX layer
+        write(c.op, c.lanes, vol[0], start, end, on ? 0 : dryOpen, hold, c.selection); // Dry layer
+    }
+
+    /**
+     * The clip moved or changed length: its gate follows, inside the undo step that is open now (one Undo puts both
+     * back). On: the old span is closed (FX shut, Dry open), then the new span opened. Off: nothing to move.
+     */
+    static void follow(Object clip, ClipFx.Fx f) {
+        if (f.unit == null || !(f.unit instanceof AxS unit)) return;
+        if (!(clip instanceof bitwig.obf.zZi z)) return; // arranger clips only
+        double start = z.x3t(), end = start + z.nfq();
+        if (Double.isNaN(f.start)) { f.start = start; f.end = end; return; } // first seen: in step with the clip
+        if (Math.abs(start - f.start) < 1e-9 && Math.abs(end - f.end) < 1e-9) return;
+        if (f.on) {
+            Ctx c = context(clip);
+            if (c == null) return;
+            if (!sameTrack(c, unit)) { ClipFx.MOD.log("Clip FX: the clip moved to another track: its effects stay on the old one"); f.start = start; f.end = end; return; }
+            writeGate(c, unit, false, f.start, f.end); // the old span plays dry
+            gate(c, unit, true);                       // the new span plays through the effects
+            ClipFx.MOD.log("Clip FX: gate moved with the clip: " + f.start + ".." + f.end + " -> " + start + ".." + end);
+        }
+        f.start = start; f.end = end;
+    }
+
+    private static boolean sameTrack(Ctx c, Object unit) {
+        for (Object x = unit; x != null; x = Probe.parent(x)) if (x == c.track) return true;
+        return false;
     }
 
     /** "Clip FX – <clip name>", so the units can be told apart in the device chain and in automation lanes. */

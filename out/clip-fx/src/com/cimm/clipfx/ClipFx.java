@@ -15,6 +15,7 @@ final class ClipFx {
     static final class Fx {
         boolean on;
         Object unit;     // the clip's Clip FX Unit on its track
+        double start = Double.NaN, end = Double.NaN; // where its gate is written (beats)
     }
 
     private static final Map<Object, Fx> byObject = Collections.synchronizedMap(new WeakHashMap<>());

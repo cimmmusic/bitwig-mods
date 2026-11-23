@@ -46,13 +46,19 @@ public final class Store {
                     }
                 } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: removing a deleted clip's unit failed", t); }
             }
+            // a moved / resized clip takes its gate with it, in the same undo step
+            for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
+                if (path(e.getKey()) == null || path(e.getValue().unit) == null) continue;
+                try { ClipGate.follow(e.getKey(), e.getValue()); }
+                catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: moving the gate failed", t); }
+            }
             Map<g2L, StringBuilder> byProject = new HashMap<>();
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
                 ClipFx.Fx f = e.getValue();
                 String clip = path(e.getKey()), unit = path(f.unit);
                 g2L p = project(f.unit);
                 if (clip == null || unit == null || p == null) continue; // deleted: dropped
-                byProject.computeIfAbsent(p, k -> new StringBuilder()).append(clip).append('\t').append(unit).append('\t').append(f.on ? 1 : 0).append('\n');
+                byProject.computeIfAbsent(p, k -> new StringBuilder()).append(clip).append('\t').append(unit).append('\t').append(f.on ? 1 : 0).append('\t').append(f.start).append('\t').append(f.end).append('\n');
             }
             java.util.Set<Object> all = new java.util.HashSet<>(byProject.keySet());
             synchronized (written) { all.addAll(written); }
@@ -80,7 +86,7 @@ public final class Store {
 
     // ---------------------------------------------------------------- reading (opening a project)
 
-    private static final class Rec { String unit; boolean on; }
+    private static final class Rec { String unit; boolean on; double start = Double.NaN, end = Double.NaN; }
     /** Per project: the comment last read, and its records by clip path. */
     private static final Map<Object, Object[]> read = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
 
@@ -100,6 +106,7 @@ public final class Store {
                     String[] f = line.split("\t");
                     if (f.length < 3) continue;
                     Rec r = new Rec(); r.unit = f[1]; r.on = f[2].equals("1");
+                    if (f.length >= 5) { try { r.start = Double.parseDouble(f[3]); r.end = Double.parseDouble(f[4]); } catch (NumberFormatException ignored) {} }
                     out.put(f[0], r);
                 }
             } catch (Throwable t) { ClipFx.MOD.log("Clip FX: couldn't read the stored settings", t); }
@@ -122,7 +129,7 @@ public final class Store {
             if (track == null || !(ChainBuilder.trackChain(track) instanceof com.bitwig.flt.document.core.master.device.ISf chain)) return null;
             for (Object d : new ArrayList<>(chain.HL())) {
                 if (r.unit.equals(path(d))) {
-                    ClipFx.Fx f = new ClipFx.Fx(); f.on = r.on; f.unit = d;
+                    ClipFx.Fx f = new ClipFx.Fx(); f.on = r.on; f.unit = d; f.start = r.start; f.end = r.end;
                     ClipFx.units.add(d);
                     return f;
                 }
