@@ -1,7 +1,5 @@
 package com.cimm.clipfx;
 
-import bml.api.At;
-import bml.api.Hook;
 import com.bitwig.flt.document.core.master.g2L;
 import com.bitwig.ramona.core.oDc;
 
@@ -31,8 +29,8 @@ public final class Store {
     /** Projects that had Clip FX settings written (to clear the block when the last one goes). */
     private static final java.util.Set<Object> written = java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>());
 
-    @Hook(id = "store-in-step", target = com.bitwig.ramona.core.XKG.class, method = "cfM(Z)Z", at = At.ENTRY)
-    public static void inStep() {
+    /** Called from MixerHide's hook (the mod's hooks all live in one class). */
+    static void inStep() {
         if (refreshing) return;
         refreshing = true;
         try {

@@ -31,6 +31,10 @@ public final class MixerHide {
     /** "Clip FX Unit" (as loaded) or "Clip FX – <clip name>" (named after its clip). */
     static boolean isUnitName(String n) { return n != null && (n.equals("Clip FX Unit") || n.equals("Clip FX") || n.startsWith("Clip FX – ")); }
 
+    /** Bitwig closes an undo step: the Clip FX settings stored in the project follow, inside the same step. */
+    @Hook(id = "store-in-step", target = com.bitwig.ramona.core.XKG.class, method = "cfM(Z)Z", at = At.ENTRY)
+    public static void inStep() { Store.inStep(); }
+
     private static int fails;
 
     /** A size of nothing: min, preferred and max 0. */
