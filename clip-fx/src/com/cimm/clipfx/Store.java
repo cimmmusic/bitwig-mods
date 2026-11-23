@@ -34,10 +34,19 @@ public final class Store {
         if (refreshing) return;
         refreshing = true;
         try {
-            // a deleted clip takes its Clip FX with it, in the same undo step (Undo brings both back)
+            // a clip that is gone: Bitwig re-creates a clip when it is moved (a new clip with its name and length on the
+            // same track: the setting moves to it); otherwise it was deleted and takes its Clip FX with it, in the
+            // same undo step (Undo brings both back)
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
                 ClipFx.Fx f = e.getValue();
                 if (f.unit == null || path(e.getKey()) != null || path(f.unit) == null) continue;
+                Object moved = null;
+                try { moved = findMoved(f); } catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: looking for the moved clip failed", t); }
+                if (moved != null) {
+                    ClipFx.moveTo(e.getKey(), moved, f);
+                    ClipFx.MOD.log("Clip FX: the clip moved (re-created by Bitwig): its Clip FX follows");
+                    continue;
+                }
                 try {
                     String was = path(f.unit);
                     if (ClipGate.deleteInStep(f.unit)) {
@@ -52,6 +61,7 @@ public final class Store {
                 try { ClipGate.follow(e.getKey(), e.getValue()); }
                 catch (Throwable t) { if (fails++ < 3) ClipFx.MOD.log("Clip FX: moving the gate failed", t); }
             }
+            for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) remember(e.getKey(), e.getValue());
             Map<g2L, StringBuilder> byProject = new HashMap<>();
             for (Map.Entry<Object, ClipFx.Fx> e : ClipFx.entries()) {
                 ClipFx.Fx f = e.getValue();
@@ -182,6 +192,46 @@ public final class Store {
         }
         String got = path(o);
         return path.equals(got) ? o : null;
+    }
+
+    /** The clip's path, name and length as of this step (to recognise it when Bitwig re-creates it). */
+    static void remember(Object clip, ClipFx.Fx f) {
+        String p = path(clip);
+        if (p == null) return;
+        f.path = p;
+        try { bitwig.obf.zZi z = (bitwig.obf.zZi) clip; f.name = z.dG_(); f.length = z.nfq(); } catch (Throwable ignored) {}
+    }
+
+    /**
+     * A clip that appeared where a Clip FX clip was (same list on the same track: same parent path), with the same
+     * name and length and no Clip FX of its own: the moved clip. The one nearest to where the gate was wins.
+     */
+    static Object findMoved(ClipFx.Fx f) {
+        if (f.path == null || Double.isNaN(f.length)) return null;
+        g2L p = project(f.unit);
+        int slash = f.path.lastIndexOf('/');
+        if (p == null || slash < 0) return null;
+        String ownerPath = f.path.substring(0, slash), seg = f.path.substring(slash + 1);
+        int hash = seg.lastIndexOf('#');
+        String listName = hash < 0 ? seg : seg.substring(0, hash);
+        Object owner = resolve(p, ownerPath);
+        if (!(owner instanceof oDc d)) return null;
+        Object atom = ((bitwig.obf.der) (Object) d.ng_()).cfM(listName);
+        if (!(atom instanceof bitwig.obf.deT list)) return null;
+        Object best = null; double bestDist = Double.MAX_VALUE;
+        for (int i = 0; i < 100000; i++) {
+            Object c;
+            try { c = list.cfM(d, i); } catch (Throwable t) { break; }
+            if (c == null) break;
+            if (ClipFx.has(c) || !(c instanceof bitwig.obf.zZi z)) continue;
+            try {
+                if (Math.abs(z.nfq() - f.length) > 1e-6) continue;
+                if (!java.util.Objects.equals(z.dG_(), f.name)) continue;
+                double dist = Double.isNaN(f.start) ? 0 : Math.abs(z.x3t() - f.start);
+                if (dist < bestDist) { best = c; bestDist = dist; }
+            } catch (Throwable ignored) {}
+        }
+        return best;
     }
 
     // ---------------------------------------------------------------- helpers

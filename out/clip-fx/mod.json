@@ -3,7 +3,7 @@
   "mod": {
     "id": "clip-fx",
     "name": "Clip: Clip FX",
-    "version": "0.1.0-dev.50",
+    "version": "0.1.0-dev.51",
     "author": "Cimm",
     "description": "Effects for a single clip or audio event, like Studio One's Event FX: turn on Clip FX in the Inspector and add inserts that only that clip plays through. Work in progress.",
     "documentation": "readme"

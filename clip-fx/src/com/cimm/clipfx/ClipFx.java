@@ -16,6 +16,8 @@ final class ClipFx {
         boolean on;
         Object unit;     // the clip's Clip FX Unit on its track
         double start = Double.NaN, end = Double.NaN; // where its gate is written (beats)
+        String path;     // the clip's path at the last undo step (to find it again when Bitwig re-creates it)
+        String name; double length = Double.NaN;      // the clip's name and length then
     }
 
     private static final Map<Object, Fx> byObject = Collections.synchronizedMap(new WeakHashMap<>());
@@ -32,6 +34,11 @@ final class ClipFx {
     }
 
     static void forget(Object clip) { byObject.remove(clip); }
+
+    /** The setting now belongs to another clip object (Bitwig re-created the clip when it moved). */
+    static void moveTo(Object from, Object to, Fx f) { byObject.remove(from); byObject.put(to, f); checked.put(to, Boolean.TRUE); }
+
+    static boolean has(Object clip) { return byObject.containsKey(clip); }
 
     /** Clips already looked up in the project's stored settings. */
     private static final Map<Object, Boolean> checked = Collections.synchronizedMap(new WeakHashMap<>());
