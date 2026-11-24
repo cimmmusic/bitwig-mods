@@ -25,13 +25,60 @@ public final class GrooveInspector implements InspectorProvider {
         blocks.block("groove", "Clip Groove").in(Context.LAUNCHER_CLIP, Context.ARRANGER_CLIP).bottom()
               .content(GrooveInspector::content);
         blocks.block("groove-track", "Track Groove").in(Context.TRACK).bottom().content(GrooveInspector::content);
+        blocks.onBlockBuilt(b -> {
+            if (!IDS.contains(b.blockId()) || b.bitwigBlock()) return;
+            synchronized (live) { for (Live l : live) if (l.context.panel() == b.panel() && l.kind == kindOf(b.context())) l.widget = b.widget(); }
+            showOne();
+        });
     }
 
 
     // ---- the panels showing a Groove block: their selection is read again when it changes ----
     private static final class Live {
-        final BlockContext context; final Object selection; int lastHash; String[] lastNames; Rows.Choice files;
-        Live(BlockContext context, Object selection) { this.context = context; this.selection = selection; }
+        final BlockContext context; final Object selection; final int kind; int lastHash; String[] lastNames; Rows.Choice files;
+        Boolean shown;
+        Object widget; // the whole block (header and rows), shown only for what was selected last
+        Live(BlockContext context, Object selection) { this.context = context; this.selection = selection; this.kind = kindOf(context.context()); }
+    }
+
+    // ---- one Groove block at a time: the one for what was selected last (a clip, notes / audio events, a track).
+    //      Selecting a clip also selects its track (and may change the editor's events): the clip wins those ties. ----
+    private static final java.util.Set<String> IDS = java.util.Set.of("groove", "groove-note", "groove-track");
+    private static final int CLIP = 0, NOTE = 1, TRACK = 2; // also the tie order
+    private static final long[] changedAt = new long[3];
+    private static final int[] kindHash = new int[3];
+    private static final long TIE_MS = 400;
+
+    private static int kindOf(Context c) {
+        if (c == Context.TRACK) return TRACK;
+        if (c == Context.NOTE) return NOTE;
+        return CLIP;
+    }
+
+    /** A block's selection: if it differs from the last one seen for its kind, that kind was selected just now. */
+    private static void seen(int kind, int hash) {
+        if (kindHash[kind] != hash) { kindHash[kind] = hash; changedAt[kind] = System.currentTimeMillis(); }
+    }
+
+    private static boolean attached(Object widget) {
+        try { bitwig.obf.dve w = (bitwig.obf.dve) widget, root = w.Wov(); return root != null && root != w; } catch (Throwable t) { return true; }
+    }
+
+    /** Shows the Groove block of the kind selected last (among those on screen with something selected), hides the rest. */
+    static void showOne() {
+        Live[] all; synchronized (live) { all = live.toArray(new Live[0]); }
+        boolean[] present = new boolean[3];
+        for (Live l : all) if (l.widget != null && attached(l.widget) && !selected(l.selection).isEmpty()) present[l.kind] = true;
+        int win = -1;
+        for (int k = 0; k < 3; k++) {
+            if (!present[k]) continue;
+            if (win < 0 || changedAt[k] > changedAt[win] + TIE_MS) win = k;
+        }
+        for (Live l : all) {
+            if (l.widget == null) continue;
+            boolean show = win < 0 || l.kind == win;
+            if (l.shown == null || l.shown != show) { try { ((bitwig.obf.dve) l.widget).t_(show); l.shown = show; } catch (Throwable ignored) {} }
+        }
     }
     private static final List<Live> live = new ArrayList<>();
 
@@ -39,6 +86,7 @@ public final class GrooveInspector implements InspectorProvider {
         Object selection = selectionOf(context.panel());
         Live l = new Live(context, selection);
         l.lastHash = hash(selected(selection));
+        seen(l.kind, l.lastHash);
         l.lastNames = fileNames();
         synchronized (live) { live.add(l); while (live.size() > 16) live.remove(0); }
 
@@ -129,9 +177,11 @@ public final class GrooveInspector implements InspectorProvider {
                 if (names == null) names = fileNames();
                 boolean filesChanged = !java.util.Arrays.equals(names, l.lastNames);
                 if (filesChanged) { l.lastNames = names; l.files.options(names); }
+                if (h != l.lastHash) seen(l.kind, h);
                 if (h != l.lastHash || filesChanged) { l.lastHash = h; Rows.refresh(l.context); }
             } catch (Throwable t) { synchronized (live) { live.remove(l); } }
         }
+        try { showOne(); } catch (Throwable ignored) {}
     }
 
 }
