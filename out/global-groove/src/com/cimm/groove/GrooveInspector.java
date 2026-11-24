@@ -26,7 +26,7 @@ public final class GrooveInspector implements InspectorProvider {
               .content(GrooveInspector::content);
         blocks.block("groove-track", "Track Groove").in(Context.TRACK).bottom().content(GrooveInspector::content);
         blocks.onBlockBuilt(b -> {
-            if (!IDS.contains(b.blockId()) || b.bitwigBlock()) return;
+            if (b.bitwigBlock() || b.blockId() == null || !IDS.contains(b.blockId())) return;
             synchronized (live) { for (Live l : live) if (l.context.panel() == b.panel() && l.kind == kindOf(b.context())) l.widget = b.widget(); }
             showOne();
         });

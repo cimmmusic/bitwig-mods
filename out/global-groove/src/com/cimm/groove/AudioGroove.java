@@ -82,26 +82,28 @@ final class AudioGroove {
             }
             for (Group gr : hits) {
                 if (gr.start == null || gr.end == null) continue; // a hit without its end: left as it is
-                // the audio event's own groove (Inspector), else its clip's / track's / the global one
+                // the audio event's own groove (Inspector), else its clip's / track's (up its parents), else the global one
                 Groove g = sn.groove; Groove.Amounts a = sn.amounts;
                 if (ownEvents) {
                     Object source = sources.get(gr.start);
                     if (source == null && missLogs++ < 3) State.MOD.log("audio event not found for hit at " + time(gr.start));
                     Overrides.Res r = source == null ? null : Overrides.resolve(source);
-                    if (r != null) { g = r.groove; a = r.amounts; }
+                    if (r == null && source != null && chainLogs++ < 3) State.MOD.log("audio hit without a groove of its own: " + chain(source));
+                    if (r != null) { g = r.groove; a = r.amounts; ownHits++; ownName = g == null ? "Off" : g.name; }
                 }
                 if (g == null) continue; // straight
                 remember(before, gr);
                 rewrite(list, gr.start.FzB(), gr, g, a);
             }
             sources.clear();
+            int ownCount = ownHits; ownHits = 0;
             if (sumLogs < 30) {
                 int longs = 0; for (Group gr : hits) if (gr.start != null && gr.end != null && time(gr.end) - time(gr.start) > 4) longs++;
-                String key = hits.size() + "/" + longs + "/" + before.size() + "/" + (sn.groove == null ? "-" : sn.groove.name) + "/" + sn.own;
+                String key = hits.size() + "/" + longs + "/" + before.size() + "/" + (sn.groove == null ? "-" : sn.groove.name) + "/" + ownCount;
                 if (!key.equals(lastSum)) {
                     lastSum = key; sumLogs++;
                     State.MOD.log("audio clip packed: " + hits.size() + " hit(s), " + longs + " longer than a bar, " + before.size() / 2
-                            + " moved or warped; groove " + (sn.groove == null ? "none (straight)" : sn.groove.name) + (sn.own ? " (its own, Inspector)" : " (global)"));
+                            + " moved or warped; groove " + (sn.groove == null ? "none (straight)" : sn.groove.name) + " (global)" + (ownCount > 0 ? ", " + ownCount + " hit(s) with their own / clip's / track's: " + ownName : ""));
                 }
             }
             if (diag < 2 && !hits.isEmpty()) {
@@ -132,7 +134,15 @@ final class AudioGroove {
     static final boolean TEST = false;
     private static int packs, missLogs;
     private static boolean loggedFail;
-    private static int diag, sumLogs;
+    private static int diag, sumLogs, ownHits, chainLogs;
+    private static String ownName;
+
+    /** An object and its parents, for the log. */
+    private static String chain(Object o) {
+        StringBuilder b = new StringBuilder();
+        for (int d = 0; d < 10 && o != null; d++) { b.append(d == 0 ? "" : " < ").append(o.getClass().getName()); o = Overrides.parent(o); }
+        return b.toString();
+    }
     private static String lastSum;
 
     private static String caller() {
@@ -158,12 +168,10 @@ final class AudioGroove {
     private static final class PSnapAccess {
         final Groove groove; final Groove.Amounts amounts; final boolean own;
         PSnapAccess() {
-            // the audio clip's own groove (or its track's), else the global one
-            Object content = Hooks.packingContent.get();
-            Overrides.Res r = Overrides.resolve(content);
-            own = r != null;
-            if (r != null) { groove = r.groove; amounts = r.amounts; }
-            else { State.PSnap s = Hooks.packingSnap(); groove = s.active(); amounts = s.amounts; }
+            // the global groove. (Audio isn't packed through the hooked per-content packers, so the content being
+            // packed isn't known here: each hit finds its clip's / track's groove through its own audio event.)
+            own = false;
+            State.PSnap s = Hooks.packingSnap(); groove = s.active(); amounts = s.amounts;
         }
     }
 
