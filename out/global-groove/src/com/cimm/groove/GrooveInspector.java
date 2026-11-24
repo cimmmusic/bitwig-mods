@@ -19,9 +19,12 @@ public final class GrooveInspector implements InspectorProvider {
     @Override
     public void declare(Blocks blocks) {
         // the Note Inspector also shows audio events (an AUDIO EVENT block in place of NOTE): at its end, for both
-        blocks.block("groove-note", "Groove").in(Context.NOTE).bottom().content(GrooveInspector::content);
-        blocks.block("groove", "Groove").in(Context.LAUNCHER_CLIP, Context.ARRANGER_CLIP, Context.TRACK).bottom()
+        // each block names what it grooves: with a clip open in the editor, the clip's block and its notes' / audio
+        // events' block show together (the notes' / events' own groove wins over the clip's)
+        blocks.block("groove-note", "Note / Event Groove").in(Context.NOTE).bottom().content(GrooveInspector::content);
+        blocks.block("groove", "Clip Groove").in(Context.LAUNCHER_CLIP, Context.ARRANGER_CLIP).bottom()
               .content(GrooveInspector::content);
+        blocks.block("groove-track", "Track Groove").in(Context.TRACK).bottom().content(GrooveInspector::content);
     }
 
 
