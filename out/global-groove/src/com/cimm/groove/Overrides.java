@@ -147,7 +147,7 @@ final class Overrides {
      */
     static void copied(Object to, Object from) {
         if (byObject.isEmpty() || to == from || from == null || to == null || from.getClass() != to.getClass()) return;
-        boolean note = from instanceof bitwig.obf.n1, clip = from instanceof bitwig.obf.hnT;
+        boolean note = from instanceof bitwig.obf.n1, clip = isClip(from);
         if (!note && !clip) return;
         Ov v = get(from);
         if (v == null || byObject.containsKey(to)) return;
@@ -178,7 +178,7 @@ final class Overrides {
         Object[][] pairs;
         synchronized (byObject) {
             List<Object[]> l = new ArrayList<>();
-            for (Map.Entry<Object, Ov> e : byObject.entrySet()) if (e.getKey() instanceof bitwig.obf.hnT) l.add(new Object[]{e.getKey(), e.getValue()});
+            for (Map.Entry<Object, Ov> e : byObject.entrySet()) if (isClip(e.getKey())) l.add(new Object[]{e.getKey(), e.getValue()});
             pairs = l.toArray(new Object[0][]);
         }
         for (Object[] p : pairs) {
@@ -209,10 +209,20 @@ final class Overrides {
         return false;
     }
 
-    /** A clip's content (the object its notes belong to), or null for anything else. */
+    /**
+     * A clip's content (the object its notes or audio events belong to), or null for anything else. A note clip (hnT)
+     * reaches it through IwV(); an audio clip (Zld, e.g. the arranger's TWN) through iHb(), the audio content its
+     * hits are packed under.
+     */
     static Object content(Object o) {
-        try { return o instanceof bitwig.obf.hnT clip ? clip.IwV() : null; } catch (Throwable t) { return null; }
+        try {
+            if (o instanceof bitwig.obf.hnT clip) return clip.IwV();
+            if (o instanceof bitwig.obf.Zld audio) return audio.iHb();
+            return null;
+        } catch (Throwable t) { return null; }
     }
+
+    private static boolean isClip(Object o) { return o instanceof bitwig.obf.hnT || o instanceof bitwig.obf.Zld; }
 
     static Object parent(Object o) {
         try { return o instanceof oDc d ? d.J_() : null; } catch (Throwable t) { return null; }
