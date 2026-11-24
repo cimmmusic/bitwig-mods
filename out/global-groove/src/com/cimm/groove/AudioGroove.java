@@ -95,6 +95,15 @@ final class AudioGroove {
                 rewrite(list, gr.start.FzB(), gr, g, a);
             }
             sources.clear();
+            if (sumLogs < 30) {
+                int longs = 0; for (Group gr : hits) if (gr.start != null && gr.end != null && time(gr.end) - time(gr.start) > 4) longs++;
+                String key = hits.size() + "/" + longs + "/" + before.size() + "/" + (sn.groove == null ? "-" : sn.groove.name) + "/" + sn.own;
+                if (!key.equals(lastSum)) {
+                    lastSum = key; sumLogs++;
+                    State.MOD.log("audio clip packed: " + hits.size() + " hit(s), " + longs + " longer than a bar, " + before.size() / 2
+                            + " moved or warped; groove " + (sn.groove == null ? "none (straight)" : sn.groove.name) + (sn.own ? " (its own, Inspector)" : " (global)"));
+                }
+            }
             if (diag < 2 && !hits.isEmpty()) {
                 diag++;
                 StringBuilder b = new StringBuilder("audio diag: via " + caller() + ", " + hits.size() + " hit(s), " + before.size() + " event(s) moved");
@@ -123,7 +132,8 @@ final class AudioGroove {
     static final boolean TEST = false;
     private static int packs, missLogs;
     private static boolean loggedFail;
-    private static int diag;
+    private static int diag, sumLogs;
+    private static String lastSum;
 
     private static String caller() {
         StringBuilder b = new StringBuilder();
@@ -146,11 +156,12 @@ final class AudioGroove {
 
     /** The groove for the clip being packed. */
     private static final class PSnapAccess {
-        final Groove groove; final Groove.Amounts amounts;
+        final Groove groove; final Groove.Amounts amounts; final boolean own;
         PSnapAccess() {
             // the audio clip's own groove (or its track's), else the global one
             Object content = Hooks.packingContent.get();
             Overrides.Res r = Overrides.resolve(content);
+            own = r != null;
             if (r != null) { groove = r.groove; amounts = r.amounts; }
             else { State.PSnap s = Hooks.packingSnap(); groove = s.active(); amounts = s.amounts; }
         }
