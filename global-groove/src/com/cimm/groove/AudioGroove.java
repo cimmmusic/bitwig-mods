@@ -16,7 +16,8 @@ import java.util.TreeSet;
 /**
  * Audio clips follow the groove: each (stretched) audio event's warp markers are rewritten on the way to the engine,
  * so the audio that was at each Base step plays where the groove puts that step, stretching smoothly in between.
- * Separate audio events (no warp markers) move as whole events; consolidated audio moves its hits through the markers. The project is not changed.
+ * Short audio events (a hit, a slice) move as whole events; long ones (consolidated audio, loops) stay put and their
+ * audio follows the groove through their warp markers. The project is not changed.
  */
 final class AudioGroove {
     private AudioGroove() {}
@@ -61,6 +62,7 @@ final class AudioGroove {
     @SuppressWarnings("unchecked")
     static void apply(List<?> raw) {
         Map<Object, Double> before = new java.util.IdentityHashMap<>();
+        rates.clear();
         try {
             PSnapAccess sn = new PSnapAccess();
             java.util.Map<Object, Object> sources = Hooks.audioSources.get();
@@ -154,6 +156,9 @@ final class AudioGroove {
         }
     }
 
+    /** Warp marker rates changed by warp(), put back with the times if the packer's check fails. */
+    private static final Map<fAu, Double> rates = new java.util.IdentityHashMap<>();
+
     private static void remember(Map<Object, Double> before, Group gr) throws IllegalAccessException {
         before.put(gr.start, time(gr.start)); before.put(gr.end, time(gr.end));
         for (fAu m : gr.markers) before.put(m, time(m));
@@ -161,6 +166,10 @@ final class AudioGroove {
     }
 
     private static void restore(Map<Object, Double> before) {
+        for (Map.Entry<fAu, Double> e : rates.entrySet()) {
+            try { rateField.setDouble(e.getKey(), e.getValue()); } catch (IllegalAccessException ignored) {}
+        }
+        rates.clear();
         for (Map.Entry<Object, Double> e : before.entrySet()) {
             try { set((ERu) e.getKey(), e.getValue()); } catch (IllegalAccessException ignored) {}
         }
@@ -193,7 +202,6 @@ final class AudioGroove {
         return b.toString();
     }
 
-    private static boolean loggedLong;
 
     /**
      * Moves one audio event as a whole, as a note moves: its start, warp markers, end and start settings all by the
@@ -204,10 +212,7 @@ final class AudioGroove {
         if (g == null) return;
         double t0 = time(gr.start), t1 = time(gr.end);
         if (!(t1 >= t0)) return;
-        if (t1 - t0 > 4) {
-            if (!loggedLong) { loggedLong = true; State.MOD.log("audio groove: an event longer than a bar is left as it is (" + t0 + ".." + t1 + ")"); }
-            return;
-        }
+        if (t1 - t0 > 4) { warp(gr, g, a, t0, t1); return; }
         double shift = g.time(t0, a, Math.round(t0 * 960) * 0x9E3779B97F4A7C15L) - t0;
         if (TEST) shift = 0.5; // test: every audio hit half a beat late, unmistakable
         if (t0 >= 0 && t0 + shift < 0) shift = -t0; // nothing before the clip's start
@@ -217,6 +222,68 @@ final class AudioGroove {
         for (fAu m : gr.markers) set(m, time(m) + shift);
         for (m2k s : gr.settings) set(s, time(s) + shift);
         if (!logged) { logged = true; State.MOD.log("audio groove: event " + id + " " + t0 + ".." + t1 + " moved by " + shift); }
+    }
+
+    private static int warpLogs;
+
+    /**
+     * A long event (consolidated audio, a loop): it stays where it is, and the audio inside it follows the groove
+     * through its warp markers. Each marker inside the event moves to where the groove puts its beat, keeping the
+     * audio it points at, and the speed between markers is worked out again, so the audio stretches smoothly from hit
+     * to hit. Markers are never added (Bitwig's encoder crashes on markers it didn't make): audio without markers at
+     * its hits can't follow. Each marker's speed must match the slope to the next one, or the event is left as it is.
+     */
+    private static void warp(Group gr, Groove g, Groove.Amounts a, double t0, double t1) throws Exception {
+        List<fAu> ms = new ArrayList<>(gr.markers);
+        ms.sort((x, y) -> { try { return Double.compare(time(x), time(y)); } catch (IllegalAccessException e) { return 0; } });
+        int n = ms.size();
+        double[] t = new double[n], sec = new double[n], rate = new double[n], nt = new double[n];
+        for (int i = 0; i < n; i++) { t[i] = time(ms.get(i)); sec[i] = secondsField.getDouble(ms.get(i)); rate[i] = rateField.getDouble(ms.get(i)); }
+        StringBuilder log = warpLogs < 4 ? new StringBuilder("audio groove: long event " + t0 + ".." + t1 + ", " + n + " marker(s):") : null;
+        if (log != null) for (int i = 0; i < n && i < 40; i++) log.append(" [").append(t[i]).append("b ").append(sec[i]).append("s ").append(rate[i]).append("s/b]");
+        // the markers' speed must be the slope to the next marker (what moving them relies on)
+        for (int i = 0; i + 1 < n; i++) {
+            double dt = t[i + 1] - t[i];
+            if (dt < 1e-9) continue;
+            double slope = (sec[i + 1] - sec[i]) / dt;
+            if (Math.abs(slope - rate[i]) > 1e-4 * Math.max(1, Math.abs(rate[i]))) {
+                if (log != null) { warpLogs++; State.MOD.log(log + "\n  speeds don't follow the markers: left as it is"); }
+                return;
+            }
+        }
+        int inside = 0;
+        for (int i = 0; i < n; i++) {
+            nt[i] = t[i];
+            if (t[i] > t0 + 1e-6 && t[i] < t1 - 1e-6) {
+                // markers at the same beat move together (same time in, same time out)
+                nt[i] = i > 0 && Math.abs(t[i] - t[i - 1]) < 1e-9 ? nt[i - 1] : g.time(t[i], a, Math.round(t[i] * 960) * 0x9E3779B97F4A7C15L);
+                inside++;
+            }
+        }
+        if (TEST) for (int i = 0; i < n; i++) if (t[i] > t0 + 1e-6 && t[i] < t1 - 1e-6) nt[i] = t[i] + 0.1;
+        // still in order, inside the event, with room between hits
+        for (int i = 0; i + 1 < n; i++) {
+            boolean same = t[i + 1] - t[i] < 1e-9;
+            if (same ? Math.abs(nt[i + 1] - nt[i]) > 1e-9 : nt[i + 1] - nt[i] < 1e-4) {
+                if (log != null) { warpLogs++; State.MOD.log(log + "\n  the groove would cross markers: left as it is"); }
+                return;
+            }
+        }
+        if (inside == 0) {
+            if (log != null) { warpLogs++; State.MOD.log(log + "\n  no warp markers inside: add stretch markers at its hits for the groove to move them"); }
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            fAu m = ms.get(i);
+            int j = i + 1; while (j < n && t[j] - t[i] < 1e-9) j++;
+            double r = j < n ? (sec[j] - sec[i]) / (nt[j] - nt[i]) : rate[i];
+            if (Math.abs(nt[i] - t[i]) > 1e-12 || Math.abs(r - rate[i]) > 1e-12) {
+                if (!rates.containsKey(m)) rates.put(m, rate[i]);
+                set(m, nt[i]);
+                rateField.setDouble(m, r);
+            }
+        }
+        if (log != null) { warpLogs++; StringBuilder b = new StringBuilder(log).append("\n  moved to:"); for (int i = 0; i < n && i < 40; i++) b.append(' ').append(nt[i]); State.MOD.log(b.toString()); }
     }
 
     private static int index(double t, double[] mt) {
