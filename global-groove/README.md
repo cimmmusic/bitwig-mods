@@ -39,7 +39,7 @@ Select notes, a clip (arranger or launcher), a track, or audio events inside an 
 - Notes, clips and audio events with a groove of their own get a **white corner** (hollow when set to Off).
 - Copy, paste, duplicate or Alt-drag a note or clip and the copy keeps its groove.
 - Saved with the project, and followed by Bitwig's Undo / Redo.
-- Audio: separate audio events move as a whole; consolidated audio moves its hits through its warp markers.
+- Audio: separate audio events move as a whole; a long event (consolidated audio, a loop longer than a bar) stays in place and its hits follow the groove through its stretch markers.
 - Bitwig's own Shuffle never adds to these: a clip that plays a groove of its own (or holds notes or audio events with one) has its Shuffle kept off towards the audio engine. The clip's Shuffle switch in the project stays as you set it.
 
 ## Manual
@@ -83,4 +83,4 @@ Needs Framework: Actions and Menus, Framework: Piano Roll and Framework: Panels.
 ## Notes
 
 - While a groove file or Manual is used, Bitwig's own Shuffle and Accent are set to 0, so they never add to the groove (in playback, recording or bounces). Your own values are kept with the project and come back when Source is set to Bitwig; Undo covers both.
-- Audio: each audio event moves as a whole with the groove (best on sliced or consolidated hits). One long audio event (a whole loop longer than a bar) is not stretched to the groove yet.
+- Audio: each audio event shorter than a bar moves as a whole with the groove. A longer event (consolidated audio, a whole loop) follows the groove through its stretch markers, so it needs a stretch marker on each hit; without them it plays straight.
