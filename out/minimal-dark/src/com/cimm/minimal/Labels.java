@@ -35,6 +35,56 @@ public final class Labels {
         return texts;
     }
 
+    /**
+     * Instead of Bitwig's toUpperCase() for headers and tabs (DEVICE, INSTRUMENT TRACK, SETTINGS...): sentence case.
+     * The first letter is a capital; later words written as Capitalised or ALL CAPS (4+ letters) become lower case;
+     * short acronyms (FX, MIDI, CPU) and words like "DAWproject" stay as they are. Off: Bitwig's capitals.
+     */
+    /** Words kept in capitals. */
+    static final java.util.Set<String> ACRONYMS = java.util.Set.of("MIDI", "FX", "CPU", "MPE", "OSC", "VST", "VST2", "VST3", "CLAP",
+            "DSP", "LFO", "ADSR", "AHDSR", "BPM", "EQ", "CC", "IO", "DAW", "AU", "USB", "HQ", "UI", "ID", "OK", "MIX", "AB", "XY", "DJ", "MSEG", "ASIO", "PDF", "WAV", "MP3", "AI");
+
+    private static final java.util.Set<String> seenCaps = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** caps(), logging the first texts seen from each call site (to find what still shows in capitals). */
+    static String caps(String s, int site) {
+        String r = caps(s);
+        if (s != null && seenCaps.size() < 80 && seenCaps.add(site + ":" + s)) Fonts.MOD.log("sentence case #" + site + ": \"" + s + "\" -> \"" + r + "\"");
+        return r;
+    }
+
+    /** Sentence-cased text -> the capitals Bitwig would have shown: labels are measured with these, so every size and
+     *  layout stays exactly Bitwig's own (only the drawn letters change). */
+    static final Map<String, String> upperOf = new java.util.concurrent.ConcurrentHashMap<>();
+
+    static String caps(String s) {
+        String r = sentenceCaps(s);
+        if (r != null && !r.equals(s.toUpperCase()) && upperOf.size() < 4000) upperOf.put(r, s.toUpperCase());
+        return r;
+    }
+
+    private static String sentenceCaps(String s) {
+        if (s == null) return null;
+        if (!on()) return s.toUpperCase();
+        try {
+            StringBuilder out = new StringBuilder(s.length());
+            String[] words = s.split(" ", -1);
+            for (int i = 0; i < words.length; i++) {
+                String w = words[i];
+                if (i > 0) out.append(' ');
+                if (w.isEmpty()) continue;
+                boolean allCaps = w.equals(w.toUpperCase()) && !w.equals(w.toLowerCase());
+                boolean titled = Character.isUpperCase(w.charAt(0)) && w.length() > 1 && w.substring(1).equals(w.substring(1).toLowerCase());
+                String r = w;
+                if (allCaps && !ACRONYMS.contains(w.replaceAll("[^A-Za-z0-9]", ""))) r = w.toLowerCase();
+                else if (titled && i > 0) r = w.toLowerCase();
+                if (i == 0 && !r.isEmpty()) r = Character.toUpperCase(r.charAt(0)) + r.substring(1);
+                out.append(r);
+            }
+            return out.toString();
+        } catch (Throwable t) { return s.toUpperCase(); }
+    }
+
     /** "FILE" -> "File", "MODULATOR" -> "Modulator"; text that isn't all capitals is left as it is. */
     static String sentence(String s) {
         if (s.isEmpty() || !s.equals(s.toUpperCase()) || s.equals(s.toLowerCase())) return s;

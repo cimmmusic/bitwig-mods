@@ -164,7 +164,21 @@ public final class Minimal {
      *  accent colours, the chosen colour instead. */
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
+        int[] dd = depth.get();
+        if (dd[0] > 0) dd[0]--;
         value = Theme.relative(colour, value);
+        noteAvailable(asking.get(), colour, value);
+        if (colour == dotColour && dotColour != null) {
+            boolean shown = false;
+            try {
+                Object w = asking.get();
+                bitwig.obf.dve d = w instanceof bitwig.obf.dve v ? v : null;
+                for (int i = 0; i < 4 && d != null; i++, d = d.RbC())
+                    if (d instanceof bitwig.obf.dMN n) { shown = n.d3(); break; }
+                if (dotLogs++ < 4) MOD.log("notifications dot: " + (shown ? "shown (mint)" : "hidden (grey)"));
+            } catch (Throwable ignored) {}
+            return shown ? new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), 1f) : DOT_GREY;
+        }
         if (loopArr.length > 0) {
             Object w = asking.get(); // (left set: a colour made from another resolves inside, for the same widget)
             // the loop is on: its icon asks for Bitwig's "on" colour (not the hover colour, which stays the highlight)
@@ -177,8 +191,22 @@ public final class Minimal {
                 return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
             }
         }
+        return styled(value, colour);
+    }
+
+    /** The highlight recolour and the background tone, for a colour as resolved by either path. */
+    private static final java.util.Set<String> laneSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    static iok styled(iok value, bitwig.obf.eeY colour) {
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
+        if (Tone.active() && laneSeen.size() < 40) {
+            int px = Math.round(value.FzB() * 255);
+            if ((px == 0x13 || px == 0x1A) && Math.round(value.IwV() * 255) == px && laneSeen.add(String.valueOf(colour))) {
+                iok out = Tone.adjust(colour, value);
+                MOD.log("grey " + Scenes.hex(value) + " from \"" + colour + "\" kind " + Tone.kindOf(colour) + " -> " + Scenes.hex(out));
+            }
+        }
         Color t = target;
         if (t != null) {
             Object[] a = accents;
@@ -202,11 +230,41 @@ public final class Minimal {
         return Tone.adjust(colour, value);
     }
 
+    /*
+     * Widget backgrounds (the arranger's lanes and rows, panels...) resolve their colour against a base colour,
+     * eeY.cfM(base), not per widget: the same styling applies there. Colours made from other colours resolve inside each
+     * other (and inside eeY.cfM(widget)): inside a per-widget resolution (depth[0] > 0) that one styles instead.
+     */
+    private static final ThreadLocal<int[]> depth = ThreadLocal.withInitial(() -> new int[2]);
+
+    @Hook(id = "colour-base-1", target = bitwig.obf.eeY.class, method = "cfM(Liok;)Liok;", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.eeY.class, call = "iHb()Liok;", occurrence = 1)
+    public static iok colourBase1(bitwig.obf.eeY colour) { return baseValue(colour); }
+
+    @Hook(id = "colour-base-2", target = bitwig.obf.eeY.class, method = "cfM(Liok;)Liok;", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.eeY.class, call = "iHb()Liok;", occurrence = 2)
+    public static iok colourBase2(bitwig.obf.eeY colour) { return baseValue(colour); }
+
+    /** A colour's own value as eeY.cfM(base) reads it: styled, unless a per-widget resolution around it styles instead. */
+    private static iok baseValue(bitwig.obf.eeY colour) {
+        iok value = colour.iHb();
+        if (value == null || depth.get()[0] > 0) return value;
+        try { return styled(Theme.relative(colour, value), colour); } catch (Throwable t) { return value; }
+    }
+
     /** The widget asking for a colour: notes its window now and then (to repaint all windows when a setting changes). */
     @Hook(id = "colour-asked", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
     public static void colourAsked(@bml.api.Arg(0) Object widget) {
+        int[] dd = depth.get();
+        if (++dd[0] > 64) dd[0] = 1;
+        if (widget instanceof bitwig.obf.dve w0) {
+            // a settings slider or dropdown, itself or a few levels up from what is asking (for the Looks to move them)
+            bitwig.obf.dve w = w0;
+            for (int i = 0; i < 4 && w != null; i++, w = w.RbC())
+                if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { Tone.noteControl(w); break; }
+        }
         Tone.noteWidget(widget);
-        if (loopArr.length > 0) asking.set(widget);
+        asking.set(widget);
     }
 
     /** The widget asking for a colour right now (between colour-asked and draw-highlight), when loop buttons exist. */
@@ -1080,6 +1138,31 @@ public final class Minimal {
         } catch (Throwable t) { return registry.hDc(); }
     }
 
+    // ---- the notifications dot (top right of the window): grey while notifications are hidden, mint while shown ----
+
+    static final iok DOT_GREY = new iok(0x7A / 255f, 0x7A / 255f, 0x7A / 255f, 1f);
+    private static volatile bitwig.obf.eeY dotColour;
+    private static int dotLogs;
+
+    private static bitwig.obf.eeY dot() {
+        bitwig.obf.eeY d = dotColour;
+        if (d == null) dotColour = d = bitwig.obf.eeY.cfM("Minimal Dark Notifications Dot", DOT_GREY);
+        return d;
+    }
+
+    /** dML.gfw() picks the dot's colour: red for an error (kept), else white or the button background: ours instead. */
+    @Hook(id = "notification-dot-light", target = bitwig.obf.dML.class, method = "gfw()V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "MYI()LeeY;")
+    public static bitwig.obf.eeY notificationDotLight(bitwig.obf.eff r) {
+        try { return dot(); } catch (Throwable t) { return r.MYI(); }
+    }
+
+    @Hook(id = "notification-dot-plain", target = bitwig.obf.dML.class, method = "gfw()V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "BBT()LeeY;")
+    public static bitwig.obf.eeY notificationDotPlain(bitwig.obf.eff r) {
+        try { return dot(); } catch (Throwable t) { return r.BBT(); }
+    }
+
     private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Accent (hitech)", "Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
     static final iok MINT = new iok(0x3B / 255f, 0xE8 / 255f, 0xB0 / 255f, 1f);
 
@@ -1171,5 +1254,147 @@ public final class Minimal {
         if (t == null) return;
         heldToolbar.remove();
         column.HL(t);
+    }
+
+    // ---- sentence case instead of Bitwig's capitals (headers, tabs, section titles, hints): see Labels.caps ----
+
+    @Hook(id = "sentence-case-1", target = bitwig.obf.aBW.class, method = "Scv()Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase1(String s) { return Labels.caps(s, 1); }
+
+    @Hook(id = "sentence-case-2", target = bitwig.obf.asn.class, method = "cfM(Ljava/lang/String;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase2(String s) { return Labels.caps(s, 2); }
+
+    @Hook(id = "sentence-case-3", target = bitwig.obf.bDH.class, method = "wGc(Ljava/lang/String;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase3(String s) { return Labels.caps(s, 3); }
+
+    @Hook(id = "sentence-case-4", target = bitwig.obf.bnK.class, method = "cfM(Ljava/lang/String;)LdAa;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase4(String s) { return Labels.caps(s, 4); }
+
+    @Hook(id = "sentence-case-5", target = bitwig.obf.cEk.class, method = "cfM(Ljava/lang/String;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase5(String s) { return Labels.caps(s, 5); }
+
+    @Hook(id = "sentence-case-6", target = bitwig.obf.cEk.class, method = "cfM(Ljava/lang/String;Ljava/lang/Object;Z)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase6(String s) { return Labels.caps(s, 6); }
+
+    @Hook(id = "sentence-case-7", target = bitwig.obf.dEG.class, method = "cfM(Ljava/lang/Object;Ljava/util/List;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase7(String s) { return Labels.caps(s, 7); }
+
+    @Hook(id = "sentence-case-8", target = bitwig.obf.dKN.class, method = "gfw()V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase8(String s) { return Labels.caps(s, 8); }
+
+    @Hook(id = "sentence-case-9", target = bitwig.obf.dKN.class, method = "MRY(Ljava/lang/String;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase9(String s) { return Labels.caps(s, 9); }
+
+    @Hook(id = "sentence-case-10", target = bitwig.obf.drh.class, method = "cfM(Ljava/lang/String;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase10(String s) { return Labels.caps(s, 10); }
+
+    @Hook(id = "sentence-case-11", target = bitwig.obf.dnO.class, method = "FzB()Ljava/lang/String;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase11(String s) { return Labels.caps(s, 11); }
+
+    @Hook(id = "sentence-case-12", target = com.bitwig.flt.widget.core.device.ZSx.class, method = "cfM(LdKW;DDLeoW;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 1)
+    public static String sentenceCase12(String s) { return Labels.caps(s, 12); }
+
+    @Hook(id = "sentence-case-13", target = com.bitwig.flt.widget.core.device.ZSx.class, method = "cfM(LdKW;DDLeoW;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 2)
+    public static String sentenceCase13(String s) { return Labels.caps(s, 13); }
+
+    @Hook(id = "sentence-case-14", target = com.bitwig.flt.widget.core.device.ZSx.class, method = "cfM(LdKW;DDLeoW;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 3)
+    public static String sentenceCase14(String s) { return Labels.caps(s, 14); }
+
+    @Hook(id = "sentence-case-15", target = com.bitwig.flt.widget.core.online.oRV.class, method = "cfM(LYc;Lcom/bitwig/base/geom/LWw;Z)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase15(String s) { return Labels.caps(s, 15); }
+
+    @Hook(id = "sentence-case-16", target = bitwig.obf.dre.class, method = "IwV()Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 1)
+    public static String sentenceCase16(String s) { return Labels.caps(s, 16); }
+
+    @Hook(id = "sentence-case-17", target = bitwig.obf.dre.class, method = "IwV()Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 2)
+    public static String sentenceCase17(String s) { return Labels.caps(s, 17); }
+
+    /*
+     * Labels (dut) and buttons (dzg) can carry a text transform (a UnaryOperator), and Bitwig passes String::toUpperCase
+     * for headers and tabs: applied in dut.hbP(text) and dzg.cfM(transform, text). Where the transform's result is just
+     * the text in capitals, sentence case is drawn instead; any other transform is left alone.
+     */
+    @Hook(id = "sentence-case-label", target = bitwig.obf.dut.class, method = "hbP(Ljava/lang/String;)Ljava/lang/String;",
+          at = At.REPLACE_CALL, callOwner = java.util.function.UnaryOperator.class, call = "apply(Ljava/lang/Object;)Ljava/lang/Object;")
+    public static Object sentenceCaseLabel(java.util.function.UnaryOperator op, Object text) { return transformed(op, text, 20); }
+
+    @Hook(id = "sentence-case-button", target = bitwig.obf.dzg.class, method = "cfM(Ljava/util/function/UnaryOperator;Ljava/lang/Object;)Ljava/lang/String;",
+          at = At.REPLACE_CALL, callOwner = java.util.function.UnaryOperator.class, call = "apply(Ljava/lang/Object;)Ljava/lang/Object;")
+    public static Object sentenceCaseButton(java.util.function.UnaryOperator op, Object text) { return transformed(op, text, 21); }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object transformed(java.util.function.UnaryOperator op, Object text, int site) {
+        Object out = op.apply(text);
+        if (text instanceof String t && out instanceof String o && !o.equals(t) && o.equals(t.toUpperCase())) return Labels.caps(t, site);
+        return out;
+    }
+
+    /** The Dashboard's tabs (Settings, Packages, Help...) are LJt texts turned to capitals with LJt.g_(): sentence case instead. */
+    @Hook(id = "sentence-case-tabs", target = bitwig.obf.aBl.class, method = "cfM(LLJt;Ldve;ZZ)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.LJt.class, call = "g_()LLJt;")
+    public static bitwig.obf.LJt sentenceCaseTabs(bitwig.obf.LJt text) { return captioned(text, 22); }
+
+    @Hook(id = "sentence-case-captions", target = bitwig.obf.aLZ.class, method = "cfM(LLJt;Ldve;)Ldve;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.LJt.class, call = "g_()LLJt;")
+    public static bitwig.obf.LJt sentenceCaseCaptions(bitwig.obf.LJt text) { return captioned(text, 23); }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static bitwig.obf.LJt captioned(bitwig.obf.LJt text, int site) {
+        try { return text.cfM((java.util.function.Function) (Object o) -> o instanceof String t ? Labels.caps(t, site) : o); }
+        catch (Throwable t) { return text.g_(); }
+    }
+
+    /** A label measuring its text (dut.iG_, its preferred size): measured as Bitwig's capitals, so sizes don't change. */
+    @Hook(id = "sentence-case-measure", target = bitwig.obf.dut.class, method = "iG_()Lcom/bitwig/base/geom/SYo;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dut.class, call = "hbP(Ljava/lang/String;)Ljava/lang/String;")
+    public static String sentenceCaseMeasure(bitwig.obf.dut label, String text) {
+        String shown = label.hbP(text);
+        String upper = shown == null ? null : Labels.upperOf.get(shown);
+        return upper != null ? upper : shown;
+    }
+
+    // ---- the Dashboard: centred in the window, at most ~78 % of its height (Bitwig: top-aligned, full height) ----
+
+    @Hook(id = "dashboard-size", target = bitwig.obf.aBl.class, method = "MRY(LaCp;)V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.dnF.class, call = "E3(F)V")
+    public static void dashboardSize(bitwig.obf.dnF box, float vertical) {
+        try {
+            box.E3(0.5f);                          // centred top to bottom
+            box.MRY(new DashboardHeight(box));     // height: the content's, capped to a share of the window
+            MOD.log("dashboard: centred, at most " + Math.round(DashboardHeight.share * 100) + "% of the window's height");
+        } catch (Throwable t) { MOD.log("dashboard size failed", t); box.E3(vertical); }
+    }
+
+    // ---- finding the colours of the Packages page's Installed / Available switch (diagnostic) ----
+
+    private static final java.util.Set<Object> availableParts = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static final java.util.Set<String> availableSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    static void noteAvailable(Object widget, Object colour, iok value) {
+        if (availableSeen.size() > 40 || !(widget instanceof bitwig.obf.dve w)) return;
+        try {
+            if (w instanceof bitwig.obf.duu l && "Available".equals(l.JhA())) {
+                for (bitwig.obf.dve p = w; p != null && availableParts.size() < 8; p = p.RbC()) { availableParts.add(p); if (availableParts.size() >= 4) break; }
+            }
+            if (availableParts.contains(w) && availableSeen.add(w.getClass().getName() + " " + colour))
+                MOD.log("Available switch: " + w.getClass().getName() + " asks for \"" + colour + "\" = " + (value == null ? "null" : Scenes.hex(value)));
+        } catch (Throwable ignored) {}
     }
 }

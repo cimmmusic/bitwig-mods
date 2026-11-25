@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.1.0-dev.11",
+    "version": "0.2.0-dev.10",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -53,6 +53,18 @@
       "owner": "eeY",
       "name": "cfM",
       "descriptor": "(Ldve;)Liok;"
+    },
+    "eeY.cfM-3": {
+      "kind": "method",
+      "owner": "eeY",
+      "name": "cfM",
+      "descriptor": "(Liok;)Liok;"
+    },
+    "eeY.iHb": {
+      "kind": "method",
+      "owner": "eeY",
+      "name": "iHb",
+      "descriptor": "()Liok;"
     },
     "eff.cfM": {
       "kind": "method",
@@ -360,6 +372,18 @@
       "name": "hDc",
       "descriptor": "()LeeY;"
     },
+    "dML.gfw": {
+      "kind": "method",
+      "owner": "dML",
+      "name": "gfw",
+      "descriptor": "()V"
+    },
+    "eff.BBT": {
+      "kind": "method",
+      "owner": "eff",
+      "name": "BBT",
+      "descriptor": "()LeeY;"
+    },
     "dqT.cfM": {
       "kind": "method",
       "owner": "dqT",
@@ -383,6 +407,138 @@
       "owner": "dWb",
       "name": "HL",
       "descriptor": "(Ldve;)V"
+    },
+    "aBW.Scv": {
+      "kind": "method",
+      "owner": "aBW",
+      "name": "Scv",
+      "descriptor": "()Ldve;"
+    },
+    "asn.cfM": {
+      "kind": "method",
+      "owner": "asn",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;)Ldve;"
+    },
+    "bDH.wGc": {
+      "kind": "method",
+      "owner": "bDH",
+      "name": "wGc",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    "bnK.cfM": {
+      "kind": "method",
+      "owner": "bnK",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;)LdAa;"
+    },
+    "cEk.cfM": {
+      "kind": "method",
+      "owner": "cEk",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;)Ldve;"
+    },
+    "cEk.cfM-2": {
+      "kind": "method",
+      "owner": "cEk",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;Ljava/lang/Object;Z)Ldve;"
+    },
+    "dEG.cfM": {
+      "kind": "method",
+      "owner": "dEG",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/Object;Ljava/util/List;)Ldve;"
+    },
+    "dKN.gfw": {
+      "kind": "method",
+      "owner": "dKN",
+      "name": "gfw",
+      "descriptor": "()V"
+    },
+    "dKN.MRY": {
+      "kind": "method",
+      "owner": "dKN",
+      "name": "MRY",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    "drh.cfM": {
+      "kind": "method",
+      "owner": "drh",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    "dnO.FzB": {
+      "kind": "method",
+      "owner": "dnO",
+      "name": "FzB",
+      "descriptor": "()Ljava/lang/String;"
+    },
+    "com.bitwig.flt.widget.core.device.ZSx.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/ZSx",
+      "name": "cfM",
+      "descriptor": "(LdKW;DDLeoW;)V"
+    },
+    "com.bitwig.flt.widget.core.online.oRV.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/online/oRV",
+      "name": "cfM",
+      "descriptor": "(LYc;Lcom/bitwig/base/geom/LWw;Z)Ldve;"
+    },
+    "dre.IwV": {
+      "kind": "method",
+      "owner": "dre",
+      "name": "IwV",
+      "descriptor": "()Ldve;"
+    },
+    "dut.hbP": {
+      "kind": "method",
+      "owner": "dut",
+      "name": "hbP",
+      "descriptor": "(Ljava/lang/String;)Ljava/lang/String;"
+    },
+    "dzg.cfM": {
+      "kind": "method",
+      "owner": "dzg",
+      "name": "cfM",
+      "descriptor": "(Ljava/util/function/UnaryOperator;Ljava/lang/Object;)Ljava/lang/String;"
+    },
+    "aBl.cfM": {
+      "kind": "method",
+      "owner": "aBl",
+      "name": "cfM",
+      "descriptor": "(LLJt;Ldve;ZZ)V"
+    },
+    "LJt.g_": {
+      "kind": "method",
+      "owner": "LJt",
+      "name": "g_",
+      "descriptor": "()LLJt;"
+    },
+    "aLZ.cfM": {
+      "kind": "method",
+      "owner": "aLZ",
+      "name": "cfM",
+      "descriptor": "(LLJt;Ldve;)Ldve;"
+    },
+    "dut.iG_": {
+      "kind": "method",
+      "owner": "dut",
+      "name": "iG_",
+      "descriptor": "()Lcom/bitwig/base/geom/SYo;"
+    },
+    "aBl.MRY": {
+      "kind": "method",
+      "owner": "aBl",
+      "name": "MRY",
+      "descriptor": "(LaCp;)V"
+    },
+    "dnF.E3": {
+      "kind": "method",
+      "owner": "dnF",
+      "name": "E3",
+      "descriptor": "(F)V"
     },
     "com.bitwig.graphics.render_commands.JXO": {
       "kind": "class",
@@ -531,6 +687,36 @@
         "args": [
           "this"
         ]
+      }
+    },
+    {
+      "id": "colour-base-1",
+      "target": "eeY.cfM-3",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eeY.iHb",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "colourBase1",
+        "descriptor": "(LeeY;)Liok;",
+        "args": []
+      }
+    },
+    {
+      "id": "colour-base-2",
+      "target": "eeY.cfM-3",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eeY.iHb",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "colourBase2",
+        "descriptor": "(LeeY;)Liok;",
+        "args": []
       }
     },
     {
@@ -1145,6 +1331,36 @@
       }
     },
     {
+      "id": "notification-dot-light",
+      "target": "dML.gfw",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eff.MYI",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "notificationDotLight",
+        "descriptor": "(Leff;)LeeY;",
+        "args": []
+      }
+    },
+    {
+      "id": "notification-dot-plain",
+      "target": "dML.gfw",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eff.BBT",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "notificationDotPlain",
+        "descriptor": "(Leff;)LeeY;",
+        "args": []
+      }
+    },
+    {
       "id": "icon-paint",
       "target": "dqT.cfM",
       "transform": "INSERT_AT_ENTRY",
@@ -1230,6 +1446,389 @@
         "descriptor": "(LdWb;Ldve;)V",
         "args": []
       }
+    },
+    {
+      "id": "sentence-case-1",
+      "target": "aBW.Scv",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase1",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-2",
+      "target": "asn.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase2",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-3",
+      "target": "bDH.wGc",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase3",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-4",
+      "target": "bnK.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase4",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-5",
+      "target": "cEk.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase5",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-6",
+      "target": "cEk.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase6",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-7",
+      "target": "dEG.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase7",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-8",
+      "target": "dKN.gfw",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase8",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-9",
+      "target": "dKN.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase9",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-10",
+      "target": "drh.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase10",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-11",
+      "target": "dnO.FzB",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase11",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-12",
+      "target": "com.bitwig.flt.widget.core.device.ZSx.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase12",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-13",
+      "target": "com.bitwig.flt.widget.core.device.ZSx.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase13",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-14",
+      "target": "com.bitwig.flt.widget.core.device.ZSx.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase14",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-15",
+      "target": "com.bitwig.flt.widget.core.online.oRV.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase15",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-16",
+      "target": "dre.IwV",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase16",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-17",
+      "target": "dre.IwV",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "owner": "java/lang/String",
+        "name": "toUpperCase",
+        "descriptor": "()Ljava/lang/String;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCase17",
+        "descriptor": "(Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-label",
+      "target": "dut.hbP",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "owner": "java/util/function/UnaryOperator",
+        "name": "apply",
+        "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCaseLabel",
+        "descriptor": "(Ljava/util/function/UnaryOperator;Ljava/lang/Object;)Ljava/lang/Object;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-button",
+      "target": "dzg.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "owner": "java/util/function/UnaryOperator",
+        "name": "apply",
+        "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCaseButton",
+        "descriptor": "(Ljava/util/function/UnaryOperator;Ljava/lang/Object;)Ljava/lang/Object;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-tabs",
+      "target": "aBl.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "LJt.g_",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCaseTabs",
+        "descriptor": "(LLJt;)LLJt;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-captions",
+      "target": "aLZ.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "LJt.g_",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCaseCaptions",
+        "descriptor": "(LLJt;)LLJt;",
+        "args": []
+      }
+    },
+    {
+      "id": "sentence-case-measure",
+      "target": "dut.iG_",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dut.hbP",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "sentenceCaseMeasure",
+        "descriptor": "(Ldut;Ljava/lang/String;)Ljava/lang/String;",
+        "args": []
+      }
+    },
+    {
+      "id": "dashboard-size",
+      "target": "aBl.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dnF.E3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "dashboardSize",
+        "descriptor": "(LdnF;F)V",
+        "args": []
+      }
     }
   ],
   "opens": [
@@ -1242,6 +1841,7 @@
     "com.bitwig.graphics.render_commands.hLr.MRY",
     "dBX.cfM",
     "drX.init",
+    "dut.hbP",
     "dve.MRY",
     "dve.b_",
     "dve.cfM",

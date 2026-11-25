@@ -35,7 +35,7 @@ public final class FontSettings implements PreferenceProvider {
         preferences.checkbox("ui_font_solid_dark_text", "Solid dark text on bright colours")
                    .in(mine)
                    .value(() -> Fonts.solidDark, v -> { Fonts.solidDark = v; Fonts.STORE.putBoolean("solid_dark_text", v); });
-        preferences.checkbox("ui_font_sentence_case_toolbar", "Toolbar menus in sentence case (restart)")
+        preferences.checkbox("ui_font_sentence_case_toolbar", "Sentence case instead of capitals (restart)")
                    .in(mine)
                    .value(Labels::on, v -> Fonts.STORE.putBoolean(Labels.KEY, v));
     }

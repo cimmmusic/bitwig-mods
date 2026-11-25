@@ -27,10 +27,17 @@ It's near-black, flat and quiet, so your music is the loudest thing on screen. A
 - **Lato Regular** for the interface, **Lato Medium** for bold text, and **Lato Semibold Italic** for numbers (tempo, position, dB, knob values), so numbers stand out from labels.
 - Prefer something else? Pick **any font on your Mac**, or drop your own `.ttf`/`.otf` into the mod's `fonts` folder. The font picker is a proper scrollable list with a search field, and every name is drawn in its own font. 🔍
 - Separate text sizes for interface, bold and numbers, plus a **move text down** nudge for fonts that sit high in Bitwig's fields.
-- **Toolbar menus in sentence case.** "File, Play, Add, Edit" instead of "FILE, PLAY, ADD, EDIT". Your toolbar has stopped shouting. 🤫
+- **Sentence case everywhere.** "File, Play, Add" in the toolbar, "Settings, Packages, Help" on the Dashboard, "Instrument track", "Track groove", "Drag", "Double-click"... instead of Bitwig's capitals. Acronyms like MIDI, FX and LFO stay as they are, and every label keeps Bitwig's exact size and spacing. Bitwig has stopped shouting. 🤫
 - **Solid dark text on bright colours.** Black text on an orange track tile is drawn properly solid, instead of thin light strokes that read as brown.
 
 <img src="images/closeup.png" alt="Close-up: the device panel and mixer strips in Lato, with orange toggles and readable values">
+
+### 🎭 26 Looks, one click
+Not sure where to start? The **Look** dropdown (top of the Minimal Dark settings) sets the background tone *and* the highlight colour in one go, and the whole window follows instantly, arrangement and scenes included:
+
+**Minimal Dark** · Midnight Blue · Aubergine · Forest · Espresso · Graphite · Ocean · Bordeaux · Slate · Moss · Teal Night · Plum · Indigo · Sand · Rosewood · Neon · Arctic · Ember · Lagoon · Lavender · Olive · Cobalt · Mocha · Emerald · Crimson · Storm
+
+Tweak any slider afterwards and it simply becomes your own **Custom** look. Minimal Dark itself stays pure neutral near-black.
 
 ### 💡 Pick your highlight colour
 - Orange out of the box, or choose **Red, Pink, Purple, Violet, Blue, Cyan, Mint, Green, Lime, Yellow, White**, or **any custom hue** you like.
@@ -61,7 +68,9 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 - Tooltips and hover popups don't dim anything. That would be exhausting. 😵‍💫
 
 ### ✨ Little touches
-- **Dark scene backgrounds** in the clip launcher, instead of grey slabs.
+- **Dark scene backgrounds** in the clip launcher, instead of grey slabs (tinted with your look).
+- **A calmer Dashboard**: centred in the window with breathing room above and below, instead of running top to bottom.
+- **Notifications dot** (top right): grey while notifications are hidden, mint while they're shown.
 - **Grid module previews match the theme**: the module thumbnails in the Grid's browser are re-toned to the dark look, so they finally match the real modules.
 
 <img src="images/grid.png" alt="The Poly Grid editor in Minimal Dark: dark module previews in the browser bar, an orange Union oscillator and a green ADSR on a near-black canvas">
@@ -70,7 +79,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.1.0-dev.11.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.1.0-dev.11.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.10.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.10.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 
@@ -84,10 +93,10 @@ Everything lives in **Settings › Mods**, in the sections starting with **"Mini
 
 | Section | What's there |
 | --- | --- |
-| **Minimal Dark** | Theme colours on/off *(restart)* |
+| **Minimal Dark** | Look (26 presets), theme colours on/off *(restart)* |
 | **Background** | Hue, Saturation, Luminance, Contrast. Double-click a slider to reset all four. |
 | **Buttons** | Pill buttons, no toolbar outlines, hover icons, transport at the bottom *(restart)*, Arrange/Mix/Edit bar at the top *(restart)*, Roundness, Up to height |
-| **Font** | Interface / Bold / Numbers font *(restart)*, their text sizes *(restart)*, Move text down, Solid dark text on bright colours, Sentence-case toolbar menus *(restart)* |
+| **Font** | Interface / Bold / Numbers font *(restart)*, their text sizes *(restart)*, Move text down, Solid dark text on bright colours, Sentence case instead of capitals *(restart)* |
 | **Highlight** | Highlight colour, Custom hue, Dark scene backgrounds, Grid module previews *(restart)* |
 | **Menus** | Behind open menus (Dim / Off), Menu's button stays above the dim, Popups fade in |
 

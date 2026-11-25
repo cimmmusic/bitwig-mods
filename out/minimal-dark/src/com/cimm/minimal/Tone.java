@@ -47,6 +47,47 @@ final class Tone {
         if (name.equals("Window background")) windowColour = colour;
     }
 
+    /**
+     * Bitwig keeps colours it has resolved on its widgets and resolves them again only when a theme colour changes.
+     * After a tone change every background and foreground colour is set to a hair-different value and straight back
+     * (efb.Hnt), which is Bitwig's own "this colour changed" signal: everything is drawn again with the new tone.
+     * Call on the UI thread, from a setting changing (not while painting).
+     */
+    static void refreshAll() {
+        Object[] cs;
+        synchronized (kinds) { cs = kinds.entrySet().stream().filter(e -> e.getValue() != KEEP).map(Map.Entry::getKey).toArray(); }
+        int n = 0;
+        for (Object o : cs) {
+            if (!(o instanceof bitwig.obf.efb c)) continue;
+            try {
+                iok v = c.iHb();
+                if (v == null) continue;
+                float a = v.hUR();
+                c.Hnt(new iok(v.FzB(), v.IwV(), v.UNj(), a > 0.5f ? a - 0.002f : a + 0.002f));
+                c.Hnt(v);
+                n++;
+            } catch (Throwable ignored) {}
+        }
+        if (refreshLogs++ < 3) Minimal.MOD.log("tone refresh: " + n + " colours");
+    }
+    private static int refreshLogs;
+    private static volatile long refreshAt;
+    private static java.util.TimerTask refreshTask;
+
+    /** refreshAll() once the setting stops moving (a slider drag sends many changes): ~150 ms after the last one. */
+    static synchronized void refreshSoon() {
+        refreshAt = System.nanoTime() + 150_000_000L;
+        if (refreshTask != null) return;
+        try {
+            refreshTask = bitwig.obf.dpN.TVZ().cfM(() -> {
+                if (System.nanoTime() < refreshAt) return;
+                synchronized (Tone.class) { if (refreshTask != null) { refreshTask.cancel(); refreshTask = null; } }
+                refreshAll();
+                repaint();
+            }, 50, 50);
+        } catch (Throwable t) { refreshTask = null; refreshAll(); }
+    }
+
     static boolean active() { return sat != 0 || lum != 0 || con != 0; }
     private static volatile boolean light;
     static boolean isLight() { return light; }
@@ -195,11 +236,45 @@ final class Tone {
             try { value.setValue(Double.valueOf(def)); n++; } catch (Throwable t) { Minimal.MOD.log("slider reset failed", t); }
         }
         changed();
+        refreshAll();
         repaint();
         Minimal.MOD.log("background back to default (" + n + " sliders moved)");
     }
 
     private static volatile long lastReset;
+
+    /**
+     * Shows new values on any open Settings page: every slider and dropdown of this mod whose setting id is in values
+     * is set through its Settings-framework value (a number for sliders, the option's label for dropdowns), so the
+     * control moves and its setting is stored. Returns how many controls were set.
+     */
+    /** Settings sliders and dropdowns, noted as they draw (weakly held). */
+    private static final Set<Object> controlsSeen = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    static void noteControl(Object w) { if (controlsSeen.size() < 2000) controlsSeen.add(w); }
+    static String kindOf(Object colour) { Byte k = kinds.get(colour); return k == null ? "unknown" : k == BG ? "background" : k == FG ? "foreground" : "kept"; }
+
+    static int showOnSettingsPage(Map<String, Object> values) {
+        Object[] cs;
+        synchronized (controlsSeen) { cs = controlsSeen.toArray(); }
+        int n = 0;
+        {
+            for (Object o : cs) {
+                if (!(o instanceof bitwig.obf.dve c)) continue;
+                Object v = Browser.frameworkValue(c);
+                String id = Browser.controlId(v);
+                if (id == null || !values.containsKey(id) || !(v instanceof bitwig.obf.rMe value)) continue;
+                try { value.setValue(values.get(id)); n++; } catch (Throwable t) { Minimal.MOD.log("setting " + id + " failed", t); }
+            }
+        }
+        return n;
+    }
+
+    private static void controls(bitwig.obf.dve w, java.util.List<bitwig.obf.dve> into, int depth) {
+        if (depth > 60) return;
+        if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { into.add(w); return; }
+        java.util.List<?> kids = w.vJT();
+        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) controls(d, into, depth + 1);
+    }
 
     private static void collect(bitwig.obf.dve w, java.util.List<bitwig.obf.dNg> into) {
         if (w instanceof bitwig.obf.dNg s) into.add(s);
