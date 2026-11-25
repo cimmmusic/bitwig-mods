@@ -86,13 +86,41 @@ public final class Pill {
     public static void outlineWidgetS(@bml.api.Arg(1) Object widget) { drawing.set(widget); }
 
     private static int toolbarLogs;
-    /** True when the outline being drawn belongs to a widget in a toolbar (and the setting is on). */
+    /** The top bars: for each noted toolbar piece, its highest ancestor that is still about toolbar height (the bar
+     *  that also holds FILE and the transport buttons). Found once the piece is on screen; weakly held. */
+    private static final java.util.Set<Object> bars =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static final java.util.Set<Object> resolved =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+
+    private static void resolveBars() {
+        Object[] pieces;
+        synchronized (toolbars) { pieces = toolbars.toArray(); }
+        for (Object o : pieces) {
+            if (resolved.contains(o) || !(o instanceof bitwig.obf.dve piece)) continue;
+            try {
+                double ph = piece.yiX();
+                if (ph <= 0 || piece.RbC() == null) continue; // not laid out / attached yet
+                bitwig.obf.dve best = piece, w = piece.RbC();
+                int depth = 0;
+                for (; w != null && depth < 30; w = w.RbC(), depth++)
+                    if (w.yiX() <= ph * 1.8 + 2 && w.Sxo() >= best.Sxo()) best = w;
+                bars.add(best);
+                resolved.add(o);
+                MOD.log("top bar: " + best.getClass().getName() + " " + best.Sxo() + "x" + best.yiX()
+                        + " (from " + piece.getClass().getName() + " " + piece.Sxo() + "x" + ph + ")");
+            } catch (Throwable t) { if (toolbarLogs < 3) { toolbarLogs++; MOD.log("finding the top bar failed", t); } }
+        }
+    }
+
+    /** True when the outline being drawn belongs to a widget in a top bar (and the setting is on). */
     static boolean inToolbar() {
         if (!toolbarPlain || toolbars.isEmpty()) return false;
+        if (resolved.size() < toolbars.size()) resolveBars();
         Object w = drawing.get();
         try {
             for (int i = 0; w instanceof bitwig.obf.dve v && i < 40; i++) {
-                if (toolbars.contains(v)) {
+                if (bars.contains(v) || toolbars.contains(v)) {
                     if (toolbarLogs < 3) { toolbarLogs++; MOD.log("toolbar outline skipped: " + drawing.get().getClass().getName()); }
                     return true;
                 }
