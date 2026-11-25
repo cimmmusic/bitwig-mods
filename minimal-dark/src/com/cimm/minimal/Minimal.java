@@ -194,9 +194,18 @@ public final class Minimal {
     }
 
     /** The highlight recolour and the background tone, for a colour as resolved by either path. */
+    private static final java.util.Set<String> laneSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
     static iok styled(iok value, bitwig.obf.eeY colour) {
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
+        if (Tone.active() && laneSeen.size() < 40) {
+            int px = Math.round(value.FzB() * 255);
+            if ((px == 0x13 || px == 0x1A) && Math.round(value.IwV() * 255) == px && laneSeen.add(String.valueOf(colour))) {
+                iok out = Tone.adjust(colour, value);
+                MOD.log("grey " + Scenes.hex(value) + " from \"" + colour + "\" kind " + Tone.kindOf(colour) + " -> " + Scenes.hex(out));
+            }
+        }
         Color t = target;
         if (t != null) {
             Object[] a = accents;
@@ -247,6 +256,7 @@ public final class Minimal {
     public static void colourAsked(@bml.api.Arg(0) Object widget) {
         int[] dd = depth.get();
         if (++dd[0] > 64) dd[0] = 1;
+        if (widget instanceof bitwig.obf.dNg || widget instanceof bitwig.obf.dBX) Tone.noteControl(widget);
         Tone.noteWidget(widget);
         if (loopArr.length > 0 || dotColour != null) asking.set(widget);
     }

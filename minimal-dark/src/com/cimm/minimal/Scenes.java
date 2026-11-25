@@ -30,7 +30,8 @@ public final class Scenes {
         float max = Math.max(r, Math.max(gr, b)), min = Math.min(r, Math.min(gr, b));
         if (max <= 0 || (max - min) / max > 0.12f) return null; // coloured: keep it
         float v = Math.min(1f, DARK * max / FROM);
-        return new iok(v, v, v, c.hUR());
+        iok dark = new iok(v, v, v, c.hUR());
+        return Tone.active() ? Tone.background(dark) : dark; // tinted like the other backgrounds
     }
 
     static String hex(iok c) {

@@ -206,15 +206,18 @@ final class Tone {
      * is set through its Settings-framework value (a number for sliders, the option's label for dropdowns), so the
      * control moves and its setting is stored. Returns how many controls were set.
      */
+    /** Settings sliders and dropdowns, noted as they draw (weakly held). */
+    private static final Set<Object> controlsSeen = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    static void noteControl(Object w) { if (controlsSeen.size() < 2000) controlsSeen.add(w); }
+    static String kindOf(Object colour) { Byte k = kinds.get(colour); return k == null ? "unknown" : k == BG ? "background" : k == FG ? "foreground" : "kept"; }
+
     static int showOnSettingsPage(Map<String, Object> values) {
-        Object[] ws;
-        synchronized (windows) { ws = windows.toArray(); }
+        Object[] cs;
+        synchronized (controlsSeen) { cs = controlsSeen.toArray(); }
         int n = 0;
-        for (Object o : ws) {
-            if (!(o instanceof bitwig.obf.dve root)) continue;
-            java.util.List<bitwig.obf.dve> controls = new java.util.ArrayList<>();
-            controls(root, controls, 0);
-            for (bitwig.obf.dve c : controls) {
+        {
+            for (Object o : cs) {
+                if (!(o instanceof bitwig.obf.dve c)) continue;
                 Object v = Browser.frameworkValue(c);
                 String id = Browser.controlId(v);
                 if (id == null || !values.containsKey(id) || !(v instanceof bitwig.obf.rMe value)) continue;

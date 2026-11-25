@@ -31,7 +31,17 @@ final class Looks {
             new Look("Indigo", 245, 40, 3, 0, 5, 265),
             new Look("Sand", 40, 18, 8, -5, 1, 25),
             new Look("Rosewood", 5, 25, 3, 0, 3, 330),
-            new Look("Neon", 290, 45, 2, 10, 13, 175));
+            new Look("Neon", 290, 45, 2, 10, 13, 175),
+            new Look("Arctic", 200, 25, 8, -5, 12, 200),
+            new Look("Ember", 15, 35, 2, 5, 1, 25),
+            new Look("Lagoon", 185, 40, 2, 0, 10, 80),
+            new Look("Lavender", 265, 20, 6, 0, 3, 330),
+            new Look("Olive", 70, 25, 3, 0, 8, 160),
+            new Look("Cobalt", 225, 50, 2, 5, 11, 45),
+            new Look("Mocha", 30, 15, 5, -5, 13, 35),
+            new Look("Emerald", 160, 40, 2, 0, 12, 160),
+            new Look("Crimson", 355, 40, 1, 5, 12, 0),
+            new Look("Storm", 220, 12, 4, 10, 7, 190));
 
     static final String CUSTOM = "Custom";
 
