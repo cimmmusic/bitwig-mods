@@ -158,6 +158,7 @@ public final class Backdrop {
         if (window instanceof bitwig.obf.dsR || capturing.get() != null) { painting.set(null); graphics.set(null); return; } // a popup, or the blur's own paint
         painting.set(window); graphics.set(g);
         windows.add(window);
+        if (overlayName == null) try { overlayName = ((bitwig.obf.dve) window).PEn().MLK(); } catch (Throwable ignored) {}
     }
 
     /** Called right after the window's content is drawn (it replaces the dpN.TVZ() that follows). */
@@ -191,13 +192,14 @@ public final class Backdrop {
             if (s != null) {
                 g.qoU();
                 try {
-                    g.Hnt(W / s.w(), H / s.h());
+                    double k = scale(g); // a bitmap of n pixels covers n / k units when drawn
+                    g.Hnt(W * k / s.w(), H * k / s.h());
                     g.cfM(s.bitmap(), 0, 0, e);
                 } finally { g.ucQ(); }
                 blurred = true;
             }
         }
-        g.Hnt(new iok(overlay.FzB(), overlay.IwV(), overlay.UNj(), (float) (overlay.hUR() * e * (blurred ? 0.5 : 1))));
+        g.Hnt(new iok(overlay.FzB(), overlay.IwV(), overlay.UNj(), (float) (overlay.hUR() * e)));
         g.MRY(0, 0, W, H);
         g.wGc();
     }
@@ -221,11 +223,23 @@ public final class Backdrop {
      * box filter a few times. The bitmaps are kept until the backdrop is gone (the drawing runs later, from the record).
      */
     private static Snap snapshot(bitwig.obf.duG w, SYo g) {
+        Snap s = blurOf(g, w, java.util.List.of(w), "the window");
+        if (s == null) noBlur = true;
+        return s;
+    }
+
+    static double scale(SYo g) {
+        try { double k = g.Hnt(); return k > 0 ? k : 1; } catch (Throwable t) { return 1; }
+    }
+
+    /** Paints widgets into a new bitmap an eighth of the window's size (at their window positions) and blurs it. */
+    private static Snap blurOf(SYo g, bitwig.obf.dve origin, java.util.List<bitwig.obf.dve> layers, String what) {
         java.util.List<qc1> made = new java.util.ArrayList<>();
         try {
-            double W = w.Sxo(), H = w.yiX();
-            double k = 1;
-            try { k = g.Hnt(); } catch (Throwable ignored) {}
+            double W = origin.Sxo(), H = origin.yiX();
+            com.bitwig.base.geom.OLR o = origin.ihs();
+            double ox = o == null ? 0 : o.FzB(), oy = o == null ? 0 : o.hUR();
+            double k = scale(g);
             int sw = (int) Math.max(1, Math.ceil(W * k / DOWN)), sh = (int) Math.max(1, Math.ceil(H * k / DOWN));
             qc1 a = g.cfM(sw, sh, com.bitwig.graphics.Jkg.cfM);
             made.add(a);
@@ -233,7 +247,14 @@ public final class Backdrop {
             capturing.set(Boolean.TRUE);
             try {
                 gs.Hnt(sw / W, sh / H);
-                w.Hnt(gs); // the window and everything in it
+                for (bitwig.obf.dve layer : layers) {
+                    com.bitwig.base.geom.OLR at = layer.ihs();
+                    gs.qoU();
+                    try {
+                        if (layer != origin && at != null) gs.FzB(at.FzB() - ox, at.hUR() - oy);
+                        layer.Hnt(gs);
+                    } finally { gs.ucQ(); }
+                }
             } finally {
                 capturing.set(null);
                 gs.ix_();
@@ -244,15 +265,81 @@ public final class Backdrop {
                 b.cfM(a, BOX, com.bitwig.graphics.zLm.cfM, 1, 1, 1f);
                 a = b;
             }
-            log("blur made: window " + Math.round(W) + "x" + Math.round(H) + " at scale " + k + " -> " + sw + "x" + sh
-                    + " (" + g.getClass().getSimpleName() + ")");
+            log("blur made for " + what + ": " + Math.round(W) + "x" + Math.round(H) + " at scale " + k + " -> " + sw + "x" + sh);
             return new Snap(a, sw, sh, made);
         } catch (Throwable t) {
-            noBlur = true;
             for (qc1 b : made) dispose(b);
-            log("blur failed; dimming instead", t);
+            log("blur failed for " + what, t);
             return null;
         }
+    }
+
+    // ------------------------------------------------------------------------------------------- Bitwig's own popups
+
+    /*
+     * Bitwig's in-window popups (Dashboard, dialogs...) are dsI widgets put on the window's layer stack (dqs) above the
+     * main content; their background is the theme's "Popup overlay background color". When one paints (dve.Hnt(g),
+     * entered with the dsI), the layers under it are painted into a blur bitmap once, and that is drawn first, fading in;
+     * Bitwig's own overlay colour then goes on top (at half strength while blurring, see popupOverlay).
+     */
+    private static final Map<Object, Snap> nativeSnaps = Collections.synchronizedMap(new WeakHashMap<>());
+    private static final Map<Object, Long> nativeSince = Collections.synchronizedMap(new WeakHashMap<>());
+
+    @Hook(id = "native-popup-paint", target = bitwig.obf.dve.class, method = "Hnt(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void widgetPaint(@bml.api.This Object widget, @bml.api.Arg(0) SYo g) {
+        if (!(widget instanceof bitwig.obf.dsI overlay) || capturing.get() != null || style != BLUR) return;
+        try { nativeBlur(overlay, g); } catch (Throwable t) { log("native popup blur failed", t); }
+    }
+
+    private static void nativeBlur(bitwig.obf.dsI overlay, SYo g) {
+        bitwig.obf.dve stack = overlay.RbC();
+        if (stack == null) return;
+        Snap s = nativeSnaps.get(overlay);
+        if (s == null && !nativeSnaps.containsKey(overlay)) {
+            java.util.List<bitwig.obf.dve> under = new java.util.ArrayList<>();
+            for (Object c : stack.vJT()) { if (c == overlay) break; if (c instanceof bitwig.obf.dve d) under.add(d); }
+            s = blurOf(g, stack, under, "a Bitwig popup (" + under.size() + " layer(s) under it)");
+            nativeSnaps.put(overlay, s);
+            nativeSince.put(overlay, System.nanoTime());
+            startNativeTicker();
+        }
+        if (s == null) return;
+        Long since = nativeSince.get(overlay);
+        double a = since == null ? 1 : Math.min(1, (System.nanoTime() - since) / 1e6 / IN_MS);
+        double e = 1 - Math.pow(1 - a, 3);
+        com.bitwig.base.geom.OLR at = overlay.ihs(), st = stack.ihs();
+        double ox = (at == null ? 0 : at.FzB()) - (st == null ? 0 : st.FzB());
+        double oy = (at == null ? 0 : at.hUR()) - (st == null ? 0 : st.hUR());
+        double k = scale(g);
+        g.qoU();
+        try {
+            g.FzB(-ox, -oy); // the stack's origin (the bitmap covers the whole stack)
+            g.Hnt(stack.Sxo() * k / s.w(), stack.yiX() * k / s.h());
+            g.cfM(s.bitmap(), 0, 0, e);
+        } finally { g.ucQ(); }
+    }
+
+    /** Repaints for the native popups' fade-in (from Bitwig's UI timer, not during a paint). */
+    private static java.util.TimerTask nativeTicker;
+    private static synchronized void startNativeTicker() {
+        if (nativeTicker != null) return;
+        long until = System.nanoTime() + (long) ((IN_MS + 60) * 1e6);
+        try {
+            nativeTicker = bitwig.obf.dpN.TVZ().cfM(() -> {
+                repaintWindows();
+                if (System.nanoTime() > until) {
+                    synchronized (Backdrop.class) { if (nativeTicker != null) { nativeTicker.cancel(); nativeTicker = null; } }
+                }
+            }, 16, 16);
+        } catch (Throwable t) { log("fade timer unavailable", t); }
+    }
+
+    /** The theme's popup overlay colour, at half strength while Blur is on (so the blur shows through it). */
+    private static volatile Object overlayName;
+    @Hook(id = "popup-overlay-colour", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
+    public static iok popupOverlay(@bml.api.Return iok value, @bml.api.This Object colour) {
+        if (style != BLUR || value == null || colour != overlayName) return value;
+        return new iok(value.FzB(), value.IwV(), value.UNj(), value.hUR() * 0.5f);
     }
 
     private static void release(Object w) {
