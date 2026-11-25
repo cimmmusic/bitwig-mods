@@ -169,4 +169,52 @@ public final class Backdrop {
         } catch (Throwable t) { log("popup overlay colour unavailable; using black 80%", t); }
         return new iok(0.03f, 0.03f, 0.03f, 0.8f);
     }
+
+    // ------------------------------------------------------------------------------------------- popups fade in
+
+    /*
+     * Popups are native windows: CocoaWindowHandle.Hnt(visible) shows one. On entry, for a popup window (Bitwig's
+     * PopupWindowHandle) its native window (IBe.Hnt()) is made see-through, then raised to fully opaque over FADE_MS
+     * from Bitwig's UI timer (NativeAlpha: [NSWindow setAlphaValue:] or [layer setOpacity:]).
+     */
+    static volatile boolean fadePopups = STORE.getBoolean("fade_popups", true);
+    private static final double FADE_MS = 130;
+    private static final java.util.Map<Long, Long> fading = new java.util.concurrent.ConcurrentHashMap<>();
+    private static int fadeLogs;
+
+    /** A window about to be shown or hidden (CocoaWindowHandle.Hnt(visible)): a popup goes see-through, then fades up. */
+    @Hook(id = "window-showing", target = com.bitwig.mac_windowing_system.CocoaWindowHandle.class, method = "Hnt(Z)V", at = At.ENTRY)
+    public static void windowShowing(@bml.api.This Object handle, @bml.api.Arg(0) boolean visible) {
+        if (!visible || !fadePopups || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
+        try {
+            long window = popup.Hnt(); // its native window
+            if (window == 0 || !NativeAlpha.set(window, 0)) return;
+            fading.put(window, System.nanoTime());
+            if (fadeLogs < 3) { fadeLogs++; MOD.log("popup fading in (" + NativeAlpha.classOf(window) + ")"); }
+            startFadeTicker();
+        } catch (Throwable t) { log("popup fade failed", t); }
+    }
+
+    private static java.util.TimerTask fadeTicker;
+    private static synchronized void startFadeTicker() {
+        if (fadeTicker != null) return;
+        try {
+            fadeTicker = bitwig.obf.dpN.TVZ().cfM(Backdrop::fadeStep, 0, 16);
+        } catch (Throwable t) {
+            log("fade timer unavailable", t);
+            for (Long w : fading.keySet()) NativeAlpha.set(w, 1);
+            fading.clear();
+        }
+    }
+
+    private static void fadeStep() {
+        long now = System.nanoTime();
+        for (java.util.Map.Entry<Long, Long> e : fading.entrySet()) {
+            double t = Math.min(1, (now - e.getValue()) / 1e6 / FADE_MS);
+            double a = 1 - Math.pow(1 - t, 3); // ease out
+            NativeAlpha.set(e.getKey(), t >= 1 ? 1 : a);
+            if (t >= 1) fading.remove(e.getKey());
+        }
+        if (fading.isEmpty()) synchronized (Backdrop.class) { if (fadeTicker != null) { fadeTicker.cancel(); fadeTicker = null; } }
+    }
 }
