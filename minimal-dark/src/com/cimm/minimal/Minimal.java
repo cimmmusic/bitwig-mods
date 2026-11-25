@@ -75,6 +75,10 @@ public final class Minimal {
     public static void colourRegistered(@bml.api.This Object colour, @bml.api.Arg(0) String name) {
         seen.incrementAndGet();
         if (Theme.any()) Theme.registering.set(name);
+        if (name != null && name.startsWith("Loop Region ") && !name.contains("Background")) {
+            loopRegion.add(colour);
+            synchronized (loopRegion) { loopRegionArr = loopRegion.toArray(); }
+        }
         if (name != null) Recorder.named(colour, name);
         if (name != null) Tone.register(colour, name);
         if (name == null || !NAMES.contains(name)) return;
@@ -171,10 +175,17 @@ public final class Minimal {
             boolean inLoop = value != null && inLoopButton(w);
             if (inLoop && loopSeen.size() < 24 && loopSeen.add("asks " + colour))
                 MOD.log("loop button asks for " + colour + " = " + Math.round(value.FzB() * 255) + "," + Math.round(value.IwV() * 255) + "," + Math.round(value.UNj() * 255));
-            if (inLoop && LOOP_ON.contains(String.valueOf(colour))) {
-                if (loopSeen.size() < 12 && loopSeen.add("resolved " + colour)) MOD.log("loop on: " + colour + " drawn mint");
+            // the loop is on: the icon's "on" colour (Accent (hitech) here; not the hover colour, which stays the highlight)
+            if (inLoop && LOOP_ON.contains(String.valueOf(colour)) && loopOn()) {
+                if (loopSeen.size() < 24 && loopSeen.add("resolved " + colour)) MOD.log("loop on: " + colour + " drawn mint");
                 return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
             }
+        }
+        // the loop range in the timeline: mint while the loop is on, the theme's grey/white while it's off
+        if (value != null && isLoopRegion(colour) && loopOn()) {
+            if (loopSeen.size() < 24 && loopSeen.add("range " + colour)) MOD.log("loop range on: " + colour + " drawn mint");
+            boolean fill = String.valueOf(colour).contains("Fill");
+            return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), fill ? Math.max(0.4f, value.hUR()) : value.hUR());
         }
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
@@ -1035,7 +1046,24 @@ public final class Minimal {
     private static int loopLogs;
     private static final java.util.Set<String> loopSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
     /** The colours a toggle is drawn in when it is on. */
-    private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
+    /** The loop range's colours (Loop Region Fill / Stroke and their Selected variants), noted as Bitwig registers them. */
+    static final java.util.Set<Object> loopRegion = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new IdentityHashMap<>()));
+
+    private static volatile Object[] loopRegionArr = new Object[0];
+    private static boolean isLoopRegion(Object colour) {
+        for (Object c : loopRegionArr) if (c == colour) return true;
+        return false;
+    }
+
+    /** Whether the transport loop is on: the loop button's own toggle value (dAE.LIK()). */
+    static boolean loopOn() {
+        for (Object b : loopArr) {
+            try { if (b instanceof bitwig.obf.dAE t && t.LIK() != null && t.LIK().getBoolValue()) return true; } catch (Throwable ignored) {}
+        }
+        return false;
+    }
+
+    private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Accent (hitech)", "Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
     static final iok MINT = new iok(0x3B / 255f, 0xE8 / 255f, 0xB0 / 255f, 1f);
 
     /** Whether this icon widget belongs to a loop button (itself or a few parents up). */
