@@ -3,7 +3,7 @@
   "mod": {
     "id": "menu-backdrop",
     "name": "Interface: Menu Backdrop",
-    "version": "0.1.0-dev.3",
+    "version": "0.1.0-dev.4",
     "author": "Cimm",
     "description": "While a menu or popup is open, the window behind it softly blurs (or dims) with a short fade, so the menu stands out. Choose Blur, Dim or Off.",
     "documentation": "readme"

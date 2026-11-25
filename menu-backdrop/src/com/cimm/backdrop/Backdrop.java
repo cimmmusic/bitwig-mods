@@ -67,9 +67,27 @@ public final class Backdrop {
 
     // ------------------------------------------------------------------------------------------- popups
 
+    /** Popup windows that hold a menu (only these dim the window: hover popups and tooltips don't). */
+    private static final Set<Object> menus = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+    /** What the popup host is opening right now (dnf.cfM(content, placement, focus) creates the window and shows it). */
+    private static final ThreadLocal<Object> opening = new ThreadLocal<>();
+    private static int contentLogs;
+
+    @Hook(id = "popup-opening", target = bitwig.obf.dnf.class, method = "cfM(LdrO;LdsP;Z)V", at = At.ENTRY)
+    public static void popupOpening(@bml.api.Arg(0) Object content) {
+        opening.set(content);
+        if (contentLogs < 15) { contentLogs++; MOD.log("popup content: " + (content == null ? "none" : content.getClass().getName())
+                + (content instanceof bitwig.obf.dKW ? " (a menu: dims)" : " (not a menu)")); }
+    }
+
     @Hook(id = "popup-visible", target = bitwig.obf.dsQ.class, method = "t_(Z)V", at = At.ENTRY)
     public static void popupVisible(@bml.api.This Object popup, @bml.api.Arg(0) boolean visible) {
         try {
+            if (visible) {
+                Object content = opening.get();
+                if (content != null) { opening.set(null); if (content instanceof bitwig.obf.dKW) menus.add(popup); else menus.remove(popup); }
+                if (!menus.contains(popup)) return; // a hover popup or tooltip
+            }
             if (visible) open.add(popup); else open.remove(popup);
             update(visible ? "shown" : "hidden");
         } catch (Throwable t) { log("popup tracking failed", t); }
