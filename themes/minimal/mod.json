@@ -4,7 +4,7 @@
   "component": {
     "id": "minimal",
     "name": "Minimal",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "author": "Cimm",
     "description": "Very dark grey and flat: no gradients, no button backgrounds, no shadows, no menu-corner arrows; hairline lines, white text and icons, one orange accent.",
     "parent": "bte-theme-loader",

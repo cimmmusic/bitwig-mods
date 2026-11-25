@@ -53,10 +53,10 @@ Pressed Inverted Toggle Icon: #000000
 Menu Icon: #BDBDBD
 
 // ---- text ----
-Default text: #F5F5F5
-Light Text: #F5F5F5
+Default text: #FFFFFF
+Light Text: #FFFFFF
 Lighter Text: #FFFFFF
-Medium Light Text: #F5F5F5BF
+Medium Light Text: #FFFFFFDE
 Subtle Light Text: #F5F5F580
 Subtler Light Text: #F5F5F547
 Dark Text: #F5F5F5
@@ -100,7 +100,7 @@ Automation Color: #BDBDBD
 // ---- menus, fields, tooltips ----
 Menu background: #161616
 Menu stroke: #262626
-Menu text: #F5F5F5
+Menu text: #FFFFFF
 Menu description text: #7A7A7A
 Menu separator: #1F1F1F
 Field background: #121212
@@ -118,7 +118,7 @@ Tree Separator: #00000000
 Dark tree background (selected): #242424
 Dark tree background (standby selected): #1D1D1D
 Dark tree separator: #1A1A1A
-Dark tree text: #F5F5F5
+Dark tree text: #FFFFFF
 Dark tree text (selected): #FFFFFF
 Dark tree hover background change: #FFFFFF08
 White Selection: #F5F5F5
