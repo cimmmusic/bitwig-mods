@@ -4,9 +4,9 @@
   "component": {
     "id": "minimal",
     "name": "Minimal",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "author": "Cimm",
-    "description": "True black and flat: no gradients, no button backgrounds, no shadows; hairline lines, white text and icons, one orange accent.",
+    "description": "Very dark grey and flat: no gradients, no button backgrounds, no shadows; hairline lines, white text and icons, one orange accent.",
     "parent": "bte-theme-loader",
     "group": "themes",
     "interface_version": "1",
