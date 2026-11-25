@@ -188,5 +188,10 @@ public final class Highlight {
         return bitwig.obf.dqW.cfM(bitmap);
     }
 
+    // ---- PROBE: toolbar meters (see Meters) ----
+
+    @Hook(id = "probe-meter", target = bitwig.obf.aEJ.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void meterPaint(@bml.api.This Object meter) { Meters.painting(meter); }
+
     private static int c(float v) { return Math.round(Math.max(0, Math.min(1, v)) * 255); }
 }
