@@ -22,8 +22,16 @@ final class Looks {
             new Look("Forest", 150, 25, 2, 0, 10, 80),
             new Look("Espresso", 25, 28, 3, 0, 11, 45),
             new Look("Graphite", 210, 8, 10, -10, 6, 215),
-            new Look("OLED Black", 0, 0, -70, 10, 0, 30),
-            new Look("Minimal Light (experimental)", 0, 0, 80, -20, 6, 215));
+            new Look("Ocean", 195, 35, 3, 0, 8, 160),
+            new Look("Bordeaux", 345, 30, 2, 0, 13, 25),
+            new Look("Slate", 215, 15, 6, 0, 12, 215),
+            new Look("Moss", 95, 22, 2, 0, 11, 50),
+            new Look("Teal Night", 175, 35, 3, 0, 1, 25),
+            new Look("Plum", 315, 25, 3, 0, 8, 160),
+            new Look("Indigo", 245, 40, 3, 0, 5, 265),
+            new Look("Sand", 40, 18, 8, -5, 1, 25),
+            new Look("Rosewood", 5, 25, 3, 0, 3, 330),
+            new Look("Neon", 290, 45, 2, 10, 13, 175));
 
     static final String CUSTOM = "Custom";
 
