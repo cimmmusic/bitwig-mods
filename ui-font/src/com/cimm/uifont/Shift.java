@@ -36,6 +36,14 @@ final class Shift {
         return 0;
     }
 
+    /** Whether the run's face is one of the user's fonts (not Bitwig's icon font or another fallback). */
+    static boolean userFace(com.bitwig.graphics.render_commands.hLr run) {
+        if (run == null) return false;
+        Object face = run.MRY;
+        for (Object f : faces) if (f == face) return true;
+        return false;
+    }
+
     private static int fitLogs;
 
     /**

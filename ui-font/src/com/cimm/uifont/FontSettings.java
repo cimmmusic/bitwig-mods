@@ -32,6 +32,9 @@ public final class FontSettings implements PreferenceProvider {
         preferences.number("ui_font_move_down", "Move text down (px)", -10, 10)
                    .in(mine)
                    .value(Shift::px, Shift::set);
+        preferences.checkbox("ui_font_solid_dark_text", "Solid dark text on bright colours")
+                   .in(mine)
+                   .value(() -> Fonts.solidDark, v -> { Fonts.solidDark = v; Fonts.STORE.putBoolean("solid_dark_text", v); });
         preferences.checkbox("ui_font_sentence_case_toolbar", "Toolbar menus in sentence case (restart)")
                    .in(mine)
                    .value(Labels::on, v -> Fonts.STORE.putBoolean(Labels.KEY, v));

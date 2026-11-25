@@ -115,6 +115,14 @@ public final class UiFont {
         double d = Shift.offset(run);
         if (d > 0) d = Shift.fit(g, run, y, d); // never past the bottom of the field / label: descenders stay whole
         g.MRY(x, y + d, text, colour);
+        // dark text (black on bright tracks, clips, light backgrounds): a thin face leaves its strokes part-covered,
+        // so black over orange reads brown; a second pass a fraction of a pixel across fills the strokes in
+        if (Fonts.solidDark && colour != null && Shift.userFace(run) && dark(colour))
+            g.MRY(x + 0.35, y + d, text, colour);
+    }
+
+    private static boolean dark(bitwig.obf.iok c) {
+        return c.hUR() > 0.9f && c.FzB() < 0.2f && c.IwV() < 0.2f && c.UNj() < 0.2f;
     }
 
     /** Toolbar menus in sentence case (see Labels): YGP.cfM(files) merges the language's text files into one map,

@@ -16,6 +16,8 @@ import java.util.Set;
 final class Fonts {
     static final Bml.Mod MOD = Bml.mod("ui-font");
     static final Settings STORE = MOD.settings();
+    /** Dark text drawn a touch heavier (setting "Solid dark text on bright colours"). */
+    static volatile boolean solidDark = STORE.getBoolean("solid_dark_text", true);
 
     /** Settings keys; each holds the chosen font file's full path, or "" for Bitwig's own font. */
     static final String INTERFACE = "interface", BOLD = "bold", NUMBERS = "numbers";
