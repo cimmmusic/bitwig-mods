@@ -3,7 +3,7 @@
   "mod": {
     "id": "ui-font",
     "name": "Interface: Font",
-    "version": "0.3.0-dev.1",
+    "version": "0.3.0-dev.2",
     "author": "Cimm",
     "description": "Choose the font Bitwig draws its interface with: any font installed on your Mac, or one you drop in the mod's fonts folder. Separate choices for normal text, bold text and numbers. Applies when Bitwig starts.",
     "documentation": "readme"

@@ -53,7 +53,7 @@ final class Browser {
         void choose(String option) {
             FontSettings.store(id, option); // the mod's own setting: what the font hooks read at start
             if (value != null) { // and through the framework, so the dropdown shows it at once
-                try { value.getClass().getMethod("setValue", Object.class).invoke(value, option); }
+                try { java.lang.reflect.Method m = value.getClass().getMethod("setValue", Object.class); m.setAccessible(true); m.invoke(value, option); }
                 catch (Throwable t) { Fonts.MOD.log("updating the dropdown failed", t); }
             }
         }
@@ -169,7 +169,8 @@ final class Browser {
     }
 
     private static void close(dBX dropdown, dKW popup) {
-        try { dropdown.kH_().MRY((bitwig.obf.drO) popup); } catch (Throwable t) { Fonts.MOD.log("closing the font list failed", t); }
+        try { popup.pYg(); } // Bitwig's own close: takes the popup off its window
+        catch (Throwable t) { Fonts.MOD.log("closing the font list failed", t); }
     }
 
     /** What's typed in the search field. */
@@ -216,10 +217,17 @@ final class Browser {
         private drX press(eoX b, double x, double y) {
             try {
                 if (!b.name().equals("SELECTION")) return null;
-                Runnable r = click(x, y);
-                if (r == null) return null;
+                if (click(x, y) == null) return null;
                 return new drX() { // Bitwig calls press on hover too: act only when the press really starts
-                    @Override public void cfM(dJH e) { super.cfM(e); try { r.run(); } catch (Throwable t) { Fonts.MOD.log("click failed", t); } }
+                    @Override public void cfM(dJH e) {
+                        super.cfM(e);
+                        // where the press really is (Bitwig sets these when it starts); the arguments above can be a hover's
+                        double px = FzB, py = IwV;
+                        if (logged.add("press " + Base.this.getClass().getSimpleName()))
+                            Fonts.MOD.log("press at " + Math.round(px) + "," + Math.round(py) + " (asked at " + Math.round(x) + "," + Math.round(y) + ")");
+                        Runnable r = click(px, py);
+                        if (r != null) try { r.run(); } catch (Throwable t) { Fonts.MOD.log("click failed", t); }
+                    }
                     @Override public boolean jQ_() { return false; }
                     @Override public boolean jB_() { return false; }
                 };
@@ -258,7 +266,12 @@ final class Browser {
 
     /** The list's scroll pane, a fixed size. */
     static final class Scroll extends dXk {
-        Scroll(dve content) { super(); try { gfw(); } catch (Throwable ignored) {} cfM(content); }
+        Scroll(dve content) {
+            super();
+            try { gfw(); } catch (Throwable t) { Fonts.MOD.log("scroll pane setup failed", t); }
+            try { G_(); } catch (Throwable t) { Fonts.MOD.log("scroll pane setup failed", t); } // as Bitwig's dXk.LzO()
+            cfM(content);
+        }
         @Override public SYo mK_() { return new SYo((long) W, (long) LIST_H); }
         @Override public SYo iG_() { return mK_(); }
         @Override public SYo ni_() { return new SYo(100000, (long) LIST_H); }
