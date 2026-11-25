@@ -1,0 +1,98 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "ui-font",
+    "name": "Interface: Font",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "Choose the font Bitwig draws its interface with: any font installed on your Mac, or one you drop in the mod's fonts folder. Separate choices for normal text, bold text and numbers. Applies when Bitwig starts.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.uifont.UiFont"
+  },
+  "targets": {
+    "dpK.Hnt": {
+      "kind": "method",
+      "owner": "dpK",
+      "name": "Hnt",
+      "descriptor": "(LIdX;)Lcom/bitwig/graphics/sQv;"
+    },
+    "com.bitwig.graphics.sal.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/sal",
+      "name": "cfM",
+      "descriptor": "(Ljava/io/File;)Lcom/bitwig/graphics/sQv;"
+    },
+    "com.bitwig.graphics.sal.cfM-2": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/sal",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;"
+    }
+  },
+  "hooks": [
+    {
+      "id": "font-from-file",
+      "target": "dpK.Hnt",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.sal.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "fontFromFile",
+        "descriptor": "(Lcom/bitwig/graphics/sal;Ljava/io/File;)Lcom/bitwig/graphics/sQv;",
+        "args": []
+      }
+    },
+    {
+      "id": "font-from-stream",
+      "target": "dpK.Hnt",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.sal.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "fontFromStream",
+        "descriptor": "(Lcom/bitwig/graphics/sal;Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;",
+        "args": []
+      }
+    }
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    },
+    "fonts": {
+      "kind": "directory",
+      "path": "fonts",
+      "persistence": "created"
+    }
+  },
+  "registrations": [
+    {
+      "id": "preferences",
+      "consumer": "preferences-composition-framework",
+      "descriptor": "preferences.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "preferences-composition-framework",
+      "min_version": "1.0.0"
+    }
+  ]
+}

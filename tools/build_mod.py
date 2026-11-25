@@ -13,7 +13,12 @@ HOME = Path.home()
 JDK = Path("/opt/homebrew/opt/openjdk@25/bin")
 BML = HOME / "Downloads/BML-0.36.0-dev.16-macos"
 KIT = BML / "modkit"
-BW = Path("/Applications/Bitwig Studio.app/Contents/Java")
+# The mods are written against Bitwig 6.1.4 (macOS); Patchbay translates them to the installed version at load.
+# The mod kit's final check needs the jars of the version the code is written for: a copy of 6.1.4's, taken from its
+# installer (build/bitwig-6.1.4), else the installed Bitwig's.
+BW = Path(__file__).resolve().parent.parent / "build" / "bitwig-6.1.4"
+if not (BW / "bitwig.jar").exists():
+    BW = Path("/Applications/Bitwig Studio.app/Contents/Java")
 BITWIG_JAR, LIBS_JAR = BW / "bitwig.jar", BW / "libs.jar"
 WORKROOT = HOME / "CimmBitwigMods/build"
 COMPILE_JAR = WORKROOT / "bitwig614-compile.jar"
@@ -111,9 +116,21 @@ def main():
     shutil.copytree(mod / "src", out / "src"); shutil.copy2(mod / "build.json", out)
     print("BUILT", out)
     if "--install" in sys.argv:
-        dest = BML / "mods" / mod_id
-        shutil.rmtree(dest, ignore_errors=True); shutil.copytree(out, dest)
-        print("INSTALLED", dest)
+        # Into the BML that Patchbay Launcher runs now (its current.txt names it), and the standalone one in Downloads
+        launcher = HOME / "Library/Application Support/PatchbayLauncher"
+        targets = [BML]
+        try:
+            current = (launcher / "current.txt").read_text().strip()
+            if current:
+                targets.insert(0, launcher / "installs" / f"BML-{current}-macos")
+        except OSError:
+            pass
+        for root in targets:
+            if not (root / "mods").is_dir():
+                continue
+            dest = root / "mods" / mod_id
+            shutil.rmtree(dest, ignore_errors=True); shutil.copytree(out, dest)
+            print("INSTALLED", dest)
 
 
 if __name__ == "__main__":
