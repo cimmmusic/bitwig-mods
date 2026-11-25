@@ -174,20 +174,32 @@ final class Tone {
      * together.
      */
     static void resetFrom(bitwig.obf.dNg slider) {
-        if (labelOf(slider) == null) return;
+        if (labelOf(slider) == null) { Highlight.MOD.log("double-click on a slider outside Background"); return; }
         bitwig.obf.dve section = slider;
         for (int i = 0; i < 12 && section != null; i++, section = section.RbC())
             if (labels(section, new java.util.HashSet<>()).containsAll(DEFAULTS.keySet())) break;
-        if (section == null) return;
+        if (section == null) { Highlight.MOD.log("Background section not found from the slider"); return; }
         java.util.List<bitwig.obf.dNg> sliders = new java.util.ArrayList<>();
         collect(section, sliders);
         int n = 0;
         for (bitwig.obf.dNg s : sliders) {
             String label = labelOf(s);
             if (label == null) continue;
-            s.abo().setDoubleValue(DEFAULTS.get(label));
+            int def = DEFAULTS.get(label);
+            boolean hueSlider = label.startsWith("Hue");
+            int current = hueSlider ? hue : label.startsWith("Sat") ? sat : label.startsWith("Lum") ? lum : con;
+            double min = hueSlider ? 0 : -100, max = hueSlider ? 360 : 100;
+            // the slider's value: real units, or 0..1 across its range (whichever matches the current setting)
+            double v = s.abo().getDoubleValue();
+            boolean normalised = Math.abs(v - current) > 0.5 && Math.abs(v - (current - min) / (max - min)) < 0.01;
+            s.abo().setDoubleValue(normalised ? (def - min) / (max - min) : def);
             n++;
         }
+        hue = 270; sat = 0; lum = 0; con = 0;
+        Highlight.STORE.putInt("bg_hue", 270); Highlight.STORE.putInt("bg_saturation", 0);
+        Highlight.STORE.putInt("bg_luminance", 0); Highlight.STORE.putInt("bg_contrast", 0);
+        changed();
+        repaint();
         Highlight.MOD.log("background back to default (" + n + " sliders)");
     }
 

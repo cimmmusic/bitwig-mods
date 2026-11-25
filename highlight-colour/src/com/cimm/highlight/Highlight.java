@@ -227,11 +227,28 @@ public final class Highlight {
     // ---- double-click a Background slider: back to the default (dark) ----
 
     /** A press on a slider (dNg): on a double-click on one of the Background sliders, all four go back to default. */
+    /** A press on a settings slider; two on the same slider within 400 ms are a double-click (the handler's int
+     *  argument is not a click count). */
     @Hook(id = "slider-press", target = bitwig.obf.dNg.class, method = "MRY(LeoX;DDLeoW;I)LdrX;", at = At.ENTRY)
-    public static void sliderPress(@bml.api.This Object slider, @bml.api.Arg(4) int clicks) {
-        if (clicks != 2 || !(slider instanceof bitwig.obf.dNg s)) return;
-        try { Tone.resetFrom(s); } catch (Throwable t) { MOD.log("resetting the background failed", t); }
+    public static void sliderPress(@bml.api.This Object slider, @bml.api.Arg(0) Object button) {
+        if (!(slider instanceof bitwig.obf.dNg s) || button != bitwig.obf.eoX.cfM) return;
+        long now = System.nanoTime();
+        boolean twice = slider == lastSlider && now - lastPress < 400_000_000L;
+        lastSlider = twice ? null : slider; lastPress = now;
+        if (!twice) return;
+        // after the press is handled (it starts a drag that could set the value where the mouse is)
+        try {
+            java.util.TimerTask[] once = new java.util.TimerTask[1];
+            once[0] = bitwig.obf.dpN.TVZ().cfM(() -> {
+                if (once[0] != null) once[0].cancel();
+                try { Tone.resetFrom(s); } catch (Throwable t) { MOD.log("resetting the background failed", t); }
+            }, 120, 100000);
+        } catch (Throwable t) {
+            try { Tone.resetFrom(s); } catch (Throwable u) { MOD.log("resetting the background failed", u); }
+        }
     }
+    private static volatile Object lastSlider;
+    private static volatile long lastPress;
 
     /*
      * Minimal's "Dark Text" is white: Bitwig uses it on surfaces that are light grey in its own theme (value fields,
