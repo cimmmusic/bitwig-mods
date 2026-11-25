@@ -17,6 +17,9 @@ public final class PillSettings implements PreferenceProvider {
         preferences.checkbox("pill_buttons_toolbar_plain", "No outlines on toolbar buttons")
                    .in(mine)
                    .value(() -> Pill.toolbarPlain, v -> { Pill.toolbarPlain = v; Pill.STORE.putBoolean("toolbar_no_outlines", v); });
+        preferences.checkbox("pill_buttons_toolbar_hover_icons", "Toolbar icons light up on hover (highlight colour)")
+                   .in(mine)
+                   .value(() -> Pill.hoverIcons, v -> { Pill.hoverIcons = v; Pill.STORE.putBoolean("toolbar_hover_icons", v); });
         preferences.slider("pill_buttons_roundness", "Roundness (%)", 0, 100).wholeNumbers()
                    .in(mine)
                    .value(() -> Pill.roundness, v -> { Pill.roundness = Math.round(v); Pill.STORE.putInt("roundness", (int) Math.round(v)); });

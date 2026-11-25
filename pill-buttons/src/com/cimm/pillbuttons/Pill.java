@@ -172,4 +172,91 @@ public final class Pill {
         if (inToolbar()) return;
         g.cfM(x, y, w, h, r(g, w, h, r), c, width);
     }
+
+    // ---- toolbar icons light up in the highlight colour while the mouse is over their button ----
+
+    static volatile boolean hoverIcons = STORE.getBoolean("toolbar_hover_icons", true);
+    /** Widgets the mouse is over now (Bitwig tells each one when the mouse enters and leaves it). */
+    private static final java.util.Set<Object> hovered =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static int hoverLogs;
+
+    @Hook(id = "mouse-enter", target = bitwig.obf.drW.class,
+          method = "cfM(Ldve;JLeoW;ZLepb;DDDDDDDDZZD)V", at = At.ENTRY)
+    public static void mouseEnter(@bml.api.Arg(0) Object widget) {
+        if (widget == null) return;
+        hovered.add(widget);
+        if (hoverIcons) repaintIfToolbar(widget);
+    }
+
+    @Hook(id = "mouse-leave", target = bitwig.obf.drW.class,
+          method = "MRY(Ldve;JLeoW;ZLepb;DDDDDDDDZZD)V", at = At.ENTRY)
+    public static void mouseLeave(@bml.api.Arg(0) Object widget) {
+        if (widget == null) return;
+        hovered.remove(widget);
+        if (hoverIcons) repaintIfToolbar(widget);
+    }
+
+    private static void repaintIfToolbar(Object widget) {
+        try { if (widget instanceof bitwig.obf.dve v && inToolbar(v)) v.jbi(); } catch (Throwable ignored) {}
+    }
+
+    /** True when w sits in a top bar (and not the bar itself). */
+    static boolean inToolbar(bitwig.obf.dve w) {
+        if (toolbars.isEmpty()) return false;
+        if (resolved.size() < toolbars.size()) resolveBars();
+        try {
+            for (bitwig.obf.dve v = w.RbC(); v != null; v = v.RbC())
+                if (bars.contains(v) || toolbars.contains(v)) return true;
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    /** True when the icon is in a toolbar button the mouse is over: the icon or one of its few nearest parents is
+     *  hovered, and that one is button-sized (not the whole bar). */
+    static boolean hoveredToolbarIcon(bitwig.obf.dve icon) {
+        if (!hoverIcons || hovered.isEmpty()) return false;
+        try {
+            bitwig.obf.dve v = icon;
+            for (int i = 0; i < 4 && v != null; i++, v = v.RbC()) {
+                if (bars.contains(v) || toolbars.contains(v)) return false;
+                if (hovered.contains(v)) return inToolbar(icon);
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
+    /** The theme's highlight colour (Accent (default)), as drawn for this widget: follows Interface: Highlight Colour. */
+    private static iok accent(bitwig.obf.dve w) {
+        try { iok c = w.PEn().cfM("Accent (default)").cfM(w); if (c != null) return c; } catch (Throwable ignored) {}
+        return new iok(1f, 0.37f, 0.12f, 1f);
+    }
+
+    private static final ThreadLocal<Object> icon = new ThreadLocal<>();
+
+    @Hook(id = "icon-paint", target = bitwig.obf.dqT.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void iconPaint(@bml.api.This Object widget) { icon.set(widget); }
+
+    /** An icon drawn in its own colours (the transport icons): in the highlight colour instead when hovered. */
+    @Hook(id = "icon-plain", target = bitwig.obf.dqT.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V",
+          at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.BrJ.class, call = "MRY(Lcom/bitwig/graphics/SYo;DD)V")
+    public static void iconPlain(com.bitwig.graphics.BrJ image, SYo g, double x, double y) {
+        Object w = icon.get();
+        if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) {
+            g.qoU();
+            try { g.Hnt(accent(v)); image.cfM(g, x, y); } finally { g.ucQ(); }
+            if (hoverLogs < 3) { hoverLogs++; MOD.log("toolbar icon hovered: " + v.getClass().getName()); }
+            return;
+        }
+        image.MRY(g, x, y);
+    }
+
+    /** An icon drawn in a colour: the highlight colour instead when hovered. */
+    @Hook(id = "icon-tinted", target = bitwig.obf.dqT.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V",
+          at = At.REPLACE_CALL, callOwner = SYo.class, call = "Hnt(Liok;)V")
+    public static void iconTinted(SYo g, iok colour) {
+        Object w = icon.get();
+        if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
+        g.Hnt(colour);
+    }
 }
