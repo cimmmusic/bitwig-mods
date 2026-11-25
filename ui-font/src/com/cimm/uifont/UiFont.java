@@ -49,7 +49,7 @@ public final class UiFont {
         UiFont.graphics = graphics;
         File mine = Fonts.replacement(file == null ? null : file.getName());
         if (mine != null) {
-            try { return graphics.cfM(mine); }
+            try { return Shift.mark(graphics.cfM(mine)); }
             catch (Throwable t) { Fonts.MOD.log("couldn't load " + mine + ", using Bitwig's " + file.getName(), t); }
         }
         return graphics.cfM(file);
@@ -62,9 +62,33 @@ public final class UiFont {
         UiFont.graphics = graphics;
         File mine = Fonts.replacement(name);
         if (mine != null) {
-            try (InputStream own = new FileInputStream(mine)) { return graphics.cfM(name, own); }
+            try (InputStream own = new FileInputStream(mine)) { return Shift.mark(graphics.cfM(name, own)); }
             catch (Throwable t) { Fonts.MOD.log("couldn't load " + mine + ", using Bitwig's " + name, t); }
         }
         return graphics.cfM(name, in);
+    }
+
+    // ------------------------------------------------------------------------------------------- moving text down
+
+    /*
+     * Bitwig draws a line of text as runs, one per font face (the UI font, then fallbacks such as its icon font for
+     * symbols): RKg sets the run's face on the graphics (JXO.cfM(hLr)), then draws the run (JXO.MRY(x, y, text, colour)).
+     * The first call notes the face; the second moves the run down when the face is one of the user's fonts, whose
+     * letters sit higher than Lato's. Icons and other fallbacks stay where they are.
+     */
+
+    private static final String RUN = "cfM(Lcom/bitwig/graphics/render_commands/JXO;[DDLiok;Lcom/bitwig/graphics/render_commands/hLr;Ljava/lang/String;)V";
+
+    @Hook(id = "run-face", target = com.bitwig.graphics.render_commands.RKg.class, method = RUN, at = At.REPLACE_CALL,
+          callOwner = com.bitwig.graphics.render_commands.JXO.class, call = "cfM(Lcom/bitwig/graphics/render_commands/hLr;)V")
+    public static void runFace(com.bitwig.graphics.render_commands.JXO g, com.bitwig.graphics.render_commands.hLr face) {
+        Shift.current.set(face);
+        g.cfM(face);
+    }
+
+    @Hook(id = "run-draw", target = com.bitwig.graphics.render_commands.RKg.class, method = RUN, at = At.REPLACE_CALL,
+          callOwner = com.bitwig.graphics.render_commands.JXO.class, call = "MRY(DDLjava/lang/String;Liok;)V")
+    public static void runDraw(com.bitwig.graphics.render_commands.JXO g, double x, double y, String text, bitwig.obf.iok colour) {
+        g.MRY(x, y + Shift.offset(Shift.current.get()), text, colour);
     }
 }

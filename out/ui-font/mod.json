@@ -3,7 +3,7 @@
   "mod": {
     "id": "ui-font",
     "name": "Interface: Font",
-    "version": "0.2.0-dev.2",
+    "version": "0.3.0-dev.1",
     "author": "Cimm",
     "description": "Choose the font Bitwig draws its interface with: any font installed on your Mac, or one you drop in the mod's fonts folder. Separate choices for normal text, bold text and numbers. Applies when Bitwig starts.",
     "documentation": "readme"
@@ -48,6 +48,32 @@
       "name": "cfM",
       "descriptor": "(Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;"
     },
+    "com.bitwig.graphics.render_commands.RKg.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/render_commands/RKg",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/render_commands/JXO;[DDLiok;Lcom/bitwig/graphics/render_commands/hLr;Ljava/lang/String;)V"
+    },
+    "com.bitwig.graphics.render_commands.JXO.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/render_commands/JXO",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/render_commands/hLr;)V"
+    },
+    "com.bitwig.graphics.render_commands.JXO.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/render_commands/JXO",
+      "name": "MRY",
+      "descriptor": "(DDLjava/lang/String;Liok;)V"
+    },
+    "com.bitwig.graphics.render_commands.JXO": {
+      "kind": "class",
+      "class": "com/bitwig/graphics/render_commands/JXO"
+    },
+    "com.bitwig.graphics.render_commands.hLr": {
+      "kind": "class",
+      "class": "com/bitwig/graphics/render_commands/hLr"
+    },
     "com.bitwig.base.geom.DoubleRectangle.FzB": {
       "kind": "field",
       "owner": "com/bitwig/base/geom/DoubleRectangle",
@@ -71,6 +97,12 @@
       "owner": "com/bitwig/base/geom/DoubleRectangle",
       "name": "MRY",
       "descriptor": "D"
+    },
+    "com.bitwig.graphics.render_commands.hLr.MRY": {
+      "kind": "field",
+      "owner": "com/bitwig/graphics/render_commands/hLr",
+      "name": "MRY",
+      "descriptor": "Lcom/bitwig/graphics/render_commands/z2y;"
     },
     "dXk.init": {
       "kind": "method",
@@ -148,6 +180,36 @@
         "descriptor": "(Lcom/bitwig/graphics/sal;Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;",
         "args": []
       }
+    },
+    {
+      "id": "run-face",
+      "target": "com.bitwig.graphics.render_commands.RKg.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.graphics.render_commands.JXO.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "runFace",
+        "descriptor": "(Lcom/bitwig/graphics/render_commands/JXO;Lcom/bitwig/graphics/render_commands/hLr;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "run-draw",
+      "target": "com.bitwig.graphics.render_commands.RKg.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.graphics.render_commands.JXO.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "runDraw",
+        "descriptor": "(Lcom/bitwig/graphics/render_commands/JXO;DDLjava/lang/String;Liok;)V",
+        "args": []
+      }
     }
   ],
   "opens": [
@@ -155,6 +217,11 @@
     "com.bitwig.base.geom.DoubleRectangle.Hnt",
     "com.bitwig.base.geom.DoubleRectangle.IwV",
     "com.bitwig.base.geom.DoubleRectangle.MRY",
+    "com.bitwig.graphics.render_commands.JXO",
+    "com.bitwig.graphics.render_commands.JXO.MRY",
+    "com.bitwig.graphics.render_commands.JXO.cfM",
+    "com.bitwig.graphics.render_commands.hLr",
+    "com.bitwig.graphics.render_commands.hLr.MRY",
     "dBX.cfM",
     "dXk.init",
     "drX.init",

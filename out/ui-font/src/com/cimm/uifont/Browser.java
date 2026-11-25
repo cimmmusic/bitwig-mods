@@ -194,6 +194,14 @@ final class Browser {
 
     /** Fixed-size widget base: paints with a clip, a left press runs click() once it really starts. */
     abstract static class Base extends dve {
+        /** Width and height (stretch: may grow wider). Plain names: subclasses fill these in, never Bitwig's methods,
+         *  because BML renames Bitwig overrides only in classes that extend Bitwig's widget directly. */
+        double w() { return W; }
+        abstract double h();
+        boolean stretch() { return true; }
+        @Override public SYo mK_() { return new SYo((long) w(), (long) h()); }
+        @Override public SYo iG_() { return new SYo((long) w(), (long) h()); }
+        @Override public SYo ni_() { return new SYo(stretch() ? 100000 : (long) w(), (long) h()); }
         @Override public dve MJ() { return this; }
         @Override public void Hnt(com.bitwig.graphics.SYo g) {
             super.Hnt(g);
@@ -222,16 +230,14 @@ final class Browser {
     static final class Gap extends Base {
         final double w, h;
         Gap(double w, double h) { this.w = w; this.h = h; }
-        @Override public SYo mK_() { return new SYo((long) w, (long) h); }
-        @Override public SYo iG_() { return mK_(); }
-        @Override public SYo ni_() { return mK_(); }
+        @Override double w() { return w; }
+        @Override double h() { return h; }
+        @Override boolean stretch() { return false; }
         @Override void paint(com.bitwig.graphics.SYo g, double w, double h) {}
     }
 
     static final class Rule extends Base {
-        @Override public SYo mK_() { return new SYo((long) W, 1); }
-        @Override public SYo iG_() { return mK_(); }
-        @Override public SYo ni_() { return new SYo(100000, 1); }
+        @Override double h() { return 1; }
         @Override void paint(com.bitwig.graphics.SYo g, double w, double h) { g.Hnt(LINE); g.MRY(0, 0, w, 1); g.wGc(); }
     }
 
@@ -239,9 +245,7 @@ final class Browser {
     static final class Header extends Base {
         final Runnable close;
         Header(Runnable close) { this.close = close; }
-        @Override public SYo mK_() { return new SYo((long) W, (long) HEADER); }
-        @Override public SYo iG_() { return mK_(); }
-        @Override public SYo ni_() { return new SYo(100000, (long) HEADER); }
+        @Override double h() { return HEADER; }
         @Override void paint(com.bitwig.graphics.SYo g, double w, double h) {
             Text.plain(g, "Fonts", PAD, h / 2, 17, TEXT);
             double cx = w - PAD - 6, cy = h / 2, r = 7;
@@ -281,9 +285,7 @@ final class Browser {
             for (dve p = this; p != null; p = p.RbC()) try { p.oQi(); } catch (Throwable ignored) {}
             jbi();
         }
-        @Override public SYo mK_() { return new SYo((long) W, (long) Math.max(ROW, shown.size() * ROW)); }
-        @Override public SYo iG_() { return mK_(); }
-        @Override public SYo ni_() { return new SYo(100000, (long) Math.max(ROW, shown.size() * ROW)); }
+        @Override double h() { return Math.max(ROW, shown.size() * ROW); }
 
         @Override void paint(com.bitwig.graphics.SYo g, double w, double h) {
             g.Hnt(BG); g.MRY(0, 0, w, h); g.wGc();

@@ -26,6 +26,9 @@ public final class FontSettings implements PreferenceProvider {
         dropdown(preferences, mine, Fonts.INTERFACE, "Interface font (restart)");
         dropdown(preferences, mine, Fonts.BOLD, "Bold font (restart)");
         dropdown(preferences, mine, Fonts.NUMBERS, "Numbers font (restart)");
+        preferences.number("ui_font_move_down", "Move text down (px)", -10, 10)
+                   .in(mine)
+                   .value(Shift::px, Shift::set);
     }
 
     /** The dropdown's fixed choices first (labels and the values stored for them), then every font. */
