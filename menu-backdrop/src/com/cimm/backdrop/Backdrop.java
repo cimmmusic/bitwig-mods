@@ -22,7 +22,7 @@ import java.util.WeakHashMap;
  * - Blur: when the popup opens, the window's backbuffer (the Cairo surface it paints into) is drawn into a bitmap an
  *   eighth of its size and blurred with Bitwig's own 3x3 box filter (qc1.cfM(src, kernel, ...), as it does for icon
  *   shadows); that bitmap is drawn scaled up over the window (scaling it up softens it further), with a light dim.
- * Both fade in and out; while fading, the window is asked to repaint every frame. All hooks live in this class (BML takes
+ * Both fade in and out; while fading, a timer on Bitwig's UI thread asks the windows to repaint every frame. All hooks live in this class (BML takes
  * one helper class per mod).
  */
 public final class Backdrop {
@@ -100,6 +100,27 @@ public final class Backdrop {
         if (any && now <= 0) snaps.clear(); // a new picture for a backdrop that starts from nothing
         if (logs < 20) log("popup " + why + "; backdrop " + (any ? "in" : "out"));
         repaintWindows();
+        startTicker();
+    }
+
+    /**
+     * Drives the fade: repaints the windows about 60 times a second until the fade is done, then once more. Bitwig
+     * ignores repaint requests made while a window is painting, so the frames are asked for from its timer (whose tasks
+     * run on the UI thread), never from inside the paint.
+     */
+    private static java.util.TimerTask ticker;
+    private static synchronized void startTicker() {
+        if (ticker != null) return;
+        try {
+            ticker = bitwig.obf.dpN.TVZ().cfM(() -> {
+                repaintWindows();
+                double a = level();
+                if (shown ? a >= 1 : a <= 0) stopTicker();
+            }, 16, 16);
+        } catch (Throwable t) { log("fade timer unavailable", t); }
+    }
+    private static synchronized void stopTicker() {
+        if (ticker != null) { try { ticker.cancel(); } catch (Throwable ignored) {} ticker = null; }
     }
 
     private static void repaintWindows() {
@@ -160,8 +181,6 @@ public final class Backdrop {
         g.Hnt(new iok(overlay.FzB(), overlay.IwV(), overlay.UNj(), (float) (overlay.hUR() * e * (blurred ? 0.4 : 1))));
         g.MRY(0, 0, W, H);
         g.wGc();
-        boolean moving = shown ? a < 1 : a > 0;
-        if (moving) w.jbi(); // next frame of the fade
     }
 
     /** Bitwig's own colour for what lies behind a popup ("Popup overlay background color", themeable). */
