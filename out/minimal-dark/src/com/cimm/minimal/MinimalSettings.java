@@ -17,5 +17,6 @@ public final class MinimalSettings implements PreferenceProvider {
         new FontSettings().declare(preferences);
         new HighlightSettings().declare(preferences);
         new BackdropSettings().declare(preferences);
+        new PillSettings().declare(preferences);
     }
 }

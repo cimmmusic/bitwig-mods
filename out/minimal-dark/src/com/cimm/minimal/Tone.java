@@ -165,64 +165,41 @@ final class Tone {
 
     // ------------------------------------------------------------------------------------------- reset
 
-    /** The Background sliders' labels (as in HighlightSettings) and their defaults. */
-    static final Map<String, Integer> DEFAULTS = Map.of("Hue (°)", 270, "Saturation (%)", 0, "Luminance (%)", 0, "Contrast (%)", 0);
+    /** The Background settings' ids (as in HighlightSettings) and their defaults: the default dark look. */
+    static final Map<String, Integer> DEFAULTS = Map.of("background_tone_hue", 270, "background_tone_saturation", 0,
+            "background_tone_luminance", 0, "background_tone_contrast", 0);
 
     /**
-     * A double-click on a slider: if it is one of the Background sliders, every Background slider is set back to its
-     * default through the slider itself (abo(): its value, bound to the setting), so the settings and the sliders move
-     * together.
+     * A double-click on a settings slider: if it is one of the Background sliders (found by the setting it is bound to,
+     * through the Settings framework), all four go back to the default dark look: the settings directly, and every
+     * Background slider in the window through its framework value (so the sliders move too).
      */
     static void resetFrom(bitwig.obf.dNg slider) {
-        if (labelOf(slider) == null) { Minimal.MOD.log("double-click on a slider outside Background"); return; }
-        bitwig.obf.dve section = slider;
-        for (int i = 0; i < 12 && section != null; i++, section = section.RbC())
-            if (labels(section, new java.util.HashSet<>()).containsAll(DEFAULTS.keySet())) break;
-        if (section == null) { Minimal.MOD.log("Background section not found from the slider"); return; }
-        java.util.List<bitwig.obf.dNg> sliders = new java.util.ArrayList<>();
-        collect(section, sliders);
-        int n = 0;
-        for (bitwig.obf.dNg s : sliders) {
-            String label = labelOf(s);
-            if (label == null) continue;
-            int def = DEFAULTS.get(label);
-            boolean hueSlider = label.startsWith("Hue");
-            int current = hueSlider ? hue : label.startsWith("Sat") ? sat : label.startsWith("Lum") ? lum : con;
-            double min = hueSlider ? 0 : -100, max = hueSlider ? 360 : 100;
-            // the slider's value: real units, or 0..1 across its range (whichever matches the current setting)
-            double v = s.abo().getDoubleValue();
-            boolean normalised = Math.abs(v - current) > 0.5 && Math.abs(v - (current - min) / (max - min)) < 0.01;
-            s.abo().setDoubleValue(normalised ? (def - min) / (max - min) : def);
-            n++;
-        }
+        String id = Browser.controlId(Browser.frameworkValue(slider));
+        if (id == null || !DEFAULTS.containsKey(id)) return;
+        long now = System.nanoTime();
+        if (now - lastReset < 500_000_000L) return; // one reset per double-click
+        lastReset = now;
         hue = 270; sat = 0; lum = 0; con = 0;
         Minimal.STORE.putInt("bg_hue", 270); Minimal.STORE.putInt("bg_saturation", 0);
         Minimal.STORE.putInt("bg_luminance", 0); Minimal.STORE.putInt("bg_contrast", 0);
+        bitwig.obf.dve root = slider;
+        for (bitwig.obf.dve p = slider.RbC(); p != null; p = p.RbC()) root = p;
+        java.util.List<bitwig.obf.dNg> sliders = new java.util.ArrayList<>();
+        collect(root, sliders);
+        int n = 0;
+        for (bitwig.obf.dNg s : sliders) {
+            Object v = Browser.frameworkValue(s);
+            Integer def = DEFAULTS.get(Browser.controlId(v));
+            if (def == null || !(v instanceof bitwig.obf.rMe value)) continue;
+            try { value.setValue(Double.valueOf(def)); n++; } catch (Throwable t) { Minimal.MOD.log("slider reset failed", t); }
+        }
         changed();
         repaint();
-        Minimal.MOD.log("background back to default (" + n + " sliders)");
+        Minimal.MOD.log("background back to default (" + n + " sliders moved)");
     }
 
-    /** The Background label in the slider's own row, or null. */
-    private static String labelOf(bitwig.obf.dve slider) {
-        bitwig.obf.dve a = slider;
-        for (int i = 0; i < 6 && a != null; i++, a = a.RbC()) {
-            Set<String> found = labels(a, new java.util.HashSet<>());
-            if (found.size() == 1) { String l = found.iterator().next(); return DEFAULTS.containsKey(l) ? l : null; }
-            if (found.size() > 1) return null;
-        }
-        return null;
-    }
-
-    private static Set<String> labels(bitwig.obf.dve w, Set<String> into) {
-        if (w instanceof bitwig.obf.duu label) {
-            String t = label.JhA();
-            if (t != null && DEFAULTS.containsKey(t)) into.add(t);
-        }
-        java.util.List<?> kids = w.vJT();
-        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) labels(d, into);
-        return into;
-    }
+    private static volatile long lastReset;
 
     private static void collect(bitwig.obf.dve w, java.util.List<bitwig.obf.dNg> into) {
         if (w instanceof bitwig.obf.dNg s) into.add(s);

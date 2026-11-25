@@ -3,9 +3,9 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.1.0-dev.1",
+    "version": "0.1.0-dev.3",
     "author": "Cimm",
-    "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, and a dim behind open menus. Doesn't need Framework: Themes.",
+    "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
   },
   "built_against": {
@@ -239,6 +239,126 @@
       "owner": "com/bitwig/mac_windowing_system/CocoaWindowHandle",
       "name": "Hnt",
       "descriptor": "(Z)V"
+    },
+    "dyK.cfM": {
+      "kind": "method",
+      "owner": "dyK",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "cfM",
+      "descriptor": "(DDDDDLjava/util/EnumSet;)V"
+    },
+    "dyK.MRY": {
+      "kind": "method",
+      "owner": "dyK",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "MRY",
+      "descriptor": "(DDDDDLjava/util/EnumSet;)V"
+    },
+    "dyK.cfM-2": {
+      "kind": "method",
+      "owner": "dyK",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.Hnt-2": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "Hnt",
+      "descriptor": "(DDDDDLjava/util/EnumSet;)V"
+    },
+    "aCf.cfM": {
+      "kind": "method",
+      "owner": "aCf",
+      "name": "cfM",
+      "descriptor": "(LaBF;)Ldve;"
+    },
+    "dyO.MRY": {
+      "kind": "method",
+      "owner": "dyO",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "dyQ.MRY": {
+      "kind": "method",
+      "owner": "dyQ",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "dyS.MRY": {
+      "kind": "method",
+      "owner": "dyS",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.cfM-2": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "cfM",
+      "descriptor": "(DDDDDLiok;Liok;Ljava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.cfM-3": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "cfM",
+      "descriptor": "(DDDDDLjava/util/EnumSet;D)V"
+    },
+    "dyO.MRY-2": {
+      "kind": "method",
+      "owner": "dyO",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
+    },
+    "drW.cfM": {
+      "kind": "method",
+      "owner": "drW",
+      "name": "cfM",
+      "descriptor": "(Ldve;JLeoW;ZLepb;DDDDDDDDZZD)V"
+    },
+    "drW.MRY": {
+      "kind": "method",
+      "owner": "drW",
+      "name": "MRY",
+      "descriptor": "(Ldve;JLeoW;ZLepb;DDDDDDDDZZD)V"
+    },
+    "dzq.TMF": {
+      "kind": "method",
+      "owner": "dzq",
+      "name": "TMF",
+      "descriptor": "(Ljava/lang/String;)V"
+    },
+    "dqT.cfM": {
+      "kind": "method",
+      "owner": "dqT",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "com.bitwig.graphics.BrJ.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/BrJ",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DD)V"
+    },
+    "aBW.G_": {
+      "kind": "method",
+      "owner": "aBW",
+      "name": "G_",
+      "descriptor": "()V"
+    },
+    "dWb.HL": {
+      "kind": "method",
+      "owner": "dWb",
+      "name": "HL",
+      "descriptor": "(Ldve;)V"
     },
     "com.bitwig.graphics.render_commands.JXO": {
       "kind": "class",
@@ -751,6 +871,296 @@
           "this",
           "arg1"
         ]
+      }
+    },
+    {
+      "id": "pill-fill",
+      "target": "dyK.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "fill",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-path",
+      "target": "dyK.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "path",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-frame",
+      "target": "dyK.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.Hnt-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "frame",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "note-toolbar",
+      "target": "aCf.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "noteToolbar",
+        "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;",
+        "args": []
+      }
+    },
+    {
+      "id": "outline-widget-o",
+      "target": "dyO.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "outlineWidgetO",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "outline-widget-q",
+      "target": "dyQ.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "outlineWidgetQ",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "outline-widget-s",
+      "target": "dyS.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "outlineWidgetS",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "pill-outline-o",
+      "target": "dyO.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "outlineO",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLiok;Liok;Ljava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-line-o",
+      "target": "dyO.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "lineO",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;D)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-path-o",
+      "target": "dyO.MRY-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "pathO",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-outline-q",
+      "target": "dyQ.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "outlineQ",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLiok;Liok;Ljava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-line-s",
+      "target": "dyS.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "lineS",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;D)V",
+        "args": []
+      }
+    },
+    {
+      "id": "mouse-enter",
+      "target": "drW.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "mouseEnter",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "mouse-leave",
+      "target": "drW.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "mouseLeave",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "button-icon",
+      "target": "dzq.TMF",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "buttonIcon",
+        "descriptor": "(Ljava/lang/Object;Ljava/lang/String;)V",
+        "args": [
+          "this",
+          "arg1"
+        ]
+      }
+    },
+    {
+      "id": "icon-paint",
+      "target": "dqT.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "iconPaint",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "icon-plain",
+      "target": "dqT.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.BrJ.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "iconPlain",
+        "descriptor": "(Lcom/bitwig/graphics/BrJ;Lcom/bitwig/graphics/SYo;DD)V",
+        "args": []
+      }
+    },
+    {
+      "id": "icon-tinted",
+      "target": "dqT.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.Hnt",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "iconTinted",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;Liok;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "toolbar-add",
+      "target": "aBW.G_",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dWb.HL",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "addToolbar",
+        "descriptor": "(LdWb;Ldve;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "area-add",
+      "target": "aBW.G_",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dWb.HL",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "addArea",
+        "descriptor": "(LdWb;Ldve;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "bottom-bar-add",
+      "target": "aBW.G_",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dWb.HL",
+        "occurrence": 2
+      },
+      "bridge": {
+        "method": "addBottomBar",
+        "descriptor": "(LdWb;Ldve;)V",
+        "args": []
       }
     }
   ],
