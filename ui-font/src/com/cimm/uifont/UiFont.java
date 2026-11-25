@@ -111,7 +111,10 @@ public final class UiFont {
     @Hook(id = "run-draw", target = com.bitwig.graphics.render_commands.RKg.class, method = RUN, at = At.REPLACE_CALL,
           callOwner = com.bitwig.graphics.render_commands.JXO.class, call = "MRY(DDLjava/lang/String;Liok;)V")
     public static void runDraw(com.bitwig.graphics.render_commands.JXO g, double x, double y, String text, bitwig.obf.iok colour) {
-        g.MRY(x, y + Shift.offset(Shift.current.get()), text, colour);
+        com.bitwig.graphics.render_commands.hLr run = Shift.current.get();
+        double d = Shift.offset(run);
+        if (d > 0) d = Shift.fit(g, run, y, d); // never past the bottom of the field / label: descenders stay whole
+        g.MRY(x, y + d, text, colour);
     }
 
     /** Wheel / trackpad scrolls, before Bitwig handles them: the open font list scrolls. An ENTRY hook, so other mods'

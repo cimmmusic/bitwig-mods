@@ -6,7 +6,6 @@ import bml.api.Bml;
 import bml.api.Hook;
 
 import java.awt.Color;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -48,27 +47,32 @@ public final class Highlight {
     private static final Map<Object, iok> originals = new IdentityHashMap<>();
     private static final Map<Object, String> names = new IdentityHashMap<>();
 
+    private static final java.util.concurrent.atomic.AtomicInteger seen = new java.util.concurrent.atomic.AtomicInteger();
+
+    /** Every theme colour passes here as Bitwig registers it, with its name: note the accent family. */
+    @Hook(id = "note-theme-colour", target = bitwig.obf.eeY.class,
+          method = "cfM(Ljava/lang/String;Lefd;Liok;FFF)V", at = At.ENTRY)
+    public static void colourRegistered(@bml.api.This Object colour, @bml.api.Arg(0) String name) {
+        seen.incrementAndGet();
+        if (name == null || !NAMES.contains(name)) return;
+        synchronized (originals) { names.put(colour, name); }
+    }
+
+    /** The registry is built (and any theme applied): read the accent colours' values and recolour them. */
     @Hook(id = "theme-registry-built", target = bitwig.obf.eff.class, method = "UNj()V", at = At.BEFORE_RETURN)
     public static void registryBuilt(@bml.api.This Object registry) {
         try {
+            int nulls = 0;
             synchronized (originals) {
-                for (Class<?> c = registry.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-                    for (Field f : c.getDeclaredFields()) {
-                        if (java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
-                        if (!bitwig.obf.eeY.class.isAssignableFrom(f.getType())) continue;
-                        f.setAccessible(true);
-                        Object colour = f.get(registry);
-                        if (colour == null || originals.containsKey(colour)) continue;
-                        String name = String.valueOf(colour);
-                        if (!NAMES.contains(name)) continue;
-                        iok value = ((bitwig.obf.eeY) colour).iHb(); // its own (absolute) colour
-                        if (value == null) continue;
-                        originals.put(colour, value);
-                        names.put(colour, name);
-                    }
+                for (var e : names.entrySet()) {
+                    if (originals.containsKey(e.getKey())) continue;
+                    iok value = ((bitwig.obf.eeY) e.getKey()).iHb(); // its own (absolute) colour
+                    if (value == null) { nulls++; continue; }
+                    originals.put(e.getKey(), value);
                 }
             }
-            MOD.log("found " + originals.size() + " highlight colours: " + names.values());
+            MOD.log("theme colours registered: " + seen.get() + "; highlight colours: " + originals.size()
+                    + (nulls > 0 ? " (" + nulls + " without their own colour)" : "") + " " + names.values());
             apply();
         } catch (Throwable t) { MOD.log("reading the theme colours failed", t); }
     }
@@ -77,6 +81,7 @@ public final class Highlight {
     static void apply() {
         List<Object[]> todo = new ArrayList<>();
         synchronized (originals) { for (var e : originals.entrySet()) todo.add(new Object[]{e.getKey(), e.getValue(), names.get(e.getKey())}); }
+        if (todo.isEmpty()) MOD.log("no highlight colours to change yet");
         if (todo.isEmpty()) return;
         iok main = null;
         for (Object[] t : todo) if (MAIN.equals(t[2])) main = (iok) t[1];

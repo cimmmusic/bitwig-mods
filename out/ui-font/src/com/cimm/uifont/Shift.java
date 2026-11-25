@@ -35,4 +35,30 @@ final class Shift {
         for (Object f : faces) if (f == face) return d;
         return 0;
     }
+
+    private static int fitLogs;
+
+    /**
+     * How far a run with its baseline at y may move down: the wanted d, but no further than the room between the
+     * bottom of its letters (baseline + the font's descent: the tails of g, y, p) and the bottom of the area Bitwig
+     * clips the text to (its field or label). So text moves down where there is space and never gets cut off.
+     */
+    static double fit(com.bitwig.graphics.SYo g, com.bitwig.graphics.render_commands.hLr run, double y, double d) {
+        try {
+            com.bitwig.base.geom.DoubleRectangle clip = g.TtY();
+            if (clip == null || !(clip.IwV > 0)) return d;
+            double descent = run.cfM().MRY(); // the font's descent at this size
+            double room = (clip.Hnt + clip.IwV) - (y + descent);
+            double ok = Math.max(0, Math.min(d, room));
+            if (fitLogs < 5 && ok < d) {
+                fitLogs++;
+                Fonts.MOD.log("text moved " + Math.round(ok * 10) / 10.0 + " of " + d + " (room " + Math.round(room * 10) / 10.0
+                        + ", descent " + Math.round(descent * 10) / 10.0 + ", clip bottom " + Math.round((clip.Hnt + clip.IwV) * 10) / 10.0 + ")");
+            }
+            return ok;
+        } catch (Throwable t) {
+            if (fitLogs < 5) { fitLogs++; Fonts.MOD.log("text fit failed", t); }
+            return d;
+        }
+    }
 }

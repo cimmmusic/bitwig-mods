@@ -3,7 +3,7 @@
   "mod": {
     "id": "highlight-colour",
     "name": "Interface: Highlight Colour",
-    "version": "0.1.0-dev.1",
+    "version": "0.1.0-dev.2",
     "author": "Cimm",
     "description": "Choose Bitwig's highlight colour (the orange of selected buttons, values, the playing transport and so on) from presets or any hue. Changes apply at once and work with any theme.",
     "documentation": "readme"
@@ -18,6 +18,12 @@
     "class": "com.cimm.highlight.Highlight"
   },
   "targets": {
+    "eeY.cfM": {
+      "kind": "method",
+      "owner": "eeY",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;Lefd;Liok;FFF)V"
+    },
     "eff.UNj": {
       "kind": "method",
       "owner": "eff",
@@ -26,6 +32,19 @@
     }
   },
   "hooks": [
+    {
+      "id": "note-theme-colour",
+      "target": "eeY.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "colourRegistered",
+        "descriptor": "(Ljava/lang/Object;Ljava/lang/String;)V",
+        "args": [
+          "this",
+          "arg1"
+        ]
+      }
+    },
     {
       "id": "theme-registry-built",
       "target": "eff.UNj",
