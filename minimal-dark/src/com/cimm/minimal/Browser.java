@@ -81,7 +81,7 @@ final class Browser {
             if (f.optionValue != null) {
                 Object control = field(f.optionValue, "c");
                 if (control != null) {
-                    if (!"ui-font".equals(field(control, "modId"))) return null;
+                    if (!Fonts.MOD.id().equals(field(control, "modId"))) return null;
                     id = String.valueOf(field(control, "id"));
                     @SuppressWarnings("unchecked") List<String> o = (List<String>) field(control, "options");
                     options = o;
@@ -135,6 +135,45 @@ final class Browser {
             }
         }
         return out;
+    }
+
+    /** The Settings framework's value object a settings widget is bound to (a slider's, a dropdown's...), or null. */
+    static Object frameworkValue(Object widget) {
+        Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+        queue.add(new Object[]{widget, 0});
+        int visited = 0;
+        while (!queue.isEmpty() && visited < 3000) {
+            Object[] item = queue.poll();
+            Object o = item[0]; int depth = (Integer) item[1];
+            if (o == null || !seen.add(o)) continue;
+            visited++;
+            Class<?> k = o.getClass();
+            if (k.getName().startsWith("bml.preferences.internal.Controls$") && k.getName().endsWith("Value")) return o;
+            if (depth >= 5 || o instanceof String || o instanceof Number || o instanceof Boolean || o instanceof Class || o instanceof Thread) continue;
+            if (o != widget && o instanceof dve) continue;
+            if (k.isArray() || k.getName().startsWith("java.")) {
+                if (o instanceof java.util.Collection<?> col) { int i = 0; for (Object e : col) { if (i++ > 500) break; queue.add(new Object[]{e, depth + 1}); } }
+                continue;
+            }
+            for (Class<?> c = k; c != null && c != Object.class; c = c.getSuperclass())
+                for (Field f : c.getDeclaredFields()) {
+                    if (f.getType().isPrimitive() || java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
+                    try { f.setAccessible(true); queue.add(new Object[]{f.get(o), depth + 1}); } catch (Throwable ignored) {}
+                }
+        }
+        return null;
+    }
+
+    /** The id of the setting behind a framework value (e.g. "background_tone_hue"), when it is this mod's; else null. */
+    static String controlId(Object value) {
+        try {
+            if (value == null) return null;
+            Object control = field(value, "control");
+            if (control == null || !Fonts.MOD.id().equals(field(control, "modId"))) return null;
+            Object id = field(control, "id");
+            return id == null ? null : id.toString();
+        } catch (Throwable t) { return null; }
     }
 
     private static Object field(Object o, String name) throws IllegalAccessException {

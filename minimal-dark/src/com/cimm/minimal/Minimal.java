@@ -285,8 +285,10 @@ public final class Minimal {
         // after the press is handled (it starts a drag that could set the value where the mouse is)
         try {
             java.util.TimerTask[] once = new java.util.TimerTask[1];
+            java.util.concurrent.atomic.AtomicBoolean done = new java.util.concurrent.atomic.AtomicBoolean();
             once[0] = bitwig.obf.dpN.TVZ().cfM(() -> {
                 if (once[0] != null) once[0].cancel();
+                if (done.getAndSet(true)) return; // once, however often the timer fires
                 try { Tone.resetFrom(s); } catch (Throwable t) { MOD.log("resetting the background failed", t); }
             }, 120, 100000);
         } catch (Throwable t) {
