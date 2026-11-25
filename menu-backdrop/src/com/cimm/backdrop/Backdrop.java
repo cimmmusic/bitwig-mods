@@ -26,6 +26,8 @@ public final class Backdrop {
 
     static final String[] STYLES = {"Dim", "Off"};
     static final int DIM = 0, OFF = 1;
+    /** The button that opened the menu stays above the dim (setting). */
+    static volatile boolean raiseButton = STORE.getBoolean("raise_button", true);
     static volatile int style = Math.max(0, Math.min(OFF, STORE.getInt("style", DIM)));
 
     private static final double IN_MS = 180, OUT_MS = 150;
@@ -57,8 +59,44 @@ public final class Backdrop {
     private static final ThreadLocal<Object> opening = new ThreadLocal<>();
 
     @Hook(id = "popup-opening", target = bitwig.obf.dnf.class, method = "cfM(LdrO;LdsP;Z)V", at = At.ENTRY)
-    public static void popupOpening(@bml.api.Arg(0) Object content) {
+    public static void popupOpening(@bml.api.Arg(0) Object content, @bml.api.Arg(1) Object placement) {
         opening.set(content);
+        openingAnchor.set(content instanceof bitwig.obf.dKW ? anchorOf(placement) : null);
+    }
+
+    // ------------------------------------------------------------------------------------------- the menu's button
+
+    /*
+     * A menu opened from a button (File, Play... in the toolbar) is placed against that button: the placement (a dsP,
+     * e.g. dPi) holds it in a widget field. That button is painted again on top of the dim, so the clicked menu name
+     * stays in the foreground in its highlight colour while everything else dims.
+     */
+    private static final ThreadLocal<Object> openingAnchor = new ThreadLocal<>();
+    /** Open menu popup -> the button it opened from. */
+    static final java.util.Map<Object, bitwig.obf.dve> anchors = Collections.synchronizedMap(new WeakHashMap<>());
+
+    private static bitwig.obf.dve anchorOf(Object placement) {
+        if (placement == null) return null;
+        try {
+            for (Class<?> c = placement.getClass(); c != null && c != Object.class; c = c.getSuperclass())
+                for (java.lang.reflect.Field f : c.getDeclaredFields()) {
+                    if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) || !bitwig.obf.dve.class.isAssignableFrom(f.getType())) continue;
+                    f.setAccessible(true);
+                    Object w = f.get(placement);
+                    // a button: not a whole panel or track row (context menus are placed against those too)
+                    if (w instanceof bitwig.obf.dzq b && b.yiX() <= 80 && b.Sxo() <= 400) return b;
+                }
+        } catch (Throwable t) { log("menu button not found", t); }
+        return null;
+    }
+
+    /** The buttons of the menus open now, to paint over the dim. */
+    static java.util.List<bitwig.obf.dve> openAnchors() {
+        java.util.List<bitwig.obf.dve> out = new java.util.ArrayList<>();
+        Object[] ps;
+        synchronized (open) { ps = open.toArray(); }
+        for (Object p : ps) { bitwig.obf.dve a = anchors.get(p); if (a != null) out.add(a); }
+        return out;
     }
 
     @Hook(id = "popup-visible", target = bitwig.obf.dsQ.class, method = "t_(Z)V", at = At.ENTRY)
@@ -66,7 +104,13 @@ public final class Backdrop {
         try {
             if (visible) {
                 Object content = opening.get();
-                if (content != null) { opening.set(null); if (content instanceof bitwig.obf.dKW) menus.add(popup); else menus.remove(popup); }
+                if (content != null) {
+                    opening.set(null);
+                    if (content instanceof bitwig.obf.dKW) menus.add(popup); else menus.remove(popup);
+                    bitwig.obf.dve a = (bitwig.obf.dve) openingAnchor.get();
+                    openingAnchor.set(null);
+                    if (a != null && raiseButton) anchors.put(popup, a); else anchors.remove(popup);
+                }
                 if (!menus.contains(popup)) return; // a hover popup or tooltip
                 open.add(popup);
             } else open.remove(popup);

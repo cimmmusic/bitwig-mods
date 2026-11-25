@@ -29,6 +29,32 @@ final class DimLayer extends bitwig.obf.dve {
             g.Hnt(c);
             g.MRY(0, 0, Sxo(), yiX());
             g.wGc();
+            raised(g);
         } catch (Throwable ignored) {}
+    }
+
+    /** The open menu's button, painted again over the dim where it sits in this window. */
+    private void raised(com.bitwig.graphics.SYo g) {
+        com.bitwig.base.geom.OLR me = ihs();
+        if (me == null) return;
+        bitwig.obf.dve myRoot = root(this);
+        for (bitwig.obf.dve a : Backdrop.openAnchors()) {
+            try {
+                if (root(a) != myRoot) continue; // another window
+                com.bitwig.base.geom.OLR r = a.ihs();
+                if (r == null) continue;
+                g.qoU();
+                try {
+                    g.FzB(r.FzB() - me.FzB(), r.hUR() - me.hUR());
+                    a.Hnt(g);
+                } finally { g.ucQ(); }
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    private static bitwig.obf.dve root(bitwig.obf.dve w) {
+        bitwig.obf.dve r = w;
+        for (bitwig.obf.dve p = w.RbC(); p != null; p = p.RbC()) r = p;
+        return r;
     }
 }
