@@ -19,9 +19,10 @@ import java.util.WeakHashMap;
  * paint their content in duG.MRY(g) (super.MRY(g) draws the widgets), then overlays. Right after the content (at the
  * call to dpN.TVZ() that follows it) this mod draws the backdrop over the whole window while any popup is shown:
  * - Dim: Bitwig's own popup overlay colour ("Popup overlay background color").
- * - Blur: when the popup opens, the window's backbuffer (the Cairo surface it paints into) is drawn into a bitmap an
- *   eighth of its size and blurred with Bitwig's own 3x3 box filter (qc1.cfM(src, kernel, ...), as it does for icon
- *   shadows); that bitmap is drawn scaled up over the window (scaling it up softens it further), with a light dim.
+ * - Blur: when the menu opens, the window is painted once into a bitmap an eighth of its size (made by the window's
+ *   own graphics, as Bitwig does for widgets drawn with transparency) and blurred with Bitwig's own 3x3 box filter
+ *   (qc1.cfM(src, kernel, ...), as it does for icon shadows); that bitmap is drawn scaled up over the window (scaling it
+ *   up softens it further), under half of the popup overlay colour.
  * Both fade in and out; while fading, a timer on Bitwig's UI thread asks the windows to repaint every frame. All hooks live in this class (BML takes
  * one helper class per mod).
  */
@@ -33,7 +34,7 @@ public final class Backdrop {
 
     static final String[] STYLES = {"Blur", "Dim", "Off"};
     static final int BLUR = 0, DIM = 1, OFF = 2;
-    static volatile int style = Math.max(0, Math.min(OFF, STORE.getInt("style", DIM)));
+    static volatile int style = Math.max(0, Math.min(OFF, STORE.getInt("style", BLUR)));
 
     private static final double IN_MS = 180, OUT_MS = 150;
     private static final int DOWN = 8, PASSES = 3;
@@ -46,7 +47,7 @@ public final class Backdrop {
     /** Each window's blurred picture, taken when the backdrop starts from nothing. */
     private static final Map<Object, Snap> snaps = Collections.synchronizedMap(new WeakHashMap<>());
 
-    private record Snap(qc1 bitmap, int w, int h) {}
+    private record Snap(qc1 bitmap, int w, int h, java.util.List<qc1> all) {}
 
     // fade state: the level (0..1) at the last change, when, and the direction
     private static volatile boolean shown;
@@ -154,7 +155,7 @@ public final class Backdrop {
 
     @Hook(id = "window-paint", target = bitwig.obf.duG.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
     public static void windowPaint(@bml.api.This Object window, @bml.api.Arg(0) SYo g) {
-        if (window instanceof bitwig.obf.dsR) { painting.set(null); graphics.set(null); return; } // a popup itself
+        if (window instanceof bitwig.obf.dsR || capturing.get() != null) { painting.set(null); graphics.set(null); return; } // a popup, or the blur's own paint
         painting.set(window); graphics.set(g);
         windows.add(window);
     }
@@ -196,7 +197,7 @@ public final class Backdrop {
                 blurred = true;
             }
         }
-        g.Hnt(new iok(overlay.FzB(), overlay.IwV(), overlay.UNj(), (float) (overlay.hUR() * e * (blurred ? 0.4 : 1))));
+        g.Hnt(new iok(overlay.FzB(), overlay.IwV(), overlay.UNj(), (float) (overlay.hUR() * e * (blurred ? 0.5 : 1))));
         g.MRY(0, 0, W, H);
         g.wGc();
     }
@@ -210,41 +211,45 @@ public final class Backdrop {
         return new iok(0.03f, 0.03f, 0.03f, 0.8f);
     }
 
-    /** The window's current picture, an eighth of its size, blurred; null if it can't be made here. */
+    /** True while the window is being painted into the blur bitmap (the backdrop hooks stay out of that paint). */
+    private static final ThreadLocal<Boolean> capturing = new ThreadLocal<>();
+
+    /**
+     * The window's current picture, an eighth of its size, blurred; null if it can't be made here. Done the way Bitwig
+     * paints a widget with transparency (dve.cfM(g, alpha)): a bitmap made by the window's own graphics (g.cfM(w, h,
+     * format), so it works with Bitwig's recorded drawing), the window painted into it (scaled down), then Bitwig's 3x3
+     * box filter a few times. The bitmaps are kept until the backdrop is gone (the drawing runs later, from the record).
+     */
     private static Snap snapshot(bitwig.obf.duG w, SYo g) {
+        java.util.List<qc1> made = new java.util.ArrayList<>();
         try {
-            if (!(g instanceof com.bitwig.graphics.cairo.CairoGraphicsOutput out)) {
-                noBlur = true;
-                log("blur unavailable: the window paints with " + g.getClass().getName() + "; dimming instead");
-                return null;
-            }
-            com.bitwig.graphics.cairo.CairoSurface surface = out.TMF();
-            int pw, ph;
-            if (surface instanceof com.bitwig.graphics.cairo.CairoBitmapSurface b) { pw = b.TMF(); ph = b.lYc(); }
-            else {
-                double k = 1;
-                try { k = g.Hnt(); } catch (Throwable ignored) {}
-                pw = (int) Math.round(w.Sxo() * k); ph = (int) Math.round(w.yiX() * k);
-            }
-            if (pw <= 0 || ph <= 0) return null;
-            com.bitwig.graphics.sal system = w.kH_().hUR();
-            int sw = Math.max(1, pw / DOWN), sh = Math.max(1, ph / DOWN);
-            qc1 small = system.cfM(sw, sh, com.bitwig.graphics.Jkg.Hnt);
-            SYo gs = small.cfM();
+            double W = w.Sxo(), H = w.yiX();
+            double k = 1;
+            try { k = g.Hnt(); } catch (Throwable ignored) {}
+            int sw = (int) Math.max(1, Math.ceil(W * k / DOWN)), sh = (int) Math.max(1, Math.ceil(H * k / DOWN));
+            qc1 a = g.cfM(sw, sh, com.bitwig.graphics.Jkg.cfM);
+            made.add(a);
+            SYo gs = a.cfM();
+            capturing.set(Boolean.TRUE);
             try {
-                gs.Hnt(sw / (double) pw, sh / (double) ph);
-                gs.cfM(surface, 0, 0);
-            } finally { gs.ix_(); }
-            qc1 a = small;
+                gs.Hnt(sw / W, sh / H);
+                w.Hnt(gs); // the window and everything in it
+            } finally {
+                capturing.set(null);
+                gs.ix_();
+            }
             for (int i = 0; i < PASSES; i++) {
-                qc1 b = system.cfM(sw, sh, com.bitwig.graphics.Jkg.Hnt);
+                qc1 b = g.cfM(sw, sh, com.bitwig.graphics.Jkg.cfM);
+                made.add(b);
                 b.cfM(a, BOX, com.bitwig.graphics.zLm.cfM, 1, 1, 1f);
-                dispose(a);
                 a = b;
             }
-            log("blur made: " + pw + "x" + ph + " -> " + sw + "x" + sh + " (" + surface.getClass().getSimpleName() + ")");
-            return new Snap(a, sw, sh);
+            log("blur made: window " + Math.round(W) + "x" + Math.round(H) + " at scale " + k + " -> " + sw + "x" + sh
+                    + " (" + g.getClass().getSimpleName() + ")");
+            return new Snap(a, sw, sh, made);
         } catch (Throwable t) {
+            noBlur = true;
+            for (qc1 b : made) dispose(b);
             log("blur failed; dimming instead", t);
             return null;
         }
@@ -252,10 +257,10 @@ public final class Backdrop {
 
     private static void release(Object w) {
         Snap s = snaps.remove(w);
-        if (s != null) dispose(s.bitmap());
+        if (s != null) for (qc1 b : s.all()) dispose(b);
     }
 
     private static void dispose(qc1 b) {
-        try { if (b instanceof com.bitwig.graphics.cairo.CairoBitmap c) c.ix_(); } catch (Throwable ignored) {}
+        try { b.ix_(); } catch (Throwable ignored) {}
     }
 }
