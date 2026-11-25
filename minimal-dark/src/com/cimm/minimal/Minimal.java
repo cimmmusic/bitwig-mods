@@ -167,7 +167,11 @@ public final class Minimal {
         value = Theme.relative(colour, value);
         if (loopArr.length > 0) {
             Object w = asking.get(); // (left set: a colour made from another resolves inside, for the same widget)
-            if (value != null && lit(value) && inLoopButton(w)) {
+            // the loop is on: its icon asks for Bitwig's "on" colour (not the hover colour, which stays the highlight)
+            boolean inLoop = value != null && inLoopButton(w);
+            if (inLoop && loopSeen.size() < 24 && loopSeen.add("asks " + colour))
+                MOD.log("loop button asks for " + colour + " = " + Math.round(value.FzB() * 255) + "," + Math.round(value.IwV() * 255) + "," + Math.round(value.UNj() * 255));
+            if (inLoop && LOOP_ON.contains(String.valueOf(colour))) {
                 if (loopSeen.size() < 12 && loopSeen.add("resolved " + colour)) MOD.log("loop on: " + colour + " drawn mint");
                 return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
             }
@@ -1030,6 +1034,8 @@ public final class Minimal {
             java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
     private static int loopLogs;
     private static final java.util.Set<String> loopSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    /** The colours a toggle is drawn in when it is on. */
+    private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
     static final iok MINT = new iok(0x3B / 255f, 0xE8 / 255f, 0xB0 / 255f, 1f);
 
     /** Whether this icon widget belongs to a loop button (itself or a few parents up). */
@@ -1073,7 +1079,6 @@ public final class Minimal {
         if (w instanceof bitwig.obf.dve v && colour != null && loopIcon(v)) {
             String key = "tinted " + Integer.toHexString(colour.hashCode());
             if (loopSeen.size() < 12 && loopSeen.add(key)) MOD.log("loop icon tinted " + Math.round(colour.FzB() * 255) + "," + Math.round(colour.IwV() * 255) + "," + Math.round(colour.UNj() * 255) + (lit(colour) ? " (on: mint)" : ""));
-            if (lit(colour)) { g.Hnt(new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), colour.hUR())); return; }
         }
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
         g.Hnt(colour);
