@@ -23,6 +23,9 @@ public final class PillSettings implements PreferenceProvider {
         preferences.checkbox("pill_buttons_transport_bottom", "Transport at the bottom (restart)")
                    .in(mine)
                    .value(() -> Pill.transportBottom, v -> { Pill.transportBottom = v; Pill.STORE.putBoolean("transport_bottom", v); });
+        preferences.checkbox("pill_buttons_bottom_bar_top", "Arrange/Mix/Edit bar at the top (restart)")
+                   .in(mine)
+                   .value(() -> Pill.barTop, v -> { Pill.barTop = v; Pill.STORE.putBoolean("bottom_bar_top", v); });
         preferences.slider("pill_buttons_roundness", "Roundness (%)", 0, 100).wholeNumbers()
                    .in(mine)
                    .value(() -> Pill.roundness, v -> { Pill.roundness = Math.round(v); Pill.STORE.putInt("roundness", (int) Math.round(v)); });

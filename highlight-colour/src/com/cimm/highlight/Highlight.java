@@ -233,6 +233,25 @@ public final class Highlight {
         try { Tone.resetFrom(s); } catch (Throwable t) { MOD.log("resetting the background failed", t); }
     }
 
+    /*
+     * Minimal's "Dark Text" is white: Bitwig uses it on surfaces that are light grey in its own theme (value fields,
+     * notifications) and dark in Minimal. Bright coloured items still need real dark text, so the dark choice in
+     * eff.cfM(colour) gets its own near-black colour.
+     */
+    static final String INK = "Contrast Dark Ink";
+    private static volatile bitwig.obf.eeY ink;
+    static bitwig.obf.eeY ink() {
+        bitwig.obf.eeY i = ink;
+        if (i == null) ink = i = bitwig.obf.eeY.cfM(INK, new iok(0.067f, 0.067f, 0.067f, 1f));
+        return i;
+    }
+
+    @Hook(id = "contrast-dark-text", target = bitwig.obf.eff.class, method = "cfM(Liok;)LeeY;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "Ktv()LeeY;")
+    public static bitwig.obf.eeY darkText(bitwig.obf.eff registry) {
+        try { return ink(); } catch (Throwable t) { return registry.Ktv(); }
+    }
+
     // ---- notifications: body text that reads on the notification's own background ----
 
     /*
@@ -267,6 +286,7 @@ public final class Highlight {
             if (notification.get() instanceof bitwig.obf.dve w) bg = r.cfM("Notification Background").cfM(w);
             boolean darkBg = bg != null ? Tone.luminance(bg) <= 0.179 : !Tone.isLight();
             if (darkBg) { bitwig.obf.eeY white = r.cfM("Lighter Text"); if (white != null) return white; }
+            else if (Tone.luminance(dark.cfM((bitwig.obf.dve) notification.get())) > 0.4) return ink();
         } catch (Throwable t) { MOD.log("notification text colour failed", t); }
         return dark;
     }

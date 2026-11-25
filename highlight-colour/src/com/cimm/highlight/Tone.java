@@ -31,7 +31,7 @@ final class Tone {
 
     static final byte KEEP = 0, BG = 1, FG = 2;
     private static final Map<Object, Byte> kinds = Collections.synchronizedMap(new IdentityHashMap<>());
-    private static final Set<String> CONTEXT = Set.of("Dark Text", "Subtle Dark Text", "Lighter Text");
+    private static final Set<String> CONTEXT = Set.of("Lighter Text", Highlight.INK);
     private static final java.util.regex.Pattern FOREGROUND =
             java.util.regex.Pattern.compile("(?i).*(text|icon|label|knob line|hitcount|cursor|playhead|caret).*");
     private static volatile Object windowColour;

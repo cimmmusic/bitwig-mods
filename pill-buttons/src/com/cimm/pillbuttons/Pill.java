@@ -299,7 +299,18 @@ public final class Pill {
 
     @Hook(id = "bottom-bar-add", target = bitwig.obf.aBW.class, method = "G_()V", at = At.REPLACE_CALL,
           callOwner = bitwig.obf.dWb.class, call = "HL(Ldve;)V", occurrence = 4)
-    public static void addBottomBar(bitwig.obf.dWb column, bitwig.obf.dve bar) { column.HL(bar); addHeld(column); }
+    public static void addBottomBar(bitwig.obf.dWb column, bitwig.obf.dve bar) {
+        if (barTop && bar != null) {
+            // under the toolbar (index 1), or first when the toolbar is held back for the bottom
+            int at = heldToolbar.get() != null ? 0 : Math.min(1, column.vJT().size());
+            try { column.a_(bar, at); MOD.log("ARRANGE/MIX/EDIT bar moved to the top"); }
+            catch (Throwable t) { MOD.log("moving the bottom bar failed", t); if (bar.RbC() == null) column.HL(bar); }
+        } else column.HL(bar);
+        addHeld(column);
+    }
+
+    /** The bottom bar (ARRANGE / MIX / EDIT, panels) at the top of the window, under the toolbar. */
+    static volatile boolean barTop = STORE.getBoolean("bottom_bar_top", false);
 
     private static void addHeld(bitwig.obf.dWb column) {
         bitwig.obf.dve t = heldToolbar.get();

@@ -3,7 +3,7 @@
   "mod": {
     "id": "highlight-colour",
     "name": "Interface: Highlight & Background",
-    "version": "0.3.0-dev.2",
+    "version": "0.3.0-dev.3",
     "author": "Cimm",
     "description": "Choose Bitwig's highlight colour, tint the background (hue, saturation, luminance, contrast) and keep text readable: light backgrounds get dark text, dark ones light text, and text on coloured items is black or white, whichever contrasts more. Works with any theme.",
     "documentation": "readme"
