@@ -1208,4 +1208,66 @@ public final class Minimal {
         heldToolbar.remove();
         column.HL(t);
     }
+
+    // ---- sentence case instead of Bitwig's capitals (headers, tabs, section titles, hints): see Labels.caps ----
+
+    @Hook(id = "sentence-case-1", target = bitwig.obf.aBW.class, method = "Scv()Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase1(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-2", target = bitwig.obf.asn.class, method = "cfM(Ljava/lang/String;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase2(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-3", target = bitwig.obf.bDH.class, method = "wGc(Ljava/lang/String;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase3(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-4", target = bitwig.obf.bnK.class, method = "cfM(Ljava/lang/String;)LdAa;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase4(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-5", target = bitwig.obf.cEk.class, method = "cfM(Ljava/lang/String;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase5(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-6", target = bitwig.obf.cEk.class, method = "cfM(Ljava/lang/String;Ljava/lang/Object;Z)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase6(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-7", target = bitwig.obf.dEG.class, method = "cfM(Ljava/lang/Object;Ljava/util/List;)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase7(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-8", target = bitwig.obf.dKN.class, method = "gfw()V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase8(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-9", target = bitwig.obf.dKN.class, method = "MRY(Ljava/lang/String;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase9(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-10", target = bitwig.obf.drh.class, method = "cfM(Ljava/lang/String;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase10(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-11", target = bitwig.obf.dnO.class, method = "FzB()Ljava/lang/String;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase11(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-12", target = com.bitwig.flt.widget.core.device.ZSx.class, method = "cfM(LdKW;DDLeoW;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 1)
+    public static String sentenceCase12(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-13", target = com.bitwig.flt.widget.core.device.ZSx.class, method = "cfM(LdKW;DDLeoW;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 2)
+    public static String sentenceCase13(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-14", target = com.bitwig.flt.widget.core.device.ZSx.class, method = "cfM(LdKW;DDLeoW;)V", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 3)
+    public static String sentenceCase14(String s) { return Labels.caps(s); }
+
+    @Hook(id = "sentence-case-15", target = com.bitwig.flt.widget.core.online.oRV.class, method = "cfM(LYc;Lcom/bitwig/base/geom/LWw;Z)Ldve;", at = At.REPLACE_CALL,
+          callOwner = String.class, call = "toUpperCase()Ljava/lang/String;")
+    public static String sentenceCase15(String s) { return Labels.caps(s); }
 }

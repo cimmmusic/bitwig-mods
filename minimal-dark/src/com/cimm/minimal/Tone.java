@@ -201,6 +201,36 @@ final class Tone {
 
     private static volatile long lastReset;
 
+    /**
+     * Shows new values on any open Settings page: every slider and dropdown of this mod whose setting id is in values
+     * is set through its Settings-framework value (a number for sliders, the option's label for dropdowns), so the
+     * control moves and its setting is stored. Returns how many controls were set.
+     */
+    static int showOnSettingsPage(Map<String, Object> values) {
+        Object[] ws;
+        synchronized (windows) { ws = windows.toArray(); }
+        int n = 0;
+        for (Object o : ws) {
+            if (!(o instanceof bitwig.obf.dve root)) continue;
+            java.util.List<bitwig.obf.dve> controls = new java.util.ArrayList<>();
+            controls(root, controls, 0);
+            for (bitwig.obf.dve c : controls) {
+                Object v = Browser.frameworkValue(c);
+                String id = Browser.controlId(v);
+                if (id == null || !values.containsKey(id) || !(v instanceof bitwig.obf.rMe value)) continue;
+                try { value.setValue(values.get(id)); n++; } catch (Throwable t) { Minimal.MOD.log("setting " + id + " failed", t); }
+            }
+        }
+        return n;
+    }
+
+    private static void controls(bitwig.obf.dve w, java.util.List<bitwig.obf.dve> into, int depth) {
+        if (depth > 60) return;
+        if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { into.add(w); return; }
+        java.util.List<?> kids = w.vJT();
+        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) controls(d, into, depth + 1);
+    }
+
     private static void collect(bitwig.obf.dve w, java.util.List<bitwig.obf.dNg> into) {
         if (w instanceof bitwig.obf.dNg s) into.add(s);
         java.util.List<?> kids = w.vJT();
