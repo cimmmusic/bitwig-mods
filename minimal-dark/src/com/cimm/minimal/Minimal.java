@@ -165,6 +165,17 @@ public final class Minimal {
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
         value = Theme.relative(colour, value);
+        if (colour == dotColour && dotColour != null) {
+            boolean shown = false;
+            try {
+                Object w = asking.get();
+                bitwig.obf.dve d = w instanceof bitwig.obf.dve v ? v : null;
+                for (int i = 0; i < 4 && d != null; i++, d = d.RbC())
+                    if (d instanceof bitwig.obf.dMN n) { shown = n.d3(); break; }
+                if (dotLogs++ < 4) MOD.log("notifications dot: " + (shown ? "shown (mint)" : "hidden (grey)"));
+            } catch (Throwable ignored) {}
+            return shown ? new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), 1f) : DOT_GREY;
+        }
         if (loopArr.length > 0) {
             Object w = asking.get(); // (left set: a colour made from another resolves inside, for the same widget)
             // the loop is on: its icon asks for Bitwig's "on" colour (not the hover colour, which stays the highlight)
@@ -206,7 +217,7 @@ public final class Minimal {
     @Hook(id = "colour-asked", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
     public static void colourAsked(@bml.api.Arg(0) Object widget) {
         Tone.noteWidget(widget);
-        if (loopArr.length > 0) asking.set(widget);
+        if (loopArr.length > 0 || dotColour != null) asking.set(widget);
     }
 
     /** The widget asking for a colour right now (between colour-asked and draw-highlight), when loop buttons exist. */
@@ -1078,6 +1089,31 @@ public final class Minimal {
             if (loopSeen.size() < 24 && loopSeen.add("range painter")) MOD.log("loop range on: drawn mint");
             return m;
         } catch (Throwable t) { return registry.hDc(); }
+    }
+
+    // ---- the notifications dot (top right of the window): grey while notifications are hidden, mint while shown ----
+
+    static final iok DOT_GREY = new iok(0x7A / 255f, 0x7A / 255f, 0x7A / 255f, 1f);
+    private static volatile bitwig.obf.eeY dotColour;
+    private static int dotLogs;
+
+    private static bitwig.obf.eeY dot() {
+        bitwig.obf.eeY d = dotColour;
+        if (d == null) dotColour = d = bitwig.obf.eeY.cfM("Minimal Dark Notifications Dot", DOT_GREY);
+        return d;
+    }
+
+    /** dML.gfw() picks the dot's colour: red for an error (kept), else white or the button background: ours instead. */
+    @Hook(id = "notification-dot-light", target = bitwig.obf.dML.class, method = "gfw()V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "MYI()LeeY;")
+    public static bitwig.obf.eeY notificationDotLight(bitwig.obf.eff r) {
+        try { return dot(); } catch (Throwable t) { return r.MYI(); }
+    }
+
+    @Hook(id = "notification-dot-plain", target = bitwig.obf.dML.class, method = "gfw()V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "BBT()LeeY;")
+    public static bitwig.obf.eeY notificationDotPlain(bitwig.obf.eff r) {
+        try { return dot(); } catch (Throwable t) { return r.BBT(); }
     }
 
     private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Accent (hitech)", "Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
