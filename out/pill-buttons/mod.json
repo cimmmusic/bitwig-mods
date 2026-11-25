@@ -3,7 +3,7 @@
   "mod": {
     "id": "pill-buttons",
     "name": "Interface: Pill Buttons",
-    "version": "0.1.0-dev.1",
+    "version": "0.2.0-dev.1",
     "author": "Cimm",
     "description": "Bitwig's buttons, fields and small frames drawn fully rounded (pill-shaped), for a minimal, futuristic look. Pairs with the Minimal theme.",
     "documentation": "readme"
@@ -54,9 +54,27 @@
       "name": "Hnt",
       "descriptor": "(DDDDDLjava/util/EnumSet;)V"
     },
+    "aCf.cfM": {
+      "kind": "method",
+      "owner": "aCf",
+      "name": "cfM",
+      "descriptor": "(LaBF;)Ldve;"
+    },
     "dyO.MRY": {
       "kind": "method",
       "owner": "dyO",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "dyQ.MRY": {
+      "kind": "method",
+      "owner": "dyQ",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "dyS.MRY": {
+      "kind": "method",
+      "owner": "dyS",
       "name": "MRY",
       "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
     },
@@ -77,18 +95,6 @@
       "owner": "dyO",
       "name": "MRY",
       "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
-    },
-    "dyQ.MRY": {
-      "kind": "method",
-      "owner": "dyQ",
-      "name": "MRY",
-      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
-    },
-    "dyS.MRY": {
-      "kind": "method",
-      "owner": "dyS",
-      "name": "MRY",
-      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
     }
   },
   "hooks": [
@@ -135,6 +141,52 @@
         "method": "frame",
         "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
         "args": []
+      }
+    },
+    {
+      "id": "note-toolbar",
+      "target": "aCf.cfM",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "noteToolbar",
+        "descriptor": "(Ljava/lang/Object;)Ljava/lang/Object;",
+        "args": []
+      }
+    },
+    {
+      "id": "outline-widget-o",
+      "target": "dyO.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "outlineWidgetO",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "outline-widget-q",
+      "target": "dyQ.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "outlineWidgetQ",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg2"
+        ]
+      }
+    },
+    {
+      "id": "outline-widget-s",
+      "target": "dyS.MRY",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "outlineWidgetS",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "arg2"
+        ]
       }
     },
     {

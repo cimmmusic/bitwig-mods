@@ -58,12 +58,57 @@ public final class Pill {
         g.Hnt(x, y, w, h, r(g, w, h, r), c);
     }
 
+    // ---- the toolbar: its buttons draw no outlines ----
+
+    static volatile boolean toolbarPlain = STORE.getBoolean("toolbar_no_outlines", true);
+    /** The window toolbars (FILE, PLAY, transport...), as Bitwig builds them; weakly held. */
+    private static final java.util.Set<Object> toolbars =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    /** The widget whose outline is being drawn (set on entry to the outline methods below). */
+    private static final ThreadLocal<Object> drawing = new ThreadLocal<>();
+
+    @Hook(id = "note-toolbar", target = bitwig.obf.aCf.class, method = "cfM(LaBF;)Ldve;", at = At.WRAP_RETURN)
+    public static Object noteToolbar(@bml.api.Return Object toolbar) {
+        if (toolbar != null) { toolbars.add(toolbar); MOD.log("toolbar noted: " + toolbar.getClass().getName()); }
+        return toolbar;
+    }
+
+    @Hook(id = "outline-widget-o", target = bitwig.obf.dyO.class,
+          method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V", at = At.ENTRY)
+    public static void outlineWidgetO(@bml.api.Arg(1) Object widget) { drawing.set(widget); }
+
+    @Hook(id = "outline-widget-q", target = bitwig.obf.dyQ.class,
+          method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V", at = At.ENTRY)
+    public static void outlineWidgetQ(@bml.api.Arg(1) Object widget) { drawing.set(widget); }
+
+    @Hook(id = "outline-widget-s", target = bitwig.obf.dyS.class,
+          method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V", at = At.ENTRY)
+    public static void outlineWidgetS(@bml.api.Arg(1) Object widget) { drawing.set(widget); }
+
+    private static int toolbarLogs;
+    /** True when the outline being drawn belongs to a widget in a toolbar (and the setting is on). */
+    static boolean inToolbar() {
+        if (!toolbarPlain || toolbars.isEmpty()) return false;
+        Object w = drawing.get();
+        try {
+            for (int i = 0; w instanceof bitwig.obf.dve v && i < 40; i++) {
+                if (toolbars.contains(v)) {
+                    if (toolbarLogs < 3) { toolbarLogs++; MOD.log("toolbar outline skipped: " + drawing.get().getClass().getName()); }
+                    return true;
+                }
+                w = v.RbC(); // its parent
+            }
+        } catch (Throwable ignored) {}
+        return false;
+    }
+
     // ---- dyO, dyQ, dyS: the outlines ----
 
     @Hook(id = "pill-outline-o", target = bitwig.obf.dyO.class,
           method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLiok;Liok;Ljava/util/EnumSet;)V")
     public static void outlineO(SYo g, double x, double y, double w, double h, double r, iok a, iok b, EnumSet<?> c) {
+        if (inToolbar()) return;
         g.cfM(x, y, w, h, r(g, w, h, r), a, b, c);
     }
 
@@ -71,6 +116,7 @@ public final class Pill {
           method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLjava/util/EnumSet;D)V")
     public static void lineO(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c, double width) {
+        if (inToolbar()) return;
         g.cfM(x, y, w, h, r(g, w, h, r), c, width);
     }
 
@@ -85,6 +131,7 @@ public final class Pill {
           method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLiok;Liok;Ljava/util/EnumSet;)V")
     public static void outlineQ(SYo g, double x, double y, double w, double h, double r, iok a, iok b, EnumSet<?> c) {
+        if (inToolbar()) return;
         g.cfM(x, y, w, h, r(g, w, h, r), a, b, c);
     }
 
@@ -92,6 +139,7 @@ public final class Pill {
           method = "MRY(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLjava/util/EnumSet;D)V")
     public static void lineS(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c, double width) {
+        if (inToolbar()) return;
         g.cfM(x, y, w, h, r(g, w, h, r), c, width);
     }
 }

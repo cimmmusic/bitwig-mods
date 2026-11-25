@@ -5,8 +5,8 @@ final class Shift {
     private Shift() {}
 
     /** Settings key: pixels to move the user's fonts down (negative moves up). */
-    static final String KEY = "move_down";
-    static final double DEFAULT = 2;
+    static final String KEY = "move_down_px"; // new key (0.3.0-dev.6): earlier builds defaulted to 2, which clips Lato
+    static final double DEFAULT = 0;
 
     private static volatile double px = read();
     private static volatile Object[] faces = new Object[0];

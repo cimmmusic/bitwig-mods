@@ -4,16 +4,27 @@
   "component": {
     "id": "minimal",
     "name": "Minimal",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "author": "Cimm",
-    "description": "Very dark grey and flat: no gradients, no button backgrounds, no shadows; hairline lines, white text and icons, one orange accent.",
+    "description": "Very dark grey and flat: no gradients, no button backgrounds, no shadows, no menu-corner arrows; hairline lines, white text and icons, one orange accent.",
     "parent": "bte-theme-loader",
     "group": "themes",
     "interface_version": "1",
     "documentation": "readme"
   },
   "resources": {
-    "theme": { "kind": "file", "path": "resources/minimal.bte" },
-    "readme": { "kind": "file", "path": "README.md", "media_type": "text/markdown" }
+    "theme": {
+      "kind": "file",
+      "path": "resources/minimal.bte"
+    },
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    },
+    "overlays": {
+      "kind": "directory",
+      "path": "resources/overlays"
+    }
   }
 }

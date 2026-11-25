@@ -14,6 +14,9 @@ public final class PillSettings implements PreferenceProvider {
         preferences.checkbox("pill_buttons_on", "Pill buttons")
                    .in(mine)
                    .value(() -> Pill.on, v -> { Pill.on = v; Pill.STORE.putBoolean("enabled", v); });
+        preferences.checkbox("pill_buttons_toolbar_plain", "No outlines on toolbar buttons")
+                   .in(mine)
+                   .value(() -> Pill.toolbarPlain, v -> { Pill.toolbarPlain = v; Pill.STORE.putBoolean("toolbar_no_outlines", v); });
         preferences.number("pill_buttons_max_height", "Up to height (px)", 8, 200).wholeNumbers()
                    .in(mine)
                    .value(() -> Pill.maxH, v -> { Pill.maxH = Math.round(v); Pill.STORE.putInt("max_height", (int) Math.round(v)); });

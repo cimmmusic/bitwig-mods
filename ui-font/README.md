@@ -9,7 +9,7 @@ Changes the font Bitwig draws its whole interface with.
 - **Bold font**: the heavier text Bitwig uses for headings and selected items. Leave it on *Same as interface font* to use one font for everything.
 - **Numbers font**: the narrow font Bitwig uses for values, time and BPM readouts.
 - Click a dropdown to open the **Fonts** list: every font's name is drawn in that font, so you can see what it looks like. Scroll with the wheel or trackpad, drag the list, or drag the scrollbar on the right. Type in the search field to narrow the list, click a font to choose it, or ✕ to close. The font in use is marked in orange.
-- **Move text down (px)**: your fonts' letters may sit higher (or lower) than Bitwig's own. This moves text drawn in your fonts down by that many pixels (negative moves it up); Bitwig's icons stay put. Default 2.
+- **Move text down (px)**: your fonts' letters may sit higher (or lower) than Bitwig's own. This moves text drawn in your fonts down by that many pixels (negative moves it up); Bitwig's icons stay put. Default 0 (Lato and fonts like it need none; too much cuts off the bottoms of letters).
 - **Restart Bitwig** after changing a font: Bitwig loads its fonts once, at start.
 
 ## Which fonts
