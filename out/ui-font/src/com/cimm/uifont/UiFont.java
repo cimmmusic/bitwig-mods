@@ -68,6 +68,28 @@ public final class UiFont {
         return graphics.cfM(name, in);
     }
 
+    // ------------------------------------------------------------------------------------------- text size
+
+    /**
+     * Bitwig builds each font family (efs) by adding its files with a size factor: efs.cfM(family, file, factor) calls
+     * family.cfM(file, coverage, factor); the renderer draws and measures each file at size x factor (Bitwig uses it to
+     * shrink fallback fonts to match). For the family's own main file (Lato for the interface and bold, CP Mono for
+     * numbers) the factor is multiplied by the user's size for that role. Fallbacks and the icon font keep theirs.
+     */
+    @Hook(id = "text-size", target = bitwig.obf.efs.class, method = "cfM(Lcom/bitwig/graphics/OLR;Ljava/lang/String;D)V",
+          at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.OLR.class,
+          call = "cfM(Ljava/lang/String;Ljava/util/function/IntPredicate;D)V")
+    public static void textSize(com.bitwig.graphics.OLR family, String file, java.util.function.IntPredicate coverage, double factor) {
+        double f = factor;
+        try {
+            if (file != null && file.equals(family.cfM())) { // the family's main file, not a fallback
+                double k = Fonts.sizeFactor(file);
+                if (k != 1) { f = factor * k; Fonts.MOD.log(file + " size " + Math.round(k * 100) + "%"); }
+            }
+        } catch (Throwable t) { Fonts.MOD.log("text size failed for " + file, t); }
+        family.cfM(file, coverage, f);
+    }
+
     // ------------------------------------------------------------------------------------------- moving text down
 
     /*

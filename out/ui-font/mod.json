@@ -3,7 +3,7 @@
   "mod": {
     "id": "ui-font",
     "name": "Interface: Font",
-    "version": "0.3.0-dev.6",
+    "version": "0.4.0-dev.1",
     "author": "Cimm",
     "description": "Choose the font Bitwig draws its interface with: any font installed on your Mac, or one you drop in the mod's fonts folder. Separate choices for normal text, bold text and numbers. Applies when Bitwig starts.",
     "documentation": "readme"
@@ -47,6 +47,18 @@
       "owner": "com/bitwig/graphics/sal",
       "name": "cfM",
       "descriptor": "(Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;"
+    },
+    "efs.cfM": {
+      "kind": "method",
+      "owner": "efs",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/OLR;Ljava/lang/String;D)V"
+    },
+    "com.bitwig.graphics.OLR.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/OLR",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;Ljava/util/function/IntPredicate;D)V"
     },
     "com.bitwig.graphics.render_commands.RKg.cfM": {
       "kind": "method",
@@ -154,6 +166,21 @@
       "bridge": {
         "method": "fontFromStream",
         "descriptor": "(Lcom/bitwig/graphics/sal;Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;",
+        "args": []
+      }
+    },
+    {
+      "id": "text-size",
+      "target": "efs.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "com.bitwig.graphics.OLR.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "textSize",
+        "descriptor": "(Lcom/bitwig/graphics/OLR;Ljava/lang/String;Ljava/util/function/IntPredicate;D)V",
         "args": []
       }
     },

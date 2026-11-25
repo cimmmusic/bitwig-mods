@@ -36,6 +36,20 @@ final class Fonts {
 
     private Fonts() {}
 
+    /** Settings key for a role's text size, in percent of Bitwig's (100 = unchanged). */
+    static String sizeKey(String role) { return role + "_size"; }
+
+    /** The role's text size in percent (50..200, default 100). */
+    static int sizePercent(String role) {
+        try { return Math.max(50, Math.min(200, STORE.getInt(sizeKey(role), 100))); } catch (Throwable t) { return 100; }
+    }
+
+    /** The size factor for Bitwig's font file of this name (its role's size), or 1 for files the mod doesn't size. */
+    static double sizeFactor(String bitwigFile) {
+        String role = bitwigFile == null ? null : ROLE.get(new File(bitwigFile).getName());
+        return role == null ? 1 : sizePercent(role) / 100.0;
+    }
+
     /** The font file to load instead of Bitwig's file of this name, or null to keep Bitwig's. */
     static File replacement(String bitwigFile) {
         try {

@@ -26,6 +26,9 @@ public final class FontSettings implements PreferenceProvider {
         dropdown(preferences, mine, Fonts.INTERFACE, "Interface font (restart)");
         dropdown(preferences, mine, Fonts.BOLD, "Bold font (restart)");
         dropdown(preferences, mine, Fonts.NUMBERS, "Numbers font (restart)");
+        size(preferences, mine, Fonts.INTERFACE, "Interface text size % (restart)");
+        size(preferences, mine, Fonts.BOLD, "Bold text size % (restart)");
+        size(preferences, mine, Fonts.NUMBERS, "Numbers text size % (restart)");
         preferences.number("ui_font_move_down", "Move text down (px)", -10, 10)
                    .in(mine)
                    .value(Shift::px, Shift::set);
@@ -68,6 +71,17 @@ public final class FontSettings implements PreferenceProvider {
         int i = options(role).indexOf(label);
         if (i < 0) return;
         Fonts.STORE.put(role, values(role).get(i));
+    }
+
+    /** A role's text size, 50..200 % of Bitwig's. */
+    private static void size(Preferences preferences, Section in, String role, String label) {
+        preferences.number("ui_font_" + role + "_size", label, 50, 200).wholeNumbers()
+                   .in(in)
+                   .value(() -> Fonts.sizePercent(role), v -> {
+                       int p = (int) Math.max(50, Math.min(200, Math.round(v)));
+                       Fonts.STORE.putInt(Fonts.sizeKey(role), p);
+                       Fonts.MOD.log(role + " text size set to " + p + "% (restart Bitwig to apply)");
+                   });
     }
 
     private static void dropdown(Preferences preferences, Section in, String role, String label) {
