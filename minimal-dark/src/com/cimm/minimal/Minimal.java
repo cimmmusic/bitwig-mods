@@ -1313,4 +1313,13 @@ public final class Minimal {
         try { return text.cfM((java.util.function.Function) (Object o) -> o instanceof String t ? Labels.caps(t, site) : o); }
         catch (Throwable t) { return text.g_(); }
     }
+
+    /** A label measuring its text (dut.iG_, its preferred size): measured as Bitwig's capitals, so sizes don't change. */
+    @Hook(id = "sentence-case-measure", target = bitwig.obf.dut.class, method = "iG_()Lcom/bitwig/base/geom/SYo;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dut.class, call = "hbP(Ljava/lang/String;)Ljava/lang/String;")
+    public static String sentenceCaseMeasure(bitwig.obf.dut label, String text) {
+        String shown = label.hbP(text);
+        String upper = shown == null ? null : Labels.upperOf.get(shown);
+        return upper != null ? upper : shown;
+    }
 }

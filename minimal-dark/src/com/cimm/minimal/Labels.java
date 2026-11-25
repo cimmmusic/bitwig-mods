@@ -53,7 +53,17 @@ public final class Labels {
         return r;
     }
 
+    /** Sentence-cased text -> the capitals Bitwig would have shown: labels are measured with these, so every size and
+     *  layout stays exactly Bitwig's own (only the drawn letters change). */
+    static final Map<String, String> upperOf = new java.util.concurrent.ConcurrentHashMap<>();
+
     static String caps(String s) {
+        String r = sentenceCaps(s);
+        if (r != null && !r.equals(s.toUpperCase()) && upperOf.size() < 4000) upperOf.put(r, s.toUpperCase());
+        return r;
+    }
+
+    private static String sentenceCaps(String s) {
         if (s == null) return null;
         if (!on()) return s.toUpperCase();
         try {
