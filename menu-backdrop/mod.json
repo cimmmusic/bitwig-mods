@@ -3,7 +3,7 @@
   "mod": {
     "id": "menu-backdrop",
     "name": "Interface: Menu Backdrop",
-    "version": "0.4.0-dev.1",
+    "version": "0.4.0-dev.2",
     "author": "Cimm",
     "description": "While a menu is open, the window behind it dims with a short fade, in Bitwig's own popup overlay colour, so the menu stands out.",
     "documentation": "readme"

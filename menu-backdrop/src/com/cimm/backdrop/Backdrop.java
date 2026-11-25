@@ -217,4 +217,42 @@ public final class Backdrop {
         }
         if (fading.isEmpty()) synchronized (Backdrop.class) { if (fadeTicker != null) { fadeTicker.cancel(); fadeTicker = null; } }
     }
+
+    // ------------------------------------------------------------------------------------------- meters
+
+    /*
+     * Meters (aEJ: the CPU meter, track meters) update many times a second and are redrawn on their own, outside the
+     * window's full paint, which wipes the dim over them: they showed undimmed above the backdrop. When a meter paints
+     * outside a window paint (painting is unset then) while the backdrop is up, the dim is drawn over it at the end of
+     * its paint (its last call, the gradient's release bev.ix_()). Inside a full window paint it isn't (the window's dim
+     * already covers it).
+     */
+    private static final ThreadLocal<Object[]> meter = new ThreadLocal<>();
+
+    @Hook(id = "meter-paint", target = bitwig.obf.aEJ.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void meterPaint(@bml.api.This Object widget, @bml.api.Arg(0) SYo g) {
+        meter.set(style != OFF && painting.get() == null && level() > 0 ? new Object[]{widget, g} : null);
+    }
+
+    @Hook(id = "meter-painted", target = bitwig.obf.aEJ.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V",
+          at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.bev.class, call = "ix_()V")
+    public static void meterPainted(com.bitwig.graphics.bev gradient) {
+        gradient.ix_();
+        Object[] m = meter.get();
+        if (m == null) return;
+        meter.set(null);
+        try {
+            bitwig.obf.dve w = (bitwig.obf.dve) m[0];
+            SYo g = (SYo) m[1];
+            double a = level();
+            if (a <= 0) return;
+            double e = 1 - Math.pow(1 - a, 3);
+            bitwig.obf.dve root = w;
+            for (bitwig.obf.dve p = w.RbC(); p != null; p = p.RbC()) root = p;
+            iok c = root instanceof bitwig.obf.duG win ? overlayColour(win) : new iok(0.03f, 0.03f, 0.03f, 0.8f);
+            g.Hnt(new iok(c.FzB(), c.IwV(), c.UNj(), (float) (c.hUR() * e)));
+            g.MRY(0, 0, w.Sxo(), w.yiX());
+            g.wGc();
+        } catch (Throwable t) { log("meter dim failed", t); }
+    }
 }
