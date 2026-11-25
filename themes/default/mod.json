@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "package_type": "component",
+  "component": {
+    "id": "default",
+    "name": "Default (Bitwig)",
+    "version": "1.0.0",
+    "author": "Cimm",
+    "description": "Bitwig's own look: no colours changed, gradients and icons as Bitwig ships them.",
+    "parent": "bte-theme-loader",
+    "group": "themes",
+    "interface_version": "1",
+    "documentation": "readme"
+  },
+  "resources": {
+    "theme": { "kind": "file", "path": "resources/default.bte" },
+    "readme": { "kind": "file", "path": "README.md", "media_type": "text/markdown" }
+  }
+}
