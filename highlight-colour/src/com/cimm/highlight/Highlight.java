@@ -156,5 +156,27 @@ public final class Highlight {
         return new iok(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, original.hUR());
     }
 
+    // ---- dark scene backgrounds (see Scenes); every hook of the mod lives in this class: BML takes one helper class ----
+
+    @Hook(id = "scene-paint", target = bitwig.obf.bdO.class, method = "a_(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void painting(@bml.api.This Object widget) {
+        Scenes.scene.set(Scenes.on && widget instanceof bitwig.obf.bdw ? Boolean.TRUE : null);
+    }
+
+    @Hook(id = "scene-colour", target = bitwig.obf.bdO.class, method = "a_(Lcom/bitwig/graphics/SYo;)V",
+          at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.SYo.class, call = "Hnt(Liok;)V")
+    public static void colour(com.bitwig.graphics.SYo g, iok c) {
+        if (Scenes.scene.get() != null) {
+            Scenes.scene.set(null);
+            iok d = Scenes.darker(c);
+            if (d != null) {
+                if (Scenes.logs < 2) { Scenes.logs++; MOD.log("scene background " + Scenes.hex(c) + " drawn as " + Scenes.hex(d)); }
+                g.Hnt(d);
+                return;
+            }
+        }
+        g.Hnt(c);
+    }
+
     private static int c(float v) { return Math.round(Math.max(0, Math.min(1, v)) * 255); }
 }

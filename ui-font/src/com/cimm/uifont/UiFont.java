@@ -117,6 +117,15 @@ public final class UiFont {
         g.MRY(x, y + d, text, colour);
     }
 
+    /** Toolbar menus in sentence case (see Labels): YGP.cfM(files) merges the language's text files into one map,
+     *  reading each with YGP.cfM(file). All of the mod's hooks live in this class: BML takes one helper class per mod. */
+    @Hook(id = "sentence-case-toolbar", target = bitwig.obf.YGP.class, method = "cfM(Ljava/util/List;)Ljava/util/Map;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.YGP.class, call = "cfM(LYBi;)Ljava/util/Map;")
+    @SuppressWarnings("rawtypes")
+    public static java.util.Map textsLoaded(bitwig.obf.YBi file) throws IOException {
+        return Labels.sentenceCase(bitwig.obf.YGP.cfM(file));
+    }
+
     /** Wheel / trackpad scrolls, before Bitwig handles them: the open font list scrolls. An ENTRY hook, so other mods'
      *  hooks on the same dispatch (the mixer mini views' scroll) are unaffected. */
     @Hook(id = "list-wheel", target = bitwig.obf.dpl.class, method = "cfM(Leph;)V", at = At.ENTRY)
