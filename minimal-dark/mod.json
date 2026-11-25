@@ -1,0 +1,50 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "minimal-dark",
+    "name": "Theme: Minimal Dark",
+    "version": "0.1.0-dev.3",
+    "author": "Cimm",
+    "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    },
+    "theme": {
+      "kind": "directory",
+      "path": "theme"
+    },
+    "lato": {
+      "kind": "directory",
+      "path": "lato"
+    },
+    "fonts": {
+      "kind": "directory",
+      "path": "fonts",
+      "persistence": "created"
+    }
+  },
+  "registrations": [
+    {
+      "id": "preferences",
+      "consumer": "preferences-composition-framework",
+      "descriptor": "preferences.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "preferences-composition-framework",
+      "min_version": "1.0.0"
+    }
+  ]
+}
