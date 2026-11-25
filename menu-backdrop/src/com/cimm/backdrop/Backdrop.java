@@ -18,7 +18,7 @@ import java.util.WeakHashMap;
  * Bitwig's menus and popups are windows of their own (dsQ); dsQ.t_(visible) shows and hides them. The main windows (duG)
  * paint their content in duG.MRY(g) (super.MRY(g) draws the widgets), then overlays. Right after the content (at the
  * call to dpN.TVZ() that follows it) this mod draws the backdrop over the whole window while any popup is shown:
- * - Dim: black at the chosen darkness.
+ * - Dim: Bitwig's own popup overlay colour ("Popup overlay background color").
  * - Blur: when the popup opens, the window's backbuffer (the Cairo surface it paints into) is drawn into a bitmap an
  *   eighth of its size and blurred with Bitwig's own 3x3 box filter (qc1.cfM(src, kernel, ...), as it does for icon
  *   shadows); that bitmap is drawn scaled up over the window (scaling it up softens it further), with a light dim.
@@ -33,8 +33,7 @@ public final class Backdrop {
 
     static final String[] STYLES = {"Blur", "Dim", "Off"};
     static final int BLUR = 0, DIM = 1, OFF = 2;
-    static volatile int style = Math.max(0, Math.min(OFF, STORE.getInt("style", BLUR)));
-    static volatile int darkness = Math.max(0, Math.min(90, STORE.getInt("darkness", 40)));
+    static volatile int style = Math.max(0, Math.min(OFF, STORE.getInt("style", DIM)));
 
     private static final double IN_MS = 180, OUT_MS = 150;
     private static final int DOWN = 8, PASSES = 3;
@@ -54,6 +53,9 @@ public final class Backdrop {
     private static volatile double level0;
     private static volatile long changed;
 
+    /** Set once the window's graphics turn out not to be a picture that can be copied (Bitwig records drawing
+     *  commands instead): Blur then dims without trying again. */
+    private static volatile boolean noBlur;
     private static int logs;
     private static void log(String s) { if (logs < 30) { logs++; MOD.log(s); } }
     private static void log(String s, Throwable t) { if (logs < 30) { logs++; MOD.log(s, t); } }
@@ -69,14 +71,35 @@ public final class Backdrop {
     public static void popupVisible(@bml.api.This Object popup, @bml.api.Arg(0) boolean visible) {
         try {
             if (visible) open.add(popup); else open.remove(popup);
-            boolean any = !open.isEmpty();
-            if (any == shown) return;
-            double now = level();
-            level0 = now; changed = System.nanoTime(); shown = any;
-            if (any && now <= 0) snaps.clear(); // a new picture for a backdrop that starts from nothing
-            if (logs < 12) log("popup " + (visible ? "shown" : "hidden") + ": " + popup.getClass().getName() + "; backdrop " + (any ? "in" : "out"));
-            repaintWindows();
+            update(visible ? "shown" : "hidden");
         } catch (Throwable t) { log("popup tracking failed", t); }
+    }
+
+    /** A popup thrown away (choosing a menu item can close the menu this way, without hiding it first). */
+    @Hook(id = "popup-disposed", target = bitwig.obf.dsQ.class, method = "ix_()V", at = At.ENTRY)
+    public static void popupDisposed(@bml.api.This Object popup) {
+        try { if (open.remove(popup)) update("disposed"); } catch (Throwable t) { log("popup tracking failed", t); }
+    }
+
+    /** Forgets popups that are no longer on screen, whatever closed them. */
+    private static void prune() {
+        if (open.isEmpty()) return;
+        boolean removed;
+        synchronized (open) {
+            removed = open.removeIf(p -> { try { return !((bitwig.obf.dvW) p).uev(); } catch (Throwable t) { return true; } });
+        }
+        if (removed) update("gone");
+    }
+
+    /** Starts the fade in or out when popups appear or all are gone. */
+    private static synchronized void update(String why) {
+        boolean any = !open.isEmpty();
+        if (any == shown) return;
+        double now = level();
+        level0 = now; changed = System.nanoTime(); shown = any;
+        if (any && now <= 0) snaps.clear(); // a new picture for a backdrop that starts from nothing
+        if (logs < 20) log("popup " + why + "; backdrop " + (any ? "in" : "out"));
+        repaintWindows();
     }
 
     private static void repaintWindows() {
@@ -105,6 +128,7 @@ public final class Backdrop {
         SYo g = graphics.get();
         painting.set(null); graphics.set(null);
         if (w != null && g != null) {
+            try { prune(); } catch (Throwable ignored) {}
             try { backdrop((bitwig.obf.duG) w, g); } catch (Throwable t) { log("backdrop failed", t); }
         }
         return bitwig.obf.dpN.TVZ();
@@ -119,9 +143,9 @@ public final class Backdrop {
         }
         double e = 1 - Math.pow(1 - a, 3); // ease out
         double W = w.Sxo(), H = w.yiX();
-        double dark = darkness / 100.0;
+        iok overlay = overlayColour(w);
         boolean blurred = false;
-        if (st == BLUR) {
+        if (st == BLUR && !noBlur) {
             Snap s = snaps.get(w);
             if (s == null && !snaps.containsKey(w)) { s = snapshot(w, g); snaps.put(w, s); } // null = couldn't
             if (s != null) {
@@ -133,17 +157,27 @@ public final class Backdrop {
                 blurred = true;
             }
         }
-        g.Hnt(new iok(0f, 0f, 0f, (float) (e * (blurred ? dark * 0.4 : dark))));
+        g.Hnt(new iok(overlay.FzB(), overlay.IwV(), overlay.UNj(), (float) (overlay.hUR() * e * (blurred ? 0.4 : 1))));
         g.MRY(0, 0, W, H);
         g.wGc();
         boolean moving = shown ? a < 1 : a > 0;
         if (moving) w.jbi(); // next frame of the fade
     }
 
+    /** Bitwig's own colour for what lies behind a popup ("Popup overlay background color", themeable). */
+    private static iok overlayColour(bitwig.obf.duG w) {
+        try {
+            iok c = w.PEn().MLK().cfM(w);
+            if (c != null) return c;
+        } catch (Throwable t) { log("popup overlay colour unavailable; using black 80%", t); }
+        return new iok(0.03f, 0.03f, 0.03f, 0.8f);
+    }
+
     /** The window's current picture, an eighth of its size, blurred; null if it can't be made here. */
     private static Snap snapshot(bitwig.obf.duG w, SYo g) {
         try {
             if (!(g instanceof com.bitwig.graphics.cairo.CairoGraphicsOutput out)) {
+                noBlur = true;
                 log("blur unavailable: the window paints with " + g.getClass().getName() + "; dimming instead");
                 return null;
             }
