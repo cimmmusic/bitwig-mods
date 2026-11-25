@@ -2,10 +2,10 @@
   "manifest_version": 2,
   "mod": {
     "id": "highlight-colour",
-    "name": "Interface: Highlight Colour",
-    "version": "0.2.0-dev.5",
+    "name": "Interface: Highlight & Background",
+    "version": "0.3.0-dev.1",
     "author": "Cimm",
-    "description": "Choose Bitwig's highlight colour (the orange of selected buttons, values, the playing transport and so on) from presets or any hue. Changes apply at once and work with any theme.",
+    "description": "Choose Bitwig's highlight colour, tint the background (hue, saturation, luminance, contrast) and keep text readable: light backgrounds get dark text, dark ones light text, and text on coloured items is black or white, whichever contrasts more. Works with any theme.",
     "documentation": "readme"
   },
   "built_against": {

@@ -55,6 +55,7 @@ public final class Highlight {
     public static void colourRegistered(@bml.api.This Object colour, @bml.api.Arg(0) String name) {
         seen.incrementAndGet();
         if (name != null) Recorder.named(colour, name);
+        if (name != null) Tone.register(colour, name);
         if (name == null || !NAMES.contains(name)) return;
         synchronized (originals) { names.put(colour, name); }
     }
@@ -116,25 +117,60 @@ public final class Highlight {
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
         if (Recorder.on) Recorder.seen(colour, value);
+        if (value == null) return value;
         Color t = target;
-        if (t == null || value == null) return value;
-        Object[] a = accents;
-        int k = -1;
-        for (int i = 0; i < a.length; i++) if (a[i] == colour) { k = i; break; }
-        if (k < 0) return value;
-        iok m = main;
-        if (m == null) return value;
-        boolean mainAccent = isMain[k];
-        long key = ((long) Float.floatToIntBits(value.FzB()) * 31 + Float.floatToIntBits(value.IwV())) * 31
-                + Float.floatToIntBits(value.UNj()) * 7L + Float.floatToIntBits(value.hUR()) * 3L + (mainAccent ? 1 : 0);
-        iok out = cache.get(key);
-        if (out == null) {
-            iok r = recolour(value, m, t, mainAccent);
-            out = r == null ? SAME : r;
-            if (cache.size() < 4096) cache.put(key, out);
-            if (drawLogs < 4) { drawLogs++; MOD.log("drawing " + names.get(colour) + " in the highlight colour" + (r == null ? " (kept: not a shade of the accent)" : "")); }
+        if (t != null) {
+            Object[] a = accents;
+            int k = -1;
+            for (int i = 0; i < a.length; i++) if (a[i] == colour) { k = i; break; }
+            iok m = main;
+            if (k >= 0 && m != null) {
+                boolean mainAccent = isMain[k];
+                long key = ((long) Float.floatToIntBits(value.FzB()) * 31 + Float.floatToIntBits(value.IwV())) * 31
+                        + Float.floatToIntBits(value.UNj()) * 7L + Float.floatToIntBits(value.hUR()) * 3L + (mainAccent ? 1 : 0);
+                iok out = cache.get(key);
+                if (out == null) {
+                    iok r = recolour(value, m, t, mainAccent);
+                    out = r == null ? SAME : r;
+                    if (cache.size() < 4096) cache.put(key, out);
+                    if (drawLogs < 4) { drawLogs++; MOD.log("drawing " + names.get(colour) + " in the highlight colour" + (r == null ? " (kept: not a shade of the accent)" : "")); }
+                }
+                return out == SAME ? value : out;
+            }
         }
-        return out == SAME ? value : out;
+        return Tone.adjust(colour, value);
+    }
+
+    /** The widget asking for a colour: notes its window now and then (to repaint all windows when a setting changes). */
+    @Hook(id = "colour-asked", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
+    public static void colourAsked(@bml.api.Arg(0) Object widget) { Tone.noteWidget(widget); }
+
+    // ---- text on coloured items: black or white, whichever contrasts more ----
+
+    /*
+     * Bitwig picks the text for a coloured item (a track, clip, scene...) in eff.cfM(colour): Dark Text when the colour's
+     * perceived brightness (iok.MRY()) is above 0.55, else Light Text; eff.cfM(colour, dark, light) does the same with
+     * given colours. The brightness is replaced by the WCAG choice (black text when the colour's relative luminance is
+     * above 0.179, where black contrasts more than white), and the light text by "Lighter Text" (always white, never
+     * flipped by the background tone).
+     */
+    @Hook(id = "contrast-text", target = bitwig.obf.eff.class, method = "cfM(Liok;)LeeY;",
+          at = At.REPLACE_CALL, callOwner = iok.class, call = "MRY()F")
+    public static float contrastText(iok colour) { return brightness(colour); }
+
+    @Hook(id = "contrast-choice", target = bitwig.obf.eff.class, method = "cfM(Liok;Liok;Liok;)Liok;",
+          at = At.REPLACE_CALL, callOwner = iok.class, call = "MRY()F")
+    public static float contrastChoice(iok colour) { return brightness(colour); }
+
+    static float brightness(iok c) {
+        try { return Tone.luminance(c) > 0.179 ? 0.6f : 0.5f; } catch (Throwable t) { return c.MRY(); }
+    }
+
+    @Hook(id = "contrast-light-text", target = bitwig.obf.eff.class, method = "cfM(Liok;)LeeY;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "MYI()LeeY;")
+    public static bitwig.obf.eeY lightText(bitwig.obf.eff registry) {
+        try { bitwig.obf.eeY c = registry.cfM("Lighter Text"); if (c != null) return c; } catch (Throwable ignored) {}
+        return registry.MYI();
     }
 
     /**
