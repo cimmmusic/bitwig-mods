@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "package_type": "component",
+  "component": {
+    "id": "minimal",
+    "name": "Minimal",
+    "version": "0.1.0",
+    "author": "Cimm",
+    "description": "Near-black and flat: no gradients, no button backgrounds, no shadows; hairline lines, white text and icons, one orange accent.",
+    "parent": "bte-theme-loader",
+    "group": "themes",
+    "interface_version": "1",
+    "documentation": "readme"
+  },
+  "resources": {
+    "theme": { "kind": "file", "path": "resources/minimal.bte" },
+    "readme": { "kind": "file", "path": "README.md", "media_type": "text/markdown" }
+  }
+}
