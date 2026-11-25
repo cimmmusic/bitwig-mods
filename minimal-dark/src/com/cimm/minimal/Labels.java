@@ -44,6 +44,15 @@ public final class Labels {
     static final java.util.Set<String> ACRONYMS = java.util.Set.of("MIDI", "FX", "CPU", "MPE", "OSC", "VST", "VST2", "VST3", "CLAP",
             "DSP", "LFO", "ADSR", "AHDSR", "BPM", "EQ", "CC", "IO", "DAW", "AU", "USB", "HQ", "UI", "ID", "OK", "MIX", "AB", "XY", "DJ", "MSEG", "ASIO", "PDF", "WAV", "MP3", "AI");
 
+    private static final java.util.Set<String> seenCaps = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** caps(), logging the first texts seen from each call site (to find what still shows in capitals). */
+    static String caps(String s, int site) {
+        String r = caps(s);
+        if (s != null && seenCaps.size() < 80 && seenCaps.add(site + ":" + s)) Fonts.MOD.log("sentence case #" + site + ": \"" + s + "\" -> \"" + r + "\"");
+        return r;
+    }
+
     static String caps(String s) {
         if (s == null) return null;
         if (!on()) return s.toUpperCase();
