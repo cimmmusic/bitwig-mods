@@ -75,6 +75,7 @@ final class Looks {
             Minimal.STORE.putInt("choice", l.highlight()); Minimal.STORE.putInt("hue", l.customHue());
             Minimal.apply();
             Tone.changed();
+            Tone.refreshAll();
             Tone.repaint();
             int moved = Tone.showOnSettingsPage(java.util.Map.of(
                     "background_tone_hue", (Object) (double) l.hue(), "background_tone_saturation", (double) l.sat(),

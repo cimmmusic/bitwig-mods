@@ -43,6 +43,7 @@ public final class HighlightSettings implements PreferenceProvider {
                        Minimal.STORE.putInt(key, i);
                        Tone.changed();
                        Tone.repaint();
+                       Tone.refreshSoon();
                    });
     }
 }
