@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.1.0-dev.10",
+    "version": "0.1.0-dev.11",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -234,11 +234,23 @@
       "name": "MRY",
       "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
     },
-    "com.bitwig.mac_windowing_system.CocoaWindowHandle.Hnt": {
+    "duG.fuN": {
       "kind": "method",
-      "owner": "com/bitwig/mac_windowing_system/CocoaWindowHandle",
-      "name": "Hnt",
+      "owner": "duG",
+      "name": "fuN",
+      "descriptor": "()V"
+    },
+    "com.bitwig.windowing_system.TopLevelWindowHandle.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/windowing_system/TopLevelWindowHandle",
+      "name": "cfM",
       "descriptor": "(Z)V"
+    },
+    "duG.EUG": {
+      "kind": "method",
+      "owner": "duG",
+      "name": "EUG",
+      "descriptor": "()V"
     },
     "dyK.cfM": {
       "kind": "method",
@@ -885,16 +897,33 @@
       }
     },
     {
-      "id": "window-showing",
-      "target": "com.bitwig.mac_windowing_system.CocoaWindowHandle.Hnt",
-      "transform": "INSERT_AT_ENTRY",
+      "id": "window-show-a",
+      "target": "duG.fuN",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.windowing_system.TopLevelWindowHandle.cfM",
+        "occurrence": 1
+      },
       "bridge": {
-        "method": "windowShowing",
-        "descriptor": "(Ljava/lang/Object;Z)V",
-        "args": [
-          "this",
-          "arg1"
-        ]
+        "method": "windowShowA",
+        "descriptor": "(Lcom/bitwig/windowing_system/TopLevelWindowHandle;Z)V",
+        "args": []
+      }
+    },
+    {
+      "id": "window-show-b",
+      "target": "duG.EUG",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.windowing_system.TopLevelWindowHandle.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "windowShowB",
+        "descriptor": "(Lcom/bitwig/windowing_system/TopLevelWindowHandle;Z)V",
+        "args": []
       }
     },
     {

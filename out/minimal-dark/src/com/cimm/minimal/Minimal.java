@@ -753,10 +753,29 @@ public final class Minimal {
     private static final java.util.Map<Long, Long> fading = new java.util.concurrent.ConcurrentHashMap<>();
     private static int fadeLogs;
 
-    /** A window about to be shown or hidden (CocoaWindowHandle.Hnt(visible)): a popup goes see-through, then fades up. */
-    @Hook(id = "window-showing", target = com.bitwig.mac_windowing_system.CocoaWindowHandle.class, method = "Hnt(Z)V", at = At.ENTRY)
-    public static void windowShowing(@bml.api.This Object handle, @bml.api.Arg(0) boolean visible) {
-        if (!visible || !fadePopups || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
+    /** Popups fade in only on macOS (the window opacity call is Cocoa's); elsewhere they just appear. */
+    private static final boolean MAC = System.getProperty("os.name", "").toLowerCase(java.util.Locale.ROOT).contains("mac");
+
+    /*
+     * A window is shown or hidden through its handle (TopLevelWindowHandle.cfM(visible), the same on every platform),
+     * called from Bitwig's window class (duG) in two places. Before a popup is shown, it goes see-through, then fades up.
+     */
+    @Hook(id = "window-show-a", target = bitwig.obf.duG.class, method = "fuN()V", at = At.REPLACE_CALL,
+          callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Z)V")
+    public static void windowShowA(com.bitwig.windowing_system.TopLevelWindowHandle handle, boolean visible) {
+        beforeShow(handle, visible);
+        handle.cfM(visible);
+    }
+
+    @Hook(id = "window-show-b", target = bitwig.obf.duG.class, method = "EUG()V", at = At.REPLACE_CALL,
+          callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Z)V")
+    public static void windowShowB(com.bitwig.windowing_system.TopLevelWindowHandle handle, boolean visible) {
+        beforeShow(handle, visible);
+        handle.cfM(visible);
+    }
+
+    private static void beforeShow(Object handle, boolean visible) {
+        if (!visible || !fadePopups || !MAC || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
         try {
             long window = popup.Hnt(); // its native window
             if (window == 0 || !NativeAlpha.set(window, 0)) return;
