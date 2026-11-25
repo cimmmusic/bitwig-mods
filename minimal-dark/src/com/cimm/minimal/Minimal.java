@@ -167,6 +167,7 @@ public final class Minimal {
         int[] dd = depth.get();
         if (dd[0] > 0) dd[0]--;
         value = Theme.relative(colour, value);
+        noteAvailable(asking.get(), colour, value);
         if (colour == dotColour && dotColour != null) {
             boolean shown = false;
             try {
@@ -263,7 +264,7 @@ public final class Minimal {
                 if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { Tone.noteControl(w); break; }
         }
         Tone.noteWidget(widget);
-        if (loopArr.length > 0 || dotColour != null) asking.set(widget);
+        asking.set(widget);
     }
 
     /** The widget asking for a colour right now (between colour-asked and draw-highlight), when loop buttons exist. */
@@ -1367,5 +1368,33 @@ public final class Minimal {
         String shown = label.hbP(text);
         String upper = shown == null ? null : Labels.upperOf.get(shown);
         return upper != null ? upper : shown;
+    }
+
+    // ---- the Dashboard: centred in the window, at most ~78 % of its height (Bitwig: top-aligned, full height) ----
+
+    @Hook(id = "dashboard-size", target = bitwig.obf.aBl.class, method = "MRY(LaCp;)V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.dnF.class, call = "E3(F)V")
+    public static void dashboardSize(bitwig.obf.dnF box, float vertical) {
+        try {
+            box.E3(0.5f);                          // centred top to bottom
+            box.MRY(new DashboardHeight(box));     // height: the content's, capped to a share of the window
+            MOD.log("dashboard: centred, at most " + Math.round(DashboardHeight.share * 100) + "% of the window's height");
+        } catch (Throwable t) { MOD.log("dashboard size failed", t); box.E3(vertical); }
+    }
+
+    // ---- finding the colours of the Packages page's Installed / Available switch (diagnostic) ----
+
+    private static final java.util.Set<Object> availableParts = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static final java.util.Set<String> availableSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    static void noteAvailable(Object widget, Object colour, iok value) {
+        if (availableSeen.size() > 40 || !(widget instanceof bitwig.obf.dve w)) return;
+        try {
+            if (w instanceof bitwig.obf.duu l && "Available".equals(l.JhA())) {
+                for (bitwig.obf.dve p = w; p != null && availableParts.size() < 8; p = p.RbC()) { availableParts.add(p); if (availableParts.size() >= 4) break; }
+            }
+            if (availableParts.contains(w) && availableSeen.add(w.getClass().getName() + " " + colour))
+                MOD.log("Available switch: " + w.getClass().getName() + " asks for \"" + colour + "\" = " + (value == null ? "null" : Scenes.hex(value)));
+        } catch (Throwable ignored) {}
     }
 }
