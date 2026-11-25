@@ -562,7 +562,9 @@ public final class Minimal {
                     f.setAccessible(true);
                     Object w = f.get(placement);
                     // a button: not a whole panel or track row (context menus are placed against those too)
-                    if (w instanceof bitwig.obf.dve b && b.yiX() > 0 && b.yiX() <= 80 && b.Sxo() <= 400) {
+                    // a menu button (dLh: File, Play, Add...) always; another widget only when it is button-sized
+                    if (w instanceof bitwig.obf.dLh || (w instanceof bitwig.obf.dve b0 && b0.yiX() > 0 && b0.yiX() <= 80 && b0.Sxo() <= 400)) {
+                        bitwig.obf.dve b = (bitwig.obf.dve) w;
                         if (anchorLogs++ < 6) MOD.log("menu opened from " + b.getClass().getName() + " " + Math.round(b.Sxo()) + "x" + Math.round(b.yiX()));
                         return b;
                     }
@@ -995,6 +997,26 @@ public final class Minimal {
     @Hook(id = "button-icon", target = bitwig.obf.dzq.class, method = "TMF(Ljava/lang/String;)V", at = At.ENTRY)
     public static void buttonIcon(@bml.api.This Object button, @bml.api.Arg(0) String icon) {
         if ("transport_record.svg".equals(icon)) recordButtons.add(button); else recordButtons.remove(button);
+        if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); }
+        else loopButtons.remove(button);
+    }
+
+    /** Buttons showing the transport's loop icon: drawn in mint when the loop is on. */
+    private static final java.util.Set<Object> loopButtons =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static int loopLogs;
+    static final iok MINT = new iok(0x3B / 255f, 0xE8 / 255f, 0xB0 / 255f, 1f);
+
+    /** Whether this icon widget belongs to a loop button (itself or a few parents up). */
+    private static boolean loopIcon(bitwig.obf.dve w) {
+        try { for (int i = 0; i < 4 && w != null; i++, w = w.RbC()) if (loopButtons.contains(w)) return true; } catch (Throwable ignored) {}
+        return false;
+    }
+
+    /** A colour that means "on": clearly coloured, not a grey. */
+    private static boolean lit(iok c) {
+        float max = Math.max(c.FzB(), Math.max(c.IwV(), c.UNj())), min = Math.min(c.FzB(), Math.min(c.IwV(), c.UNj()));
+        return c.hUR() > 0.3f && max - min > 0.2f;
     }
 
     private static final ThreadLocal<Object> icon = new ThreadLocal<>();
@@ -1021,6 +1043,10 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "Hnt(Liok;)V")
     public static void iconTinted(SYo g, iok colour) {
         Object w = icon.get();
+        if (w instanceof bitwig.obf.dve v && colour != null && loopIcon(v)) {
+            if (loopLogs++ < 6) MOD.log("loop icon drawn in " + colour.FzB() + "," + colour.IwV() + "," + colour.UNj() + (lit(colour) ? " (on: mint)" : ""));
+            if (lit(colour)) { g.Hnt(new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), colour.hUR())); return; }
+        }
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
         g.Hnt(colour);
     }
