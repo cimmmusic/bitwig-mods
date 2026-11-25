@@ -250,7 +250,37 @@ final class Tone {
      */
     /** Settings sliders and dropdowns, noted as they draw (weakly held). */
     private static final Set<Object> controlsSeen = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
-    static void noteControl(Object w) { if (controlsSeen.size() < 2000) controlsSeen.add(w); }
+    /** Each noted control's setting id ("" when it isn't one of this mod's). */
+    private static final Map<Object, String> controlIds = Collections.synchronizedMap(new WeakHashMap<>());
+
+    static void noteControl(Object w) {
+        if (controlsSeen.size() >= 2000 || !controlsSeen.add(w)) return;
+        boolean inSettings = false; // only the Dashboard's (Settings) controls are looked into; others: skipped at once
+        for (bitwig.obf.dve p = w instanceof bitwig.obf.dve d ? d : null; p != null; p = p.RbC())
+            if (p instanceof bitwig.obf.aBl) { inSettings = true; break; }
+        if (!inSettings) { controlIds.put(w, ""); return; }
+        String id = Browser.controlId(Browser.frameworkValue(w));
+        controlIds.put(w, id == null ? "" : id);
+        if (id != null && Looks.CUSTOM_IDS.contains(id)) dim(w, !Looks.custom());
+    }
+
+    /** Dims (or undims) the Custom-only controls' rows: they only apply while the Look is Custom. */
+    static void dimControls(boolean custom) {
+        Object[] cs;
+        synchronized (controlsSeen) { cs = controlsSeen.toArray(); }
+        for (Object o : cs) {
+            String id = controlIds.get(o);
+            if (id != null && Looks.CUSTOM_IDS.contains(id)) dim(o, !custom);
+        }
+    }
+
+    private static void dim(Object control, boolean dimmed) {
+        if (!(control instanceof bitwig.obf.dve w)) return;
+        try {
+            bitwig.obf.dve row = w.RbC() != null ? w.RbC() : w; // the row: the label and the control
+            row.Zyp(dimmed ? 0.35 : 1.0);
+        } catch (Throwable t) { Minimal.MOD.log("dimming a setting failed", t); }
+    }
     static String kindOf(Object colour) { Byte k = kinds.get(colour); return k == null ? "unknown" : k == BG ? "background" : k == FG ? "foreground" : "kept"; }
 
     static int showOnSettingsPage(Map<String, Object> values) {
@@ -260,6 +290,8 @@ final class Tone {
         {
             for (Object o : cs) {
                 if (!(o instanceof bitwig.obf.dve c)) continue;
+                String known = controlIds.get(o);
+                if (known != null && !values.containsKey(known)) continue;
                 Object v = Browser.frameworkValue(c);
                 String id = Browser.controlId(v);
                 if (id == null || !values.containsKey(id) || !(v instanceof bitwig.obf.rMe value)) continue;

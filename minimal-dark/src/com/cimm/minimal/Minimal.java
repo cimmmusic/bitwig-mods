@@ -257,12 +257,6 @@ public final class Minimal {
     public static void colourAsked(@bml.api.Arg(0) Object widget) {
         int[] dd = depth.get();
         if (++dd[0] > 64) dd[0] = 1;
-        if (widget instanceof bitwig.obf.dve w0) {
-            // a settings slider or dropdown, itself or a few levels up from what is asking (for the Looks to move them)
-            bitwig.obf.dve w = w0;
-            for (int i = 0; i < 4 && w != null; i++, w = w.RbC())
-                if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { Tone.noteControl(w); break; }
-        }
         Tone.noteWidget(widget);
         asking.set(widget);
     }
@@ -1397,4 +1391,12 @@ public final class Minimal {
                 MOD.log("Available switch: " + w.getClass().getName() + " asks for \"" + colour + "\" = " + (value == null ? "null" : Scenes.hex(value)));
         } catch (Throwable ignored) {}
     }
+
+    // ---- settings sliders and dropdowns, noted as they paint (for the Looks: move them, dim the Custom-only ones) ----
+
+    @Hook(id = "slider-paint", target = bitwig.obf.dNg.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void sliderPaint(@bml.api.This Object slider) { Tone.noteControl(slider); }
+
+    @Hook(id = "dropdown-paint", target = bitwig.obf.dBX.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void dropdownPaint(@bml.api.This Object dropdown) { Tone.noteControl(dropdown); }
 }

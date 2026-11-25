@@ -13,12 +13,13 @@ public final class HighlightSettings implements PreferenceProvider {
         Section mine = preferences.section(mods, "highlight_colour", "Minimal Dark: Highlight");
         preferences.dropdown("highlight_colour_choice", "Highlight colour", Minimal.LABELS)
                    .in(mine)
-                   .value(Minimal::choice, i -> { Minimal.STORE.putInt("choice", i); Minimal.apply(); });
+                   .value(Minimal::choice, i -> { Minimal.STORE.putInt("choice", i); Minimal.apply(); Looks.edited(); });
         preferences.slider("highlight_colour_hue", "Custom hue (°)", 0, 360).wholeNumbers()
                    .in(mine)
                    .value(Minimal::hue, v -> {
                        Minimal.STORE.putInt("hue", (int) Math.round(v));
                        if (Minimal.choice() == Minimal.CUSTOM) Minimal.apply();
+                       Looks.edited();
                    });
         preferences.checkbox("highlight_colour_dark_scenes", "Dark scene backgrounds")
                    .in(mine)
@@ -44,6 +45,7 @@ public final class HighlightSettings implements PreferenceProvider {
                        Tone.changed();
                        Tone.repaint();
                        Tone.refreshSoon();
+                       Looks.edited();
                    });
     }
 }

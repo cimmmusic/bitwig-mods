@@ -2,12 +2,17 @@ package com.cimm.minimal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Looks: ready-made combinations of the Background sliders (hue, saturation, luminance, contrast) and the highlight
- * colour, chosen from one dropdown. Choosing one sets the settings, recolours Bitwig live, and moves the sliders and the
- * highlight dropdown on the Settings page to match (through the Settings framework's own values). Any later change to
- * those settings simply makes the dropdown read "Custom".
+ * colour, chosen from one dropdown, plus "Custom", the user's own combination, saved separately (custom_* settings).
+ *
+ * - Choosing a preset applies it; the Custom values stay as they were.
+ * - Choosing Custom applies the saved Custom values.
+ * - The Background sliders and the highlight controls belong to Custom: while a preset is selected they're dimmed, and
+ *   touching one switches the look to Custom, starting from the preset's values (so the change is never lost).
  */
 final class Looks {
     private Looks() {}
@@ -44,6 +49,10 @@ final class Looks {
             new Look("Storm", 220, 12, 4, 10, 7, 190));
 
     static final String CUSTOM = "Custom";
+    static final String LOOK_ID = "minimal_dark_look";
+    /** The settings that belong to Custom (dimmed while a preset is selected). */
+    static final Set<String> CUSTOM_IDS = Set.of("background_tone_hue", "background_tone_saturation", "background_tone_luminance",
+            "background_tone_contrast", "highlight_colour_choice", "highlight_colour_hue");
 
     /** The dropdown's options: "Custom" first, then every look. */
     static String[] labels() {
@@ -53,35 +62,78 @@ final class Looks {
         return out.toArray(String[]::new);
     }
 
-    /** The option matching the current settings (0 = Custom). */
+    /** The selected option (0 = Custom). First run: the preset matching the settings, else Custom (an existing setup). */
     static int current() {
+        int stored = Minimal.STORE.getInt("look", -1);
+        if (stored >= 0 && stored <= ALL.size()) return stored;
         int choice = Minimal.choice();
         for (int i = 0; i < ALL.size(); i++) {
             Look l = ALL.get(i);
-            if (l.hue() == Tone.hue && l.sat() == Tone.sat && l.lum() == Tone.lum && l.con() == Tone.con && l.highlight() == choice
-                    && (choice != Minimal.CUSTOM || l.customHue() == Minimal.hue())) return i + 1;
+            if (l.hue() == Tone.hue && l.sat() == Tone.sat && l.lum() == Tone.lum && l.con() == Tone.con && l.highlight() == choice) return i + 1;
         }
         return 0;
     }
 
-    /** Applies the option at this index of labels() (0 = Custom: nothing to do). */
+    static boolean custom() { return current() == 0; }
+
+    /** While a look is being applied its own control changes mustn't count as the user editing. */
+    private static volatile boolean applying;
+
+    /** Applies the option at this index of labels(): 0 = the saved Custom values, else a preset. */
     static void choose(int index) {
-        if (index <= 0 || index > ALL.size()) return;
-        Look l = ALL.get(index - 1);
+        if (index < 0 || index > ALL.size()) return;
+        Minimal.STORE.putInt("look", index);
+        Look l = index == 0 ? savedCustom() : ALL.get(index - 1);
+        applying = true;
         try {
-            Tone.hue = l.hue(); Tone.sat = l.sat(); Tone.lum = l.lum(); Tone.con = l.con();
-            Minimal.STORE.putInt("bg_hue", l.hue()); Minimal.STORE.putInt("bg_saturation", l.sat());
-            Minimal.STORE.putInt("bg_luminance", l.lum()); Minimal.STORE.putInt("bg_contrast", l.con());
-            Minimal.STORE.putInt("choice", l.highlight()); Minimal.STORE.putInt("hue", l.customHue());
-            Minimal.apply();
-            Tone.changed();
-            Tone.refreshAll();
-            Tone.repaint();
-            int moved = Tone.showOnSettingsPage(java.util.Map.of(
+            set(l);
+            int moved = Tone.showOnSettingsPage(Map.of(
                     "background_tone_hue", (Object) (double) l.hue(), "background_tone_saturation", (double) l.sat(),
                     "background_tone_luminance", (double) l.lum(), "background_tone_contrast", (double) l.con(),
                     "highlight_colour_choice", Minimal.LABELS[l.highlight()], "highlight_colour_hue", (double) l.customHue()));
-            Minimal.MOD.log("look: " + l.name() + " (" + moved + " controls moved)");
-        } catch (Throwable t) { Minimal.MOD.log("choosing the look " + l.name() + " failed", t); }
+            Minimal.MOD.log("look: " + (index == 0 ? "Custom" : l.name()) + " (" + moved + " controls moved)");
+        } catch (Throwable t) { Minimal.MOD.log("choosing the look failed", t); }
+        finally { applying = false; }
+        Tone.dimControls(index == 0);
+    }
+
+    /** The user changed a Background slider or a highlight control. */
+    static void edited() {
+        if (applying) return;
+        boolean wasPreset = !custom();
+        saveCustom(); // the current values (including this change) become the Custom look
+        if (wasPreset) {
+            Minimal.STORE.putInt("look", 0);
+            applying = true;
+            try { Tone.showOnSettingsPage(Map.of(LOOK_ID, CUSTOM)); } finally { applying = false; }
+            Tone.dimControls(true);
+            Minimal.MOD.log("look: Custom (edited from a preset)");
+        }
+    }
+
+    private static void saveCustom() {
+        Minimal.STORE.putInt("custom_bg_hue", Tone.hue); Minimal.STORE.putInt("custom_bg_saturation", Tone.sat);
+        Minimal.STORE.putInt("custom_bg_luminance", Tone.lum); Minimal.STORE.putInt("custom_bg_contrast", Tone.con);
+        Minimal.STORE.putInt("custom_choice", Minimal.choice()); Minimal.STORE.putInt("custom_hue", Minimal.hue());
+    }
+
+    /** The saved Custom look (first time: the settings as they are now). */
+    private static Look savedCustom() {
+        var s = Minimal.STORE;
+        return new Look(CUSTOM, s.getInt("custom_bg_hue", Tone.hue), s.getInt("custom_bg_saturation", Tone.sat),
+                s.getInt("custom_bg_luminance", Tone.lum), s.getInt("custom_bg_contrast", Tone.con),
+                s.getInt("custom_choice", Minimal.choice()), s.getInt("custom_hue", Minimal.hue()));
+    }
+
+    /** Sets the tone and highlight to a look and redraws everything with it. */
+    private static void set(Look l) {
+        Tone.hue = l.hue(); Tone.sat = l.sat(); Tone.lum = l.lum(); Tone.con = l.con();
+        Minimal.STORE.putInt("bg_hue", l.hue()); Minimal.STORE.putInt("bg_saturation", l.sat());
+        Minimal.STORE.putInt("bg_luminance", l.lum()); Minimal.STORE.putInt("bg_contrast", l.con());
+        Minimal.STORE.putInt("choice", l.highlight()); Minimal.STORE.putInt("hue", l.customHue());
+        Minimal.apply();
+        Tone.changed();
+        Tone.refreshAll();
+        Tone.repaint();
     }
 }
