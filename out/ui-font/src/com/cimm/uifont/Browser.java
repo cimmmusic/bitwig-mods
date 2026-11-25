@@ -229,11 +229,9 @@ final class Browser {
                 return new drX() { // Bitwig calls press on hover too: act only when the press really starts
                     @Override public void cfM(dJH e) {
                         super.cfM(e);
-                        // where the press really is (Bitwig sets these when it starts); the arguments above can be a hover's
-                        double px = FzB, py = IwV;
-                        if (logged.add("press " + Base.this.getClass().getSimpleName()))
-                            Fonts.MOD.log("press at " + Math.round(px) + "," + Math.round(py) + " (asked at " + Math.round(x) + "," + Math.round(y) + ")");
-                        try { pressStart(px, py); } catch (Throwable t) { Fonts.MOD.log("click failed", t); }
+                        // where the press really is: the event's position (the arguments above can be a hover's)
+                        double[] p = where(e, x, y);
+                        try { pressStart(p[0], p[1]); } catch (Throwable t) { Fonts.MOD.log("click failed", t); }
                         jbi();
                     }
                     @Override public void cfM(bitwig.obf.dJM e) {
@@ -250,6 +248,35 @@ final class Browser {
                     @Override public boolean jB_() { return true; }
                 };
             } catch (Throwable t) { return null; }
+        }
+
+        /**
+         * The press's position in this widget, from the press event's public getters (hbP/Grk and Ucl/MIO: one pair
+         * is in the widget, the other in the window). The one nearest where Bitwig first asked (x, y) wins.
+         */
+        private double[] where(dJH e, double x, double y) {
+            double[][] c = new double[4][];
+            String[] names = {"hbP/Grk", "Ucl/MIO", "hbP/Grk - window", "Ucl/MIO - window"};
+            try { c[0] = new double[]{e.hbP(), e.Grk()}; } catch (Throwable ignored) {}
+            try { c[1] = new double[]{e.Ucl(), e.MIO()}; } catch (Throwable ignored) {}
+            try {
+                com.bitwig.base.geom.OLR o = ihs();
+                if (o != null) {
+                    if (c[0] != null) c[2] = new double[]{c[0][0] - o.FzB(), c[0][1] - o.hUR()};
+                    if (c[1] != null) c[3] = new double[]{c[1][0] - o.FzB(), c[1][1] - o.hUR()};
+                }
+            } catch (Throwable ignored) {}
+            int best = -1; double bestD = Double.MAX_VALUE;
+            for (int i = 0; i < c.length; i++) {
+                if (c[i] == null) continue;
+                double d = Math.hypot(c[i][0] - x, c[i][1] - y);
+                if (d < bestD) { bestD = d; best = i; }
+            }
+            double[] p = best < 0 ? new double[]{x, y} : c[best];
+            if (logged.add("press " + getClass().getSimpleName()))
+                Fonts.MOD.log("press at " + Math.round(p[0]) + "," + Math.round(p[1]) + " from " + (best < 0 ? "the hover" : names[best])
+                        + " (asked at " + Math.round(x) + "," + Math.round(y) + ")");
+            return p;
         }
     }
 
