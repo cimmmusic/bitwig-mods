@@ -4,7 +4,6 @@ import bitwig.obf.iok; // a colour
 import bml.api.At;
 import bml.api.Bml;
 import bml.api.Hook;
-import com.bitwig.graphics.SYo; // graphics
 
 import java.util.Collections;
 import java.util.Set;
@@ -15,10 +14,9 @@ import java.util.WeakHashMap;
  *
  * Bitwig's menus are windows of their own (dsQ); dsQ.t_(visible) shows and hides them, and the popup host opens each one
  * with its content (dnf.cfM(content, placement, focus)): menus are dKW, hover popups and tooltips are other kinds and are
- * ignored. The main windows (duG) paint their content in duG.MRY(g), then overlays. Right after the content (at the call
- * to dpN.TVZ() that follows it) this mod draws Bitwig's own popup overlay colour ("Popup overlay background color") over
- * the whole window while a menu is open, fading in and out. The fade's frames are asked for from Bitwig's UI timer
- * (repaints asked for during a paint are dropped). All hooks live in this class (BML takes one helper class per mod).
+ * ignored. While a menu is open, a dim layer (Bitwig's own popup overlay colour, "Popup overlay background color") sits
+ * on each main window's layer stack above everything, fading in and out. The fade's frames are asked for from Bitwig's
+ * UI timer (repaints asked for during a paint are dropped). All hooks live in this class (one helper class per mod).
  */
 public final class Backdrop {
     private Backdrop() {}
@@ -99,70 +97,87 @@ public final class Backdrop {
         double now = level();
         level0 = now; changed = System.nanoTime(); shown = any;
         if (logs < 10) log("menu " + why + "; backdrop " + (any ? "in" : "out"));
-        repaintWindows();
+        if (any && style != OFF) addLayers();
         startTicker();
     }
 
-    private static void repaintWindows() {
-        Object[] ws;
-        synchronized (windows) { ws = windows.toArray(); }
-        for (Object w : ws) try { ((bitwig.obf.dve) w).jbi(); } catch (Throwable ignored) {}
-    }
 
     /** Repaints the windows about 60 times a second until the fade is done (from Bitwig's timer, on its UI thread). */
     private static java.util.TimerTask ticker;
     private static synchronized void startTicker() {
         if (ticker != null) return;
         try {
-            ticker = bitwig.obf.dpN.TVZ().cfM(() -> {
-                repaintWindows();
-                double a = level();
-                if (shown ? a >= 1 : a <= 0) stopTicker();
-            }, 16, 16);
+            ticker = bitwig.obf.dpN.TVZ().cfM(Backdrop::tick, 0, 16);
         } catch (Throwable t) { log("fade timer unavailable", t); }
     }
+    /** One frame: forget closed menus, repaint the dim layers while fading, take them away once faded out. */
+    private static void tick() {
+        try { prune(); } catch (Throwable ignored) {}
+        double a = level();
+        Object[] ls;
+        synchronized (layers) { ls = layers.values().toArray(); }
+        for (Object l : ls) try { ((bitwig.obf.dve) l).jbi(); } catch (Throwable ignored) {}
+        if (!shown && a <= 0) { removeLayers(); stopTicker(); }
+    }
+
     private static synchronized void stopTicker() {
         if (ticker != null) { try { ticker.cancel(); } catch (Throwable ignored) {} ticker = null; }
     }
 
-    // ------------------------------------------------------------------------------------------- painting
+    // ------------------------------------------------------------------------------------------- windows
 
-    private static final ThreadLocal<Object> painting = new ThreadLocal<>();
-    private static final ThreadLocal<SYo> graphics = new ThreadLocal<>();
-
+    /** Notes the main windows as they paint (the dim layer goes on each); popups are windows too and are skipped. */
     @Hook(id = "window-paint", target = bitwig.obf.duG.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
-    public static void windowPaint(@bml.api.This Object window, @bml.api.Arg(0) SYo g) {
-        if (window instanceof bitwig.obf.dsR) { painting.set(null); graphics.set(null); return; } // a popup itself
-        painting.set(window); graphics.set(g);
-        windows.add(window);
+    public static void windowPaint(@bml.api.This Object window) {
+        if (!(window instanceof bitwig.obf.dsR)) windows.add(window);
     }
 
-    /** Called right after the window's content is drawn (it replaces the dpN.TVZ() that follows). */
-    @Hook(id = "after-content", target = bitwig.obf.duG.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V",
-          at = At.REPLACE_CALL, callOwner = bitwig.obf.dpN.class, call = "TVZ()LdpN;")
-    public static bitwig.obf.dpN afterContent() {
-        Object w = painting.get();
-        SYo g = graphics.get();
-        painting.set(null); graphics.set(null);
-        if (w != null && g != null) {
-            try { prune(); } catch (Throwable ignored) {}
-            try { dim((bitwig.obf.duG) w, g); } catch (Throwable t) { log("backdrop failed", t); }
+    // ------------------------------------------------------------------------------------------- the dim layer
+
+    /*
+     * The dim is a layer of its own on each window's layer stack (duG.sc(), the stack Bitwig puts its own in-window
+     * popups on, above the main content), sized to the whole stack (dqt.layout). Everything in the window, meters
+     * included, is under it. It takes no mouse events (DimLayer), and is taken off once the fade-out is over.
+     */
+    private static final java.util.Map<Object, Object> layers = Collections.synchronizedMap(new WeakHashMap<>());
+
+    private static void addLayers() {
+        Object[] ws;
+        synchronized (windows) { ws = windows.toArray(); }
+        for (Object o : ws) {
+            if (!(o instanceof bitwig.obf.duG w) || layers.containsKey(w)) continue;
+            try {
+                bitwig.obf.dqs stack = w.sc();
+                if (stack == null) continue;
+                DimLayer layer = new DimLayer(w);
+                stack.cfM(layer, l -> l.cfM(0, 0, stack.Sxo(), stack.yiX()));
+                layers.put(w, layer);
+            } catch (Throwable t) { log("dim layer failed", t); }
         }
-        return bitwig.obf.dpN.TVZ();
     }
 
-    private static void dim(bitwig.obf.duG w, SYo g) {
+    private static void removeLayers() {
+        Object[][] es;
+        synchronized (layers) {
+            es = layers.entrySet().stream().map(e -> new Object[]{e.getKey(), e.getValue()}).toArray(Object[][]::new);
+            layers.clear();
+        }
+        for (Object[] e : es) {
+            try { ((bitwig.obf.duG) e[0]).sc().MJ((bitwig.obf.dve) e[1]); } catch (Throwable t) { log("removing the dim layer failed", t); }
+        }
+    }
+
+    /** The dim's colour now: the popup overlay colour at the fade's level (eased); null when nothing shows. */
+    static iok dimColour(bitwig.obf.duG w) {
         double a = level();
-        if (style == OFF || a <= 0) return;
-        double e = 1 - Math.pow(1 - a, 3); // ease out
+        if (style == OFF || a <= 0) return null;
+        double e = 1 - Math.pow(1 - a, 3);
         iok c = overlayColour(w);
-        g.Hnt(new iok(c.FzB(), c.IwV(), c.UNj(), (float) (c.hUR() * e)));
-        g.MRY(0, 0, w.Sxo(), w.yiX());
-        g.wGc();
+        return new iok(c.FzB(), c.IwV(), c.UNj(), (float) (c.hUR() * e));
     }
 
     /** Bitwig's own colour for what lies behind a popup ("Popup overlay background color", themeable). */
-    private static iok overlayColour(bitwig.obf.duG w) {
+    static iok overlayColour(bitwig.obf.duG w) {
         try {
             iok c = w.PEn().MLK().cfM(w);
             if (c != null) return c;
@@ -218,41 +233,4 @@ public final class Backdrop {
         if (fading.isEmpty()) synchronized (Backdrop.class) { if (fadeTicker != null) { fadeTicker.cancel(); fadeTicker = null; } }
     }
 
-    // ------------------------------------------------------------------------------------------- meters
-
-    /*
-     * Meters (aEJ: the CPU meter, track meters) update many times a second and are redrawn on their own, outside the
-     * window's full paint, which wipes the dim over them: they showed undimmed above the backdrop. When a meter paints
-     * outside a window paint (painting is unset then) while the backdrop is up, the dim is drawn over it at the end of
-     * its paint (its last call, the gradient's release bev.ix_()). Inside a full window paint it isn't (the window's dim
-     * already covers it).
-     */
-    private static final ThreadLocal<Object[]> meter = new ThreadLocal<>();
-
-    @Hook(id = "meter-paint", target = bitwig.obf.aEJ.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
-    public static void meterPaint(@bml.api.This Object widget, @bml.api.Arg(0) SYo g) {
-        meter.set(style != OFF && painting.get() == null && level() > 0 ? new Object[]{widget, g} : null);
-    }
-
-    @Hook(id = "meter-painted", target = bitwig.obf.aEJ.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V",
-          at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.bev.class, call = "ix_()V")
-    public static void meterPainted(com.bitwig.graphics.bev gradient) {
-        gradient.ix_();
-        Object[] m = meter.get();
-        if (m == null) return;
-        meter.set(null);
-        try {
-            bitwig.obf.dve w = (bitwig.obf.dve) m[0];
-            SYo g = (SYo) m[1];
-            double a = level();
-            if (a <= 0) return;
-            double e = 1 - Math.pow(1 - a, 3);
-            bitwig.obf.dve root = w;
-            for (bitwig.obf.dve p = w.RbC(); p != null; p = p.RbC()) root = p;
-            iok c = root instanceof bitwig.obf.duG win ? overlayColour(win) : new iok(0.03f, 0.03f, 0.03f, 0.8f);
-            g.Hnt(new iok(c.FzB(), c.IwV(), c.UNj(), (float) (c.hUR() * e)));
-            g.MRY(0, 0, w.Sxo(), w.yiX());
-            g.wGc();
-        } catch (Throwable t) { log("meter dim failed", t); }
-    }
 }
