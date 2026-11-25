@@ -20,5 +20,8 @@ public final class HighlightSettings implements PreferenceProvider {
                        Highlight.STORE.putInt("hue", (int) Math.round(v));
                        if (Highlight.choice() == Highlight.CUSTOM) Highlight.apply();
                    });
+        preferences.checkbox("highlight_colour_dark_scenes", "Dark scene backgrounds")
+                   .in(mine)
+                   .value(() -> Scenes.on, v -> { Scenes.on = v; Highlight.STORE.putBoolean(Scenes.KEY, v); });
     }
 }

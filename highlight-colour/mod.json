@@ -3,7 +3,7 @@
   "mod": {
     "id": "highlight-colour",
     "name": "Interface: Highlight Colour",
-    "version": "0.2.0-dev.1",
+    "version": "0.2.0-dev.2",
     "author": "Cimm",
     "description": "Choose Bitwig's highlight colour (the orange of selected buttons, values, the playing transport and so on) from presets or any hue. Changes apply at once and work with any theme.",
     "documentation": "readme"
