@@ -1035,7 +1035,7 @@ public final class Minimal {
     @Hook(id = "button-icon", target = bitwig.obf.dzq.class, method = "TMF(Ljava/lang/String;)V", at = At.ENTRY)
     public static void buttonIcon(@bml.api.This Object button, @bml.api.Arg(0) String icon) {
         if ("transport_record.svg".equals(icon)) recordButtons.add(button); else recordButtons.remove(button);
-        if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); }
+        if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); startLoopWatch(); }
         else loopButtons.remove(button);
         synchronized (loopButtons) { loopArr = loopButtons.toArray(); }
     }
@@ -1050,6 +1050,45 @@ public final class Minimal {
     static final java.util.Set<Object> loopRegion = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new IdentityHashMap<>()));
 
     private static volatile Object[] loopRegionArr = new Object[0];
+
+    /*
+     * The timeline paints the loop range from its colours' stored values (not through a per-widget lookup), so the
+     * stored values themselves follow the loop: mint while it's on, the theme's own (grey/white) while it's off.
+     * A light watch on Bitwig's UI timer (every 100 ms) notices the loop button's toggle changing.
+     */
+    private static final Map<Object, iok> loopRegionOff = new IdentityHashMap<>();
+    private static volatile Boolean loopWasOn;
+    private static java.util.TimerTask loopWatch;
+
+    private static synchronized void startLoopWatch() {
+        if (loopWatch != null) return;
+        try { loopWatch = bitwig.obf.dpN.TVZ().cfM(Minimal::watchLoop, 200, 100); }
+        catch (Throwable t) { MOD.log("loop watch unavailable", t); }
+    }
+
+    private static void watchLoop() {
+        try {
+            boolean on = loopOn();
+            Boolean was = loopWasOn;
+            if (was != null && was == on) return;
+            loopWasOn = on;
+            int n = 0;
+            for (Object o : loopRegionArr) {
+                if (!(o instanceof bitwig.obf.eeY c)) continue;
+                iok off;
+                synchronized (loopRegionOff) {
+                    off = loopRegionOff.get(c);
+                    if (off == null) { off = c.iHb(); if (off == null) continue; loopRegionOff.put(c, off); }
+                }
+                boolean fill = String.valueOf(c).contains("Fill");
+                iok want = on ? new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), fill ? 0.45f : 1f) : off;
+                ((bitwig.obf.efb) c).Hnt(want);
+                n++;
+            }
+            if (was != null || on) MOD.log("loop " + (on ? "on" : "off") + ": loop range colours " + (on ? "mint" : "back to the theme's") + " (" + n + ")");
+            Tone.repaint();
+        } catch (Throwable t) { if (loopLogs++ < 8) MOD.log("loop watch failed", t); }
+    }
     private static boolean isLoopRegion(Object colour) {
         for (Object c : loopRegionArr) if (c == colour) return true;
         return false;
