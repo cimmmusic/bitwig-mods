@@ -3,7 +3,7 @@
   "mod": {
     "id": "pill-buttons",
     "name": "Interface: Pill Buttons",
-    "version": "0.4.0-dev.1",
+    "version": "0.4.0-dev.2",
     "author": "Cimm",
     "description": "Bitwig's buttons, fields and small frames drawn fully rounded (pill-shaped), for a minimal, futuristic look. Pairs with the Minimal theme.",
     "documentation": "readme"

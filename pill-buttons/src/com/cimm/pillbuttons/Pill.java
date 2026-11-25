@@ -226,10 +226,25 @@ public final class Pill {
         return false;
     }
 
-    /** The theme's highlight colour (Accent (default)), as drawn for this widget: follows Interface: Highlight Colour. */
+    /** The hover colour for this icon: the theme's record red for the record button, else the highlight colour
+     *  (Accent (default), which follows Interface: Highlight Colour). */
     private static iok accent(bitwig.obf.dve w) {
-        try { iok c = w.PEn().cfM("Accent (default)").cfM(w); if (c != null) return c; } catch (Throwable ignored) {}
-        return new iok(1f, 0.37f, 0.12f, 1f);
+        boolean record = false;
+        try { for (bitwig.obf.dve v = w; v != null && !record; v = v.RbC()) record = recordButtons.contains(v); } catch (Throwable ignored) {}
+        try {
+            iok c = w.PEn().cfM(record ? "Record button color" : "Accent (default)").cfM(w);
+            if (c != null) return c;
+        } catch (Throwable ignored) {}
+        return record ? new iok(1f, 0.27f, 0.23f, 1f) : new iok(1f, 0.37f, 0.12f, 1f);
+    }
+
+    /** Buttons showing the transport's record icon (their icon is set with dzq.TMF(name), declared on the buttons' base class). */
+    private static final java.util.Set<Object> recordButtons =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+
+    @Hook(id = "button-icon", target = bitwig.obf.dzq.class, method = "TMF(Ljava/lang/String;)V", at = At.ENTRY)
+    public static void buttonIcon(@bml.api.This Object button, @bml.api.Arg(0) String icon) {
+        if ("transport_record.svg".equals(icon)) recordButtons.add(button); else recordButtons.remove(button);
     }
 
     private static final ThreadLocal<Object> icon = new ThreadLocal<>();
