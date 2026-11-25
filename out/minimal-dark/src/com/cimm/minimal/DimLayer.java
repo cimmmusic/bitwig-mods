@@ -34,6 +34,8 @@ final class DimLayer extends bitwig.obf.dve {
     }
 
     /** The open menu's button, painted again over the dim where it sits in this window. */
+    private static int raiseLogs;
+
     private void raised(com.bitwig.graphics.SYo g) {
         com.bitwig.base.geom.OLR me = ihs();
         if (me == null) return;
@@ -41,14 +43,20 @@ final class DimLayer extends bitwig.obf.dve {
         for (bitwig.obf.dve a : Minimal.openAnchors()) {
             try {
                 if (root(a) != myRoot) continue; // another window
-                com.bitwig.base.geom.OLR r = a.ihs();
+                // a menu button (dLh) wraps the button itself (its gfw()): that is what draws the name
+                bitwig.obf.dve w = a instanceof bitwig.obf.dLh m && m.gfw() != null ? m.gfw() : a;
+                com.bitwig.base.geom.OLR r = w.ihs();
                 if (r == null) continue;
                 g.qoU();
                 try {
                     g.FzB(r.FzB() - me.FzB(), r.hUR() - me.hUR());
-                    a.Hnt(g);
+                    // only what the button draws on top of its background: its name (in the highlight colour while
+                    // its menu is open) and any icon; not the pressed background behind it
+                    w.cfM(g);
+                    w.b_(g);
                 } finally { g.ucQ(); }
-            } catch (Throwable ignored) {}
+                if (raiseLogs++ < 2) Minimal.MOD.log("menu name drawn above the dim: " + w.getClass().getName());
+            } catch (Throwable t) { if (raiseLogs++ < 4) Minimal.MOD.log("drawing the menu name above the dim failed", t); }
         }
     }
 

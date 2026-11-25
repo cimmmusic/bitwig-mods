@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.1.0-dev.3",
+    "version": "0.1.0-dev.10",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -336,6 +336,18 @@
       "name": "TMF",
       "descriptor": "(Ljava/lang/String;)V"
     },
+    "bpm.cfM": {
+      "kind": "method",
+      "owner": "bpm",
+      "name": "cfM",
+      "descriptor": "(LPTe;D)V"
+    },
+    "eff.hDc": {
+      "kind": "method",
+      "owner": "eff",
+      "name": "hDc",
+      "descriptor": "()LeeY;"
+    },
     "dqT.cfM": {
       "kind": "method",
       "owner": "dqT",
@@ -404,7 +416,19 @@
       "name": "MRY",
       "descriptor": "(LeoX;DDLeoW;I)LdrX;"
     },
+    "dve.b_": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "b_",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
     "dve.cfM": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "dve.cfM-2": {
       "kind": "method",
       "owner": "dve",
       "name": "cfM",
@@ -1077,6 +1101,21 @@
       }
     },
     {
+      "id": "loop-range-on",
+      "target": "bpm.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "eff.hDc",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "loopRangeOn",
+        "descriptor": "(Leff;)LeeY;",
+        "args": []
+      }
+    },
+    {
       "id": "icon-paint",
       "target": "dqT.cfM",
       "transform": "INSERT_AT_ENTRY",
@@ -1175,7 +1214,9 @@
     "dBX.cfM",
     "drX.init",
     "dve.MRY",
+    "dve.b_",
     "dve.cfM",
+    "dve.cfM-2",
     "dve.init"
   ],
   "resources": {

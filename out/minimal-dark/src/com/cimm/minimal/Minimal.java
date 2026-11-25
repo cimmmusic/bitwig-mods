@@ -165,6 +165,18 @@ public final class Minimal {
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
         value = Theme.relative(colour, value);
+        if (loopArr.length > 0) {
+            Object w = asking.get(); // (left set: a colour made from another resolves inside, for the same widget)
+            // the loop is on: its icon asks for Bitwig's "on" colour (not the hover colour, which stays the highlight)
+            boolean inLoop = value != null && inLoopButton(w);
+            if (inLoop && loopSeen.size() < 24 && loopSeen.add("asks " + colour))
+                MOD.log("loop button asks for " + colour + " = " + Math.round(value.FzB() * 255) + "," + Math.round(value.IwV() * 255) + "," + Math.round(value.UNj() * 255));
+            // the loop is on: the icon's "on" colour (Accent (hitech) here; not the hover colour, which stays the highlight)
+            if (inLoop && LOOP_ON.contains(String.valueOf(colour)) && loopOn()) {
+                if (loopSeen.size() < 24 && loopSeen.add("resolved " + colour)) MOD.log("loop on: " + colour + " drawn mint");
+                return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
+            }
+        }
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
         Color t = target;
@@ -192,7 +204,23 @@ public final class Minimal {
 
     /** The widget asking for a colour: notes its window now and then (to repaint all windows when a setting changes). */
     @Hook(id = "colour-asked", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
-    public static void colourAsked(@bml.api.Arg(0) Object widget) { Tone.noteWidget(widget); }
+    public static void colourAsked(@bml.api.Arg(0) Object widget) {
+        Tone.noteWidget(widget);
+        if (loopArr.length > 0) asking.set(widget);
+    }
+
+    /** The widget asking for a colour right now (between colour-asked and draw-highlight), when loop buttons exist. */
+    private static final ThreadLocal<Object> asking = new ThreadLocal<>();
+    /** The transport loop buttons (one or two): a copy for cheap checks while drawing. */
+    private static volatile Object[] loopArr = new Object[0];
+
+    /** Whether w is a loop button or sits within a few levels of one. */
+    private static boolean inLoopButton(Object w) {
+        Object[] lb = loopArr;
+        if (lb.length == 0 || !(w instanceof bitwig.obf.dve d)) return false;
+        for (int i = 0; i < 4 && d != null; i++, d = d.RbC()) for (Object b : lb) if (b == d) return true;
+        return false;
+    }
 
     // ---- text on coloured items: black or white, whichever contrasts more ----
 
@@ -549,6 +577,7 @@ public final class Minimal {
      * stays in the foreground in its highlight colour while everything else dims.
      */
     private static final ThreadLocal<Object> openingAnchor = new ThreadLocal<>();
+    private static int anchorLogs;
     /** Open menu popup -> the button it opened from. */
     static final java.util.Map<Object, bitwig.obf.dve> anchors = Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -561,7 +590,13 @@ public final class Minimal {
                     f.setAccessible(true);
                     Object w = f.get(placement);
                     // a button: not a whole panel or track row (context menus are placed against those too)
-                    if (w instanceof bitwig.obf.dzq b && b.yiX() <= 80 && b.Sxo() <= 400) return b;
+                    // a menu button (dLh: File, Play, Add...) always; another widget only when it is button-sized
+                    if (w instanceof bitwig.obf.dLh || (w instanceof bitwig.obf.dve b0 && b0.yiX() > 0 && b0.yiX() <= 80 && b0.Sxo() <= 400)) {
+                        bitwig.obf.dve b = (bitwig.obf.dve) w;
+                        if (anchorLogs++ < 6) MOD.log("menu opened from " + b.getClass().getName() + " " + Math.round(b.Sxo()) + "x" + Math.round(b.yiX()));
+                        return b;
+                    }
+                    if (w != null && anchorLogs++ < 6) MOD.log("menu anchor too big to raise: " + w.getClass().getName());
                 }
         } catch (Throwable t) { log("menu button not found", t); }
         return null;
@@ -990,6 +1025,55 @@ public final class Minimal {
     @Hook(id = "button-icon", target = bitwig.obf.dzq.class, method = "TMF(Ljava/lang/String;)V", at = At.ENTRY)
     public static void buttonIcon(@bml.api.This Object button, @bml.api.Arg(0) String icon) {
         if ("transport_record.svg".equals(icon)) recordButtons.add(button); else recordButtons.remove(button);
+        if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); }
+        else loopButtons.remove(button);
+        synchronized (loopButtons) { loopArr = loopButtons.toArray(); }
+    }
+
+    /** Buttons showing the transport's loop icon: drawn in mint when the loop is on. */
+    private static final java.util.Set<Object> loopButtons =
+            java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
+    private static int loopLogs;
+    private static final java.util.Set<String> loopSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
+    /** The colours a toggle is drawn in when it is on. */
+    /** Whether the transport loop is on: the loop button's own toggle value (dAE.LIK()). */
+    static boolean loopOn() {
+        for (Object b : loopArr) {
+            try { if (b instanceof bitwig.obf.dAE t && t.LIK() != null && t.LIK().getBoolValue()) return true; } catch (Throwable ignored) {}
+        }
+        return false;
+    }
+
+    /*
+     * The loop range in the timeline (painted by bpm.cfM): while the loop is on, Bitwig draws its outline in
+     * "Accent (hitech)" and its fill as a 40 % mix of it (white and grey in this theme). The painter gets mint instead.
+     */
+    private static volatile bitwig.obf.eeY loopMint;
+
+    @Hook(id = "loop-range-on", target = bitwig.obf.bpm.class, method = "cfM(LPTe;D)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "hDc()LeeY;")
+    public static bitwig.obf.eeY loopRangeOn(bitwig.obf.eff registry) {
+        try {
+            bitwig.obf.eeY m = loopMint;
+            if (m == null) loopMint = m = bitwig.obf.eeY.cfM("Minimal Dark Loop On", MINT);
+            if (loopSeen.size() < 24 && loopSeen.add("range painter")) MOD.log("loop range on: drawn mint");
+            return m;
+        } catch (Throwable t) { return registry.hDc(); }
+    }
+
+    private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Accent (hitech)", "Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
+    static final iok MINT = new iok(0x3B / 255f, 0xE8 / 255f, 0xB0 / 255f, 1f);
+
+    /** Whether this icon widget belongs to a loop button (itself or a few parents up). */
+    private static boolean loopIcon(bitwig.obf.dve w) {
+        try { for (int i = 0; i < 4 && w != null; i++, w = w.RbC()) if (loopButtons.contains(w)) return true; } catch (Throwable ignored) {}
+        return false;
+    }
+
+    /** A colour that means "on": clearly coloured, not a grey. */
+    private static boolean lit(iok c) {
+        float max = Math.max(c.FzB(), Math.max(c.IwV(), c.UNj())), min = Math.min(c.FzB(), Math.min(c.IwV(), c.UNj()));
+        return c.hUR() > 0.3f && max - min > 0.2f;
     }
 
     private static final ThreadLocal<Object> icon = new ThreadLocal<>();
@@ -1002,6 +1086,8 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.BrJ.class, call = "MRY(Lcom/bitwig/graphics/SYo;DD)V")
     public static void iconPlain(com.bitwig.graphics.BrJ image, SYo g, double x, double y) {
         Object w = icon.get();
+        if (w instanceof bitwig.obf.dve lv && loopIcon(lv) && loopSeen.size() < 12 && loopSeen.add("plain " + lv.getClass().getName()))
+            MOD.log("loop icon drawn in its own colours (" + lv.getClass().getName() + ")");
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) {
             g.qoU();
             try { g.Hnt(accent(v)); image.cfM(g, x, y); } finally { g.ucQ(); }
@@ -1016,6 +1102,10 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "Hnt(Liok;)V")
     public static void iconTinted(SYo g, iok colour) {
         Object w = icon.get();
+        if (w instanceof bitwig.obf.dve v && colour != null && loopIcon(v)) {
+            String key = "tinted " + Integer.toHexString(colour.hashCode());
+            if (loopSeen.size() < 12 && loopSeen.add(key)) MOD.log("loop icon tinted " + Math.round(colour.FzB() * 255) + "," + Math.round(colour.IwV() * 255) + "," + Math.round(colour.UNj() * 255) + (lit(colour) ? " (on: mint)" : ""));
+        }
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
         g.Hnt(colour);
     }

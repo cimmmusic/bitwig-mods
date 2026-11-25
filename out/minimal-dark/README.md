@@ -17,6 +17,7 @@ It's near-black, flat and quiet, so your music is the loudest thing on screen. A
 - **Flat means flat.** No gradients, no button outlines, no drop shadows, no embossed knobs. Bitwig's derived "slightly lighter, slightly darker" shades are switched off too, so every surface is exactly one colour.
 - **Crisp white text and icons**, with hairline separators and **one accent colour** for whatever's on, armed or playing.
 - **Your track and clip colours stay yours.** The theme only repaints Bitwig, never your music.
+- **Loop in mint.** When the loop is on, the transport's loop icon and the loop range in the timeline glow mint green; when it's off, they sit quietly in grey. 🟢
 - The little corner arrows on the File / Play / Add menus are gone. You knew they were menus. 😉
 
 <img src="images/mixer.png" alt="The mixer in Minimal Dark: flat dark strips, orange fader fills and readable track tiles">
@@ -69,7 +70,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.1.0-dev.3.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.1.0-dev.3.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.1.0-dev.10.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.1.0-dev.10.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 
