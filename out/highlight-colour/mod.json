@@ -1,0 +1,63 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "highlight-colour",
+    "name": "Interface: Highlight Colour",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "Choose Bitwig's highlight colour (the orange of selected buttons, values, the playing transport and so on) from presets or any hue. Changes apply at once and work with any theme.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.highlight.Highlight"
+  },
+  "targets": {
+    "eff.UNj": {
+      "kind": "method",
+      "owner": "eff",
+      "name": "UNj",
+      "descriptor": "()V"
+    }
+  },
+  "hooks": [
+    {
+      "id": "theme-registry-built",
+      "target": "eff.UNj",
+      "transform": "INSERT_BEFORE_FINAL_RETURN",
+      "bridge": {
+        "method": "registryBuilt",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "this"
+        ]
+      }
+    }
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  },
+  "registrations": [
+    {
+      "id": "preferences",
+      "consumer": "preferences-composition-framework",
+      "descriptor": "preferences.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "preferences-composition-framework",
+      "min_version": "1.0.0"
+    }
+  ]
+}
