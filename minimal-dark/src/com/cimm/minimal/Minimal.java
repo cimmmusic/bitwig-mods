@@ -165,6 +165,13 @@ public final class Minimal {
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
         value = Theme.relative(colour, value);
+        if (loopArr.length > 0) {
+            Object w = asking.get(); // (left set: a colour made from another resolves inside, for the same widget)
+            if (value != null && lit(value) && inLoopButton(w)) {
+                if (loopSeen.size() < 12 && loopSeen.add("resolved " + colour)) MOD.log("loop on: " + colour + " drawn mint");
+                return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
+            }
+        }
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
         Color t = target;
@@ -192,7 +199,23 @@ public final class Minimal {
 
     /** The widget asking for a colour: notes its window now and then (to repaint all windows when a setting changes). */
     @Hook(id = "colour-asked", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
-    public static void colourAsked(@bml.api.Arg(0) Object widget) { Tone.noteWidget(widget); }
+    public static void colourAsked(@bml.api.Arg(0) Object widget) {
+        Tone.noteWidget(widget);
+        if (loopArr.length > 0) asking.set(widget);
+    }
+
+    /** The widget asking for a colour right now (between colour-asked and draw-highlight), when loop buttons exist. */
+    private static final ThreadLocal<Object> asking = new ThreadLocal<>();
+    /** The transport loop buttons (one or two): a copy for cheap checks while drawing. */
+    private static volatile Object[] loopArr = new Object[0];
+
+    /** Whether w is a loop button or sits within a few levels of one. */
+    private static boolean inLoopButton(Object w) {
+        Object[] lb = loopArr;
+        if (lb.length == 0 || !(w instanceof bitwig.obf.dve d)) return false;
+        for (int i = 0; i < 4 && d != null; i++, d = d.RbC()) for (Object b : lb) if (b == d) return true;
+        return false;
+    }
 
     // ---- text on coloured items: black or white, whichever contrasts more ----
 
@@ -999,12 +1022,14 @@ public final class Minimal {
         if ("transport_record.svg".equals(icon)) recordButtons.add(button); else recordButtons.remove(button);
         if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); }
         else loopButtons.remove(button);
+        synchronized (loopButtons) { loopArr = loopButtons.toArray(); }
     }
 
     /** Buttons showing the transport's loop icon: drawn in mint when the loop is on. */
     private static final java.util.Set<Object> loopButtons =
             java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
     private static int loopLogs;
+    private static final java.util.Set<String> loopSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
     static final iok MINT = new iok(0x3B / 255f, 0xE8 / 255f, 0xB0 / 255f, 1f);
 
     /** Whether this icon widget belongs to a loop button (itself or a few parents up). */
@@ -1029,6 +1054,8 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.BrJ.class, call = "MRY(Lcom/bitwig/graphics/SYo;DD)V")
     public static void iconPlain(com.bitwig.graphics.BrJ image, SYo g, double x, double y) {
         Object w = icon.get();
+        if (w instanceof bitwig.obf.dve lv && loopIcon(lv) && loopSeen.size() < 12 && loopSeen.add("plain " + lv.getClass().getName()))
+            MOD.log("loop icon drawn in its own colours (" + lv.getClass().getName() + ")");
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) {
             g.qoU();
             try { g.Hnt(accent(v)); image.cfM(g, x, y); } finally { g.ucQ(); }
@@ -1044,7 +1071,8 @@ public final class Minimal {
     public static void iconTinted(SYo g, iok colour) {
         Object w = icon.get();
         if (w instanceof bitwig.obf.dve v && colour != null && loopIcon(v)) {
-            if (loopLogs++ < 6) MOD.log("loop icon drawn in " + colour.FzB() + "," + colour.IwV() + "," + colour.UNj() + (lit(colour) ? " (on: mint)" : ""));
+            String key = "tinted " + Integer.toHexString(colour.hashCode());
+            if (loopSeen.size() < 12 && loopSeen.add(key)) MOD.log("loop icon tinted " + Math.round(colour.FzB() * 255) + "," + Math.round(colour.IwV() * 255) + "," + Math.round(colour.UNj() * 255) + (lit(colour) ? " (on: mint)" : ""));
             if (lit(colour)) { g.Hnt(new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), colour.hUR())); return; }
         }
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
