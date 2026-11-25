@@ -77,25 +77,62 @@ public final class Highlight {
         } catch (Throwable t) { MOD.log("reading the theme colours failed", t); }
     }
 
-    /** Recolours the accent family to the current choice (or back to the originals). */
+    // ---- what Bitwig draws: every theme colour is resolved through eeY.cfM(iok) ----
+
+    /** The accent colours (identity) and whether each is the main accent; swapped as a whole when found. */
+    private static volatile Object[] accents = new Object[0];
+    private static volatile boolean[] isMain = new boolean[0];
+    /** The main accent's colour as the theme set it: the reference the variants are measured against. */
+    private static volatile iok main;
+    /** The chosen colour, or null for the theme's own. */
+    private static volatile Color target;
+    /** Recoloured values by source colour (rgba and main flag), so drawing doesn't redo the maths. */
+    private static final java.util.concurrent.ConcurrentHashMap<Long, iok> cache = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final iok SAME = new iok(0f, 0f, 0f, 0f); // cache marker: keep the colour as it is
+
+    /** Takes the current choice (and the accent colours, once found); Bitwig repaints with it. */
     static void apply() {
-        List<Object[]> todo = new ArrayList<>();
-        synchronized (originals) { for (var e : originals.entrySet()) todo.add(new Object[]{e.getKey(), e.getValue(), names.get(e.getKey())}); }
-        if (todo.isEmpty()) MOD.log("no highlight colours to change yet");
-        if (todo.isEmpty()) return;
-        iok main = null;
-        for (Object[] t : todo) if (MAIN.equals(t[2])) main = (iok) t[1];
-        int choice = choice();
-        Color target = choice == CUSTOM ? Color.getHSBColor(hue() / 360f, 0.85f, 1f) : choice == 0 ? null : new Color(RGB[choice]);
-        int changed = 0;
-        for (Object[] t : todo) {
-            iok original = (iok) t[1];
-            iok next = target == null || main == null ? original : recolour(original, main, target, MAIN.equals(t[2]));
-            if (next == null) continue;
-            try { ((bitwig.obf.eeY) t[0]).MRY(next); changed++; }
-            catch (Throwable e) { MOD.log("setting " + t[2] + " failed", e); }
+        synchronized (originals) {
+            List<Object> list = new ArrayList<>(originals.keySet());
+            Object[] a = list.toArray();
+            boolean[] m = new boolean[a.length];
+            for (int i = 0; i < a.length; i++) {
+                m[i] = MAIN.equals(names.get(a[i]));
+                if (m[i]) main = originals.get(a[i]);
+            }
+            accents = a; isMain = m;
         }
-        MOD.log("highlight " + LABELS[choice] + (choice == CUSTOM ? " " + hue() + "°" : "") + ": " + changed + " colours");
+        int choice = choice();
+        target = choice == CUSTOM ? Color.getHSBColor(hue() / 360f, 0.85f, 1f) : choice == 0 ? null : new Color(RGB[choice]);
+        cache.clear();
+        MOD.log("highlight " + LABELS[choice] + (choice == CUSTOM ? " " + hue() + "°" : "") + " for " + accents.length + " colours");
+    }
+
+    private static int drawLogs;
+
+    /** A theme colour as a widget gets it (eeY.cfM(widget)), after any theme has put its own value in: for the
+     *  accent colours, the chosen colour instead. */
+    @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
+    public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
+        Color t = target;
+        if (t == null || value == null) return value;
+        Object[] a = accents;
+        int k = -1;
+        for (int i = 0; i < a.length; i++) if (a[i] == colour) { k = i; break; }
+        if (k < 0) return value;
+        iok m = main;
+        if (m == null) return value;
+        boolean mainAccent = isMain[k];
+        long key = ((long) Float.floatToIntBits(value.FzB()) * 31 + Float.floatToIntBits(value.IwV())) * 31
+                + Float.floatToIntBits(value.UNj()) * 7L + Float.floatToIntBits(value.hUR()) * 3L + (mainAccent ? 1 : 0);
+        iok out = cache.get(key);
+        if (out == null) {
+            iok r = recolour(value, m, t, mainAccent);
+            out = r == null ? SAME : r;
+            if (cache.size() < 4096) cache.put(key, out);
+            if (drawLogs < 4) { drawLogs++; MOD.log("drawing " + names.get(colour) + " in the highlight colour" + (r == null ? " (kept: not a shade of the accent)" : "")); }
+        }
+        return out == SAME ? value : out;
     }
 
     /**

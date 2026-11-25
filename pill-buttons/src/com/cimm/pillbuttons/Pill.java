@@ -25,6 +25,8 @@ public final class Pill {
 
     static volatile boolean on = STORE.getBoolean("enabled", true);
     static volatile double maxH = STORE.getInt("max_height", 32);
+    /** How round: 100 = a full pill (radius half the height), less = softer corners. */
+    static volatile double roundness = STORE.getInt("roundness", 80);
     private static int logs;
 
     /** The radius to draw with: a pill for small frames, Bitwig's own otherwise. */
@@ -34,7 +36,7 @@ public final class Pill {
         try { scale = g.Hnt(); } catch (Throwable ignored) {}
         if (logs < 8) { logs++; MOD.log("frame " + Math.round(w) + "x" + Math.round(h) + " radius " + r + " scale " + scale); }
         if (h > maxH * Math.max(1, scale) + 0.5) return r; // a panel, not a button
-        return Math.min(w, h) / 2;
+        return Math.max(r, Math.min(w, h) / 2 * Math.max(0, Math.min(100, roundness)) / 100);
     }
 
     // ---- dyK: fill, clip and border paths of every rounded frame ----
