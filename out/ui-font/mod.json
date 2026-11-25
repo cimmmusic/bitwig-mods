@@ -3,7 +3,7 @@
   "mod": {
     "id": "ui-font",
     "name": "Interface: Font",
-    "version": "0.1.0-dev.1",
+    "version": "0.2.0-dev.1",
     "author": "Cimm",
     "description": "Choose the font Bitwig draws its interface with: any font installed on your Mac, or one you drop in the mod's fonts folder. Separate choices for normal text, bold text and numbers. Applies when Bitwig starts.",
     "documentation": "readme"
@@ -18,6 +18,18 @@
     "class": "com.cimm.uifont.UiFont"
   },
   "targets": {
+    "dBX.JJY": {
+      "kind": "method",
+      "owner": "dBX",
+      "name": "JJY",
+      "descriptor": "()LdKW;"
+    },
+    "dBX.cfM": {
+      "kind": "method",
+      "owner": "dBX",
+      "name": "cfM",
+      "descriptor": "(LdKW;)V"
+    },
     "dpK.Hnt": {
       "kind": "method",
       "owner": "dpK",
@@ -35,9 +47,78 @@
       "owner": "com/bitwig/graphics/sal",
       "name": "cfM",
       "descriptor": "(Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.FzB": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "FzB",
+      "descriptor": "D"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.Hnt": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "Hnt",
+      "descriptor": "D"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.IwV": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "IwV",
+      "descriptor": "D"
+    },
+    "com.bitwig.base.geom.DoubleRectangle.MRY": {
+      "kind": "field",
+      "owner": "com/bitwig/base/geom/DoubleRectangle",
+      "name": "MRY",
+      "descriptor": "D"
+    },
+    "dXk.init": {
+      "kind": "method",
+      "owner": "dXk",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "drX.init": {
+      "kind": "method",
+      "owner": "drX",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dve.init": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "<init>",
+      "descriptor": "()V"
+    },
+    "dve.MRY": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "MRY",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    },
+    "dve.cfM": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "cfM",
+      "descriptor": "(LeoX;DDLeoW;I)LdrX;"
     }
   },
   "hooks": [
+    {
+      "id": "font-dropdown",
+      "target": "dBX.JJY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEVIRTUAL",
+        "target": "dBX.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "fillDropdown",
+        "descriptor": "(LdBX;LdKW;)V",
+        "args": []
+      }
+    },
     {
       "id": "font-from-file",
       "target": "dpK.Hnt",
@@ -68,6 +149,18 @@
         "args": []
       }
     }
+  ],
+  "opens": [
+    "com.bitwig.base.geom.DoubleRectangle.FzB",
+    "com.bitwig.base.geom.DoubleRectangle.Hnt",
+    "com.bitwig.base.geom.DoubleRectangle.IwV",
+    "com.bitwig.base.geom.DoubleRectangle.MRY",
+    "dBX.cfM",
+    "dXk.init",
+    "drX.init",
+    "dve.MRY",
+    "dve.cfM",
+    "dve.init"
   ],
   "resources": {
     "readme": {

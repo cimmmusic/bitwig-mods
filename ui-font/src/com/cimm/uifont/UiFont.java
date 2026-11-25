@@ -24,9 +24,29 @@ import java.io.InputStream;
 public final class UiFont {
     private UiFont() {}
 
+    /** Bitwig's graphics system, seen when it loads its fonts: the font list makes its previews with it. */
+    static volatile sal graphics;
+
+    /**
+     * A dropdown fills its popup with dBX.cfM(popup) when it opens. For this mod's Settings dropdowns the popup gets
+     * the font list instead (names drawn in their own fonts, a search field); every other dropdown is left alone.
+     */
+    @Hook(id = "font-dropdown", target = bitwig.obf.dBX.class, method = "JJY()LdKW;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dBX.class, call = "cfM(LdKW;)V")
+    public static void fillDropdown(bitwig.obf.dBX dropdown, bitwig.obf.dKW popup) {
+        Browser.Target t = null;
+        try { t = Browser.target(dropdown); } catch (Throwable ignored) {}
+        if (t != null) {
+            try { Browser.fill(dropdown, popup, t); return; }
+            catch (Throwable e) { Fonts.MOD.log("font list failed, showing the plain list", e); }
+        }
+        dropdown.cfM(popup);
+    }
+
     @Hook(id = "font-from-file", target = dpK.class, method = "Hnt(LIdX;)Lcom/bitwig/graphics/sQv;",
           at = At.REPLACE_CALL, callOwner = sal.class, call = "cfM(Ljava/io/File;)Lcom/bitwig/graphics/sQv;")
     public static sQv fontFromFile(sal graphics, File file) throws IOException {
+        UiFont.graphics = graphics;
         File mine = Fonts.replacement(file == null ? null : file.getName());
         if (mine != null) {
             try { return graphics.cfM(mine); }
@@ -39,6 +59,7 @@ public final class UiFont {
           at = At.REPLACE_CALL, callOwner = sal.class,
           call = "cfM(Ljava/lang/String;Ljava/io/InputStream;)Lcom/bitwig/graphics/sQv;")
     public static sQv fontFromStream(sal graphics, String name, InputStream in) throws IOException {
+        UiFont.graphics = graphics;
         File mine = Fonts.replacement(name);
         if (mine != null) {
             try (InputStream own = new FileInputStream(mine)) { return graphics.cfM(name, own); }

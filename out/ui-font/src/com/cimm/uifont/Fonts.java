@@ -77,13 +77,16 @@ final class Fonts {
         for (File dir : dirs) {
             File[] files = dir.listFiles();
             if (files == null) continue;
+            java.util.Arrays.sort(files);
             for (File f : files) {
                 String n = f.getName(), lower = n.toLowerCase(Locale.ROOT);
                 if (!f.isFile() || n.startsWith(".")) continue;
                 if (!(lower.endsWith(".ttf") || lower.endsWith(".otf") || lower.endsWith(".ttc"))) continue;
-                String label = n.substring(0, n.lastIndexOf('.'));
-                if (byLabel.containsKey(label)) label = label + " (" + dir.getName() + ")";
-                byLabel.putIfAbsent(label, f);
+                String label = FontNames.read(f); // the font's own name, as font menus show it
+                if (label == null) label = n.substring(0, n.lastIndexOf('.'));
+                label = label.replaceAll("\\s+", " ").trim();
+                if (label.isEmpty() || label.startsWith(".")) continue; // macOS's hidden system fonts
+                byLabel.putIfAbsent(label, f); // the same font twice: the first found (the mod's folder, then yours)
             }
         }
         List<Font> list = new ArrayList<>();

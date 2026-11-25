@@ -8,6 +8,7 @@ Changes the font Bitwig draws its whole interface with.
 - **Interface font**: normal text everywhere (track names, menus, labels, the browser).
 - **Bold font**: the heavier text Bitwig uses for headings and selected items. Leave it on *Same as interface font* to use one font for everything.
 - **Numbers font**: the narrow font Bitwig uses for values, time and BPM readouts.
+- Click a dropdown to open the **Fonts** list: every font's name is drawn in that font, so you can see what it looks like. Type in the search field to narrow the list, click a font to choose it, or ✕ to close. The font in use is marked in orange.
 - **Restart Bitwig** after changing a font: Bitwig loads its fonts once, at start.
 
 ## Which fonts
