@@ -91,4 +91,9 @@ public final class UiFont {
     public static void runDraw(com.bitwig.graphics.render_commands.JXO g, double x, double y, String text, bitwig.obf.iok colour) {
         g.MRY(x, y + Shift.offset(Shift.current.get()), text, colour);
     }
+
+    /** Wheel / trackpad scrolls, before Bitwig handles them: the open font list scrolls. An ENTRY hook, so other mods'
+     *  hooks on the same dispatch (the mixer mini views' scroll) are unaffected. */
+    @Hook(id = "list-wheel", target = bitwig.obf.dpl.class, method = "cfM(Leph;)V", at = At.ENTRY)
+    public static void wheel(@bml.api.Arg(0) bitwig.obf.eph e) { Browser.wheel(e); }
 }

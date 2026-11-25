@@ -3,7 +3,7 @@
   "mod": {
     "id": "ui-font",
     "name": "Interface: Font",
-    "version": "0.3.0-dev.2",
+    "version": "0.3.0-dev.3",
     "author": "Cimm",
     "description": "Choose the font Bitwig draws its interface with: any font installed on your Mac, or one you drop in the mod's fonts folder. Separate choices for normal text, bold text and numbers. Applies when Bitwig starts.",
     "documentation": "readme"
@@ -66,6 +66,12 @@
       "name": "MRY",
       "descriptor": "(DDLjava/lang/String;Liok;)V"
     },
+    "dpl.cfM": {
+      "kind": "method",
+      "owner": "dpl",
+      "name": "cfM",
+      "descriptor": "(Leph;)V"
+    },
     "com.bitwig.graphics.render_commands.JXO": {
       "kind": "class",
       "class": "com/bitwig/graphics/render_commands/JXO"
@@ -74,41 +80,11 @@
       "kind": "class",
       "class": "com/bitwig/graphics/render_commands/hLr"
     },
-    "com.bitwig.base.geom.DoubleRectangle.FzB": {
-      "kind": "field",
-      "owner": "com/bitwig/base/geom/DoubleRectangle",
-      "name": "FzB",
-      "descriptor": "D"
-    },
-    "com.bitwig.base.geom.DoubleRectangle.Hnt": {
-      "kind": "field",
-      "owner": "com/bitwig/base/geom/DoubleRectangle",
-      "name": "Hnt",
-      "descriptor": "D"
-    },
-    "com.bitwig.base.geom.DoubleRectangle.IwV": {
-      "kind": "field",
-      "owner": "com/bitwig/base/geom/DoubleRectangle",
-      "name": "IwV",
-      "descriptor": "D"
-    },
-    "com.bitwig.base.geom.DoubleRectangle.MRY": {
-      "kind": "field",
-      "owner": "com/bitwig/base/geom/DoubleRectangle",
-      "name": "MRY",
-      "descriptor": "D"
-    },
     "com.bitwig.graphics.render_commands.hLr.MRY": {
       "kind": "field",
       "owner": "com/bitwig/graphics/render_commands/hLr",
       "name": "MRY",
       "descriptor": "Lcom/bitwig/graphics/render_commands/z2y;"
-    },
-    "dXk.init": {
-      "kind": "method",
-      "owner": "dXk",
-      "name": "<init>",
-      "descriptor": "()V"
     },
     "drX.init": {
       "kind": "method",
@@ -210,20 +186,27 @@
         "descriptor": "(Lcom/bitwig/graphics/render_commands/JXO;DDLjava/lang/String;Liok;)V",
         "args": []
       }
+    },
+    {
+      "id": "list-wheel",
+      "target": "dpl.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "wheel",
+        "descriptor": "(Leph;)V",
+        "args": [
+          "arg1"
+        ]
+      }
     }
   ],
   "opens": [
-    "com.bitwig.base.geom.DoubleRectangle.FzB",
-    "com.bitwig.base.geom.DoubleRectangle.Hnt",
-    "com.bitwig.base.geom.DoubleRectangle.IwV",
-    "com.bitwig.base.geom.DoubleRectangle.MRY",
     "com.bitwig.graphics.render_commands.JXO",
     "com.bitwig.graphics.render_commands.JXO.MRY",
     "com.bitwig.graphics.render_commands.JXO.cfM",
     "com.bitwig.graphics.render_commands.hLr",
     "com.bitwig.graphics.render_commands.hLr.MRY",
     "dBX.cfM",
-    "dXk.init",
     "drX.init",
     "dve.MRY",
     "dve.cfM",

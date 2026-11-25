@@ -5,7 +5,6 @@ import bitwig.obf.dBX; // Bitwig's dropdown (Settings' dropdowns are these)
 import bitwig.obf.dJH; // drag start event (a press that really started)
 import bitwig.obf.dKW; // a popup
 import bitwig.obf.dWb; // a row or column of widgets
-import bitwig.obf.dXk; // a scroll pane
 import bitwig.obf.drX; // a press in progress
 import bitwig.obf.dve; // a widget
 import bitwig.obf.ecV; // a text field
@@ -162,8 +161,7 @@ final class Browser {
         column.HL(searchRow);
         column.HL(new Gap(W, 10));
         column.HL(new Rule());
-        Scroll scroll = new Scroll(list);
-        column.HL(scroll);
+        column.HL(list);
         popup.hUR(column);
         if (logged.add("opened")) Fonts.MOD.log("font list opened for " + target.id() + " (" + target.options().size() + " options)");
     }
@@ -211,13 +209,23 @@ final class Browser {
             finally { try { g.ucQ(); } catch (Throwable ignored) {} }
         }
         abstract void paint(com.bitwig.graphics.SYo g, double w, double h);
+        // A left press, in plain-named steps (subclasses fill these in; the Bitwig overrides stay here).
         Runnable click(double x, double y) { return null; }
+        /** Whether a left press at (x, y) is ours. */
+        boolean wantsPress(double x, double y) { return click(x, y) != null; }
+        /** The press really started, at (x, y). Default: click there. */
+        void pressStart(double x, double y) { Runnable r = click(x, y); if (r != null) r.run(); }
+        /** The pointer moved by (dx, dy) while pressed. */
+        void pressDrag(double dx, double dy) {}
+        /** The press ended. */
+        void pressEnd() {}
+
         @Override public drX cfM(eoX b, double x, double y, eoW m, int n) { drX d = press(b, x, y); return d != null ? d : super.cfM(b, x, y, m, n); }
         @Override public drX MRY(eoX b, double x, double y, eoW m, int n) { drX d = press(b, x, y); return d != null ? d : super.MRY(b, x, y, m, n); }
         private drX press(eoX b, double x, double y) {
             try {
                 if (!b.name().equals("SELECTION")) return null;
-                if (click(x, y) == null) return null;
+                if (!wantsPress(x, y)) return null;
                 return new drX() { // Bitwig calls press on hover too: act only when the press really starts
                     @Override public void cfM(dJH e) {
                         super.cfM(e);
@@ -225,11 +233,21 @@ final class Browser {
                         double px = FzB, py = IwV;
                         if (logged.add("press " + Base.this.getClass().getSimpleName()))
                             Fonts.MOD.log("press at " + Math.round(px) + "," + Math.round(py) + " (asked at " + Math.round(x) + "," + Math.round(y) + ")");
-                        Runnable r = click(px, py);
-                        if (r != null) try { r.run(); } catch (Throwable t) { Fonts.MOD.log("click failed", t); }
+                        try { pressStart(px, py); } catch (Throwable t) { Fonts.MOD.log("click failed", t); }
+                        jbi();
+                    }
+                    @Override public void cfM(bitwig.obf.dJM e) {
+                        super.cfM(e);
+                        try { pressDrag(e.ejd(), e.uWE()); } catch (Throwable t) { Fonts.MOD.log("drag failed", t); }
+                        jbi();
+                    }
+                    @Override public void cfM(bitwig.obf.dJI e) {
+                        super.cfM(e);
+                        try { pressEnd(); } catch (Throwable t) { Fonts.MOD.log("release failed", t); }
+                        jbi();
                     }
                     @Override public boolean jQ_() { return false; }
-                    @Override public boolean jB_() { return false; }
+                    @Override public boolean jB_() { return true; }
                 };
             } catch (Throwable t) { return null; }
         }
@@ -264,80 +282,125 @@ final class Browser {
         @Override Runnable click(double x, double y) { return x > Sxo() - PAD - 28 ? close : null; }
     }
 
-    /** The list's scroll pane, a fixed size. */
-    static final class Scroll extends dXk {
-        Scroll(dve content) {
-            super();
-            try { gfw(); } catch (Throwable t) { Fonts.MOD.log("scroll pane setup failed", t); }
-            try { G_(); } catch (Throwable t) { Fonts.MOD.log("scroll pane setup failed", t); } // as Bitwig's dXk.LzO()
-            cfM(content);
-        }
-        @Override public SYo mK_() { return new SYo((long) W, (long) LIST_H); }
-        @Override public SYo iG_() { return mK_(); }
-        @Override public SYo ni_() { return new SYo(100000, (long) LIST_H); }
-    }
-
     // ------------------------------------------------------------------------------------------- the list
 
-    /** The rows: the dropdown's own choices (Bitwig default...) first, then the fonts, each drawn in itself. */
+    /** The list that is open now (for the wheel), if any. */
+    private static java.lang.ref.WeakReference<FontList> open = new java.lang.ref.WeakReference<>(null);
+
+    /**
+     * Bitwig's wheel / trackpad scroll, before Bitwig handles it (dpl.cfM(eph)): over the open font list it scrolls the
+     * list. Every scroll in Bitwig passes here: it returns at once unless a font list is open.
+     */
+    static void wheel(bitwig.obf.eph e) {
+        FontList list = open.get();
+        if (list == null) return;
+        try {
+            com.bitwig.base.geom.OLR o = list.ihs(); // the list's position in its window
+            if (o == null) { open = new java.lang.ref.WeakReference<>(null); return; } // closed
+            double lx = e.wGc() - o.FzB(), ly = e.eLY() - o.hUR();
+            if (lx < 0 || ly < 0 || lx > list.Sxo() || ly > list.yiX()) return;
+            if (!"VERTICAL".equals(e.UNj().name())) return;
+            boolean pixels = "PIXELS".equals(e.IwV().name());
+            double amount = e.FzB();
+            if (logged.add("wheel")) Fonts.MOD.log("wheel over the list: " + amount + (pixels ? " px" : " steps"));
+            list.scrollBy(-(pixels ? amount : amount * ROW));
+        } catch (Throwable t) {
+            if (logged.add("wheel failed")) Fonts.MOD.log("wheel failed", t);
+        }
+    }
+
+    /**
+     * The rows: the dropdown's own choices (Bitwig default...) first, then the fonts, each drawn in itself. The list
+     * scrolls itself: wheel / trackpad, dragging the rows, or dragging the scrollbar on the right.
+     */
     static final class FontList extends Base {
+        static final double BAR = 16; // the scrollbar's grab width at the right edge
         final Target target;
         final Runnable close;
         final Map<String, String> pathOf = new HashMap<>();
         List<String> shown;
+        double scroll;
+        // the press in progress
+        double pressX, pressY, moved;
+        boolean onBar;
+
         FontList(Target target, Runnable close) {
             this.target = target; this.close = close;
             for (Fonts.Font f : Fonts.catalogue()) pathOf.put(f.label(), f.path());
             shown = new ArrayList<>(target.options());
+            open = new java.lang.ref.WeakReference<>(this);
+            int i = shown.indexOf(target.current()); // start with the current font in view
+            if (i > 0) scroll = clamp(i * ROW - LIST_H / 2 + ROW / 2);
         }
+        @Override double h() { return LIST_H; }
+
+        double contentH() { return shown.size() * ROW; }
+        double maxScroll() { return Math.max(0, contentH() - LIST_H); }
+        double clamp(double v) { return Math.max(0, Math.min(maxScroll(), v)); }
+        void scrollBy(double d) { scroll = clamp(scroll + d); jbi(); }
+
         void filter(String q) {
             String needle = q == null ? "" : q.trim().toLowerCase(Locale.ROOT);
             List<String> next = new ArrayList<>();
             for (String o : target.options()) if (needle.isEmpty() || o.toLowerCase(Locale.ROOT).contains(needle)) next.add(o);
             shown = next;
-            for (dve p = this; p != null; p = p.RbC()) try { p.oQi(); } catch (Throwable ignored) {}
+            scroll = 0;
             jbi();
         }
-        @Override double h() { return Math.max(ROW, shown.size() * ROW); }
+
+        double thumbH(double h) { return Math.max(30, h * h / Math.max(h, contentH())); }
 
         @Override void paint(com.bitwig.graphics.SYo g, double w, double h) {
             g.Hnt(BG); g.MRY(0, 0, w, h); g.wGc();
-            double top = 0, bottom = h;
-            try { // only the rows in view get their font loaded
-                com.bitwig.base.geom.DoubleRectangle r = g.TtY();
-                if (r != null && r.IwV > 0) { top = r.Hnt; bottom = r.Hnt + r.IwV; }
-                if (logged.add("clip")) Fonts.MOD.log("list clip " + r.MRY + "," + r.Hnt + " " + r.FzB + "x" + r.IwV + " of " + w + "x" + h);
-            } catch (Throwable ignored) {}
+            scroll = clamp(scroll);
             String current = target.current();
-            int first = Math.max(0, (int) (top / ROW)), last = Math.min(shown.size() - 1, (int) (bottom / ROW));
+            int first = Math.max(0, (int) (scroll / ROW)), last = Math.min(shown.size() - 1, (int) ((scroll + h) / ROW));
             boolean more = false;
             if (shown.isEmpty()) Text.plain(g, "No fonts match", PAD + 12, ROW / 2, 15, DIM);
-            for (int i = first; i <= last; i++) {
+            for (int i = first; i <= last; i++) { // only the rows in view get their font loaded
                 String label = shown.get(i);
-                double y = i * ROW, cy = y + ROW / 2;
+                double y = i * ROW - scroll, cy = y + ROW / 2;
                 boolean picked = label.equals(current);
                 if (picked) { g.Hnt(PICKED_BG); g.MRY(0, y, w, ROW); g.wGc(); }
                 iok c = picked ? ORANGE : TEXT;
-                if (picked) { g.Hnt(ORANGE); g.MRY(PAD - 8, cy - 3, 6, 6); g.wGc(); } // ● the current font
+                if (picked) { g.Hnt(ORANGE); g.MRY(PAD - 8, cy - 3, 6, 6); g.wGc(); } // the current font
                 String path = pathOf.get(label);
                 if (path == null) { Text.plain(g, label, PAD + 12, cy, 15, picked ? ORANGE : DIM); continue; }
                 Hpk font = Faces.get(path);
                 if (font == null && Faces.pending(path)) more = true;
-                if (font != null) Text.inFont(g, font, label, PAD + 12, cy, w - PAD - 24, c);
+                if (font != null) Text.inFont(g, font, label, PAD + 12, cy, w - PAD - 12 - BAR - 4, c);
                 else Text.plain(g, label, PAD + 12, cy, 15, DIM);
+            }
+            if (maxScroll() > 0) { // the scrollbar
+                double th = thumbH(h), ty = scroll / maxScroll() * (h - th);
+                g.Hnt(LINE); g.MRY(w - 9, 4, 5, h - 8); g.wGc();
+                g.Hnt(onBar && moved > 0 ? TEXT : DIM); g.MRY(w - 9, ty + 4, 5, Math.max(10, th - 8)); g.wGc();
             }
             if (more) jbi(); // load the rest of the visible rows next frame
         }
 
-        @Override Runnable click(double x, double y) {
-            int i = (int) (y / ROW);
-            if (i < 0 || i >= shown.size()) return null;
+        @Override boolean wantsPress(double x, double y) { return true; }
+        @Override void pressStart(double x, double y) {
+            pressX = x; pressY = y; moved = 0;
+            onBar = maxScroll() > 0 && x > Sxo() - BAR;
+            if (onBar) { // a press on the bar's track (off the thumb) jumps there
+                double h = yiX(), th = thumbH(h), ty = scroll / Math.max(1, maxScroll()) * (h - th);
+                if (y < ty || y > ty + th) scroll = clamp((y - th / 2) / Math.max(1, h - th) * maxScroll());
+            }
+        }
+        @Override void pressDrag(double dx, double dy) {
+            moved += Math.abs(dy) + Math.abs(dx);
+            if (onBar) { double h = yiX(); scrollBy(dy * maxScroll() / Math.max(1, h - thumbH(h))); }
+            else if (moved > 4) scrollBy(-dy); // drag the rows
+        }
+        @Override void pressEnd() {
+            if (onBar || moved > 4) { moved = 0; onBar = false; return; }
+            int i = (int) ((pressY + scroll) / ROW);
+            if (i < 0 || i >= shown.size()) return;
             String label = shown.get(i);
-            return () -> {
-                target.choose(label);
-                Fonts.MOD.log(target.id() + " -> " + label + " (restart Bitwig to apply)");
-                close.run();
-            };
+            target.choose(label);
+            Fonts.MOD.log(target.id() + " -> " + label + " (restart Bitwig to apply)");
+            close.run();
         }
     }
 
