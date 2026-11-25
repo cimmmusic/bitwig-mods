@@ -165,7 +165,7 @@ Grey Display Background: #0E0E0E80
 Display Background (error): #2A1212
 Display Waveform: #F5F5F5
 Display Start/End Markers: #FF5F1F
-Display Loop Markers: #F5F5F5
+Display Loop Markers: #3BE8B0
 Device Header: #151515
 Device Header (selected): #1D1D1D
 Device Tint Future: #00000000
@@ -210,3 +210,5 @@ Timeline Header Cue Marker: #FF5F1F
 Timeline Header Tooltip Background: #141414CC
 Timeline Header Tooltip Text: #F5F5F5
 Timeline Tooltip Background: #141414CC
+Loop Region Fill: #3BE8B066
+Loop Region Stroke: #3BE8B0

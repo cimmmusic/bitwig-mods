@@ -549,6 +549,7 @@ public final class Minimal {
      * stays in the foreground in its highlight colour while everything else dims.
      */
     private static final ThreadLocal<Object> openingAnchor = new ThreadLocal<>();
+    private static int anchorLogs;
     /** Open menu popup -> the button it opened from. */
     static final java.util.Map<Object, bitwig.obf.dve> anchors = Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -561,7 +562,11 @@ public final class Minimal {
                     f.setAccessible(true);
                     Object w = f.get(placement);
                     // a button: not a whole panel or track row (context menus are placed against those too)
-                    if (w instanceof bitwig.obf.dzq b && b.yiX() <= 80 && b.Sxo() <= 400) return b;
+                    if (w instanceof bitwig.obf.dve b && b.yiX() > 0 && b.yiX() <= 80 && b.Sxo() <= 400) {
+                        if (anchorLogs++ < 6) MOD.log("menu opened from " + b.getClass().getName() + " " + Math.round(b.Sxo()) + "x" + Math.round(b.yiX()));
+                        return b;
+                    }
+                    if (w != null && anchorLogs++ < 6) MOD.log("menu anchor too big to raise: " + w.getClass().getName());
                 }
         } catch (Throwable t) { log("menu button not found", t); }
         return null;
