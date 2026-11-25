@@ -164,6 +164,8 @@ public final class Minimal {
      *  accent colours, the chosen colour instead. */
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
+        int[] dd = depth.get();
+        if (dd[0] > 0) dd[0]--;
         value = Theme.relative(colour, value);
         if (colour == dotColour && dotColour != null) {
             boolean shown = false;
@@ -188,6 +190,11 @@ public final class Minimal {
                 return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
             }
         }
+        return styled(value, colour);
+    }
+
+    /** The highlight recolour and the background tone, for a colour as resolved by either path. */
+    static iok styled(iok value, bitwig.obf.eeY colour) {
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
         Color t = target;
@@ -213,9 +220,33 @@ public final class Minimal {
         return Tone.adjust(colour, value);
     }
 
+    /*
+     * Widget backgrounds (the arranger's lanes and rows, panels...) resolve their colour against a base colour,
+     * eeY.cfM(base), not per widget: the same styling applies there. Colours made from other colours resolve inside each
+     * other (and inside eeY.cfM(widget)): inside a per-widget resolution (depth[0] > 0) that one styles instead.
+     */
+    private static final ThreadLocal<int[]> depth = ThreadLocal.withInitial(() -> new int[2]);
+
+    @Hook(id = "colour-base-1", target = bitwig.obf.eeY.class, method = "cfM(Liok;)Liok;", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.eeY.class, call = "iHb()Liok;", occurrence = 1)
+    public static iok colourBase1(bitwig.obf.eeY colour) { return baseValue(colour); }
+
+    @Hook(id = "colour-base-2", target = bitwig.obf.eeY.class, method = "cfM(Liok;)Liok;", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.eeY.class, call = "iHb()Liok;", occurrence = 2)
+    public static iok colourBase2(bitwig.obf.eeY colour) { return baseValue(colour); }
+
+    /** A colour's own value as eeY.cfM(base) reads it: styled, unless a per-widget resolution around it styles instead. */
+    private static iok baseValue(bitwig.obf.eeY colour) {
+        iok value = colour.iHb();
+        if (value == null || depth.get()[0] > 0) return value;
+        try { return styled(Theme.relative(colour, value), colour); } catch (Throwable t) { return value; }
+    }
+
     /** The widget asking for a colour: notes its window now and then (to repaint all windows when a setting changes). */
     @Hook(id = "colour-asked", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.ENTRY)
     public static void colourAsked(@bml.api.Arg(0) Object widget) {
+        int[] dd = depth.get();
+        if (++dd[0] > 64) dd[0] = 1;
         Tone.noteWidget(widget);
         if (loopArr.length > 0 || dotColour != null) asking.set(widget);
     }
