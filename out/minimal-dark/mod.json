@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.2.0-dev.10",
+    "version": "0.2.0-dev.11",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -540,6 +540,18 @@
       "name": "E3",
       "descriptor": "(F)V"
     },
+    "dNg.cfM": {
+      "kind": "method",
+      "owner": "dNg",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "dBX.cfM-2": {
+      "kind": "method",
+      "owner": "dBX",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
     "com.bitwig.graphics.render_commands.JXO": {
       "kind": "class",
       "class": "com/bitwig/graphics/render_commands/JXO"
@@ -583,6 +595,12 @@
       "owner": "dve",
       "name": "MRY",
       "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    },
+    "dve.Zyp": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "Zyp",
+      "descriptor": "(D)V"
     },
     "dve.b_": {
       "kind": "method",
@@ -1829,6 +1847,30 @@
         "descriptor": "(LdnF;F)V",
         "args": []
       }
+    },
+    {
+      "id": "slider-paint",
+      "target": "dNg.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "sliderPaint",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "dropdown-paint",
+      "target": "dBX.cfM-2",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "dropdownPaint",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "this"
+        ]
+      }
     }
   ],
   "opens": [
@@ -1843,6 +1885,7 @@
     "drX.init",
     "dut.hbP",
     "dve.MRY",
+    "dve.Zyp",
     "dve.b_",
     "dve.cfM",
     "dve.cfM-2",

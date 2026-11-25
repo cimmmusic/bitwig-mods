@@ -35,9 +35,22 @@ It's near-black, flat and quiet, so your music is the loudest thing on screen. A
 ### 🎭 26 Looks, one click
 Not sure where to start? The **Look** dropdown (top of the Minimal Dark settings) sets the background tone *and* the highlight colour in one go, and the whole window follows instantly, arrangement and scenes included:
 
-**Minimal Dark** · Midnight Blue · Aubergine · Forest · Espresso · Graphite · Ocean · Bordeaux · Slate · Moss · Teal Night · Plum · Indigo · Sand · Rosewood · Neon · Arctic · Ember · Lagoon · Lavender · Olive · Cobalt · Mocha · Emerald · Crimson · Storm
+**Custom** is your own look, saved separately: pick it and your own background and highlight come back. While a preset is selected, the Background sliders and highlight controls are dimmed; nudge one anyway and the look switches to Custom, starting from the preset you were on, so you can use any preset as a starting point. Minimal Dark itself stays pure neutral near-black.
 
-Tweak any slider afterwards and it simply becomes your own **Custom** look. Minimal Dark itself stays pure neutral near-black.
+Here they all are (click one to see it full size):
+
+<table>
+  <tr><td align="center"><img src="gallery/minimal-dark.jpg" alt="Bitwig in the Minimal Dark look" width="280"><br><b>Minimal Dark</b></td><td align="center"><img src="gallery/midnight-blue.jpg" alt="Bitwig in the Midnight Blue look" width="280"><br><b>Midnight Blue</b></td><td align="center"><img src="gallery/aubergine.jpg" alt="Bitwig in the Aubergine look" width="280"><br><b>Aubergine</b></td></tr>
+  <tr><td align="center"><img src="gallery/forest.jpg" alt="Bitwig in the Forest look" width="280"><br><b>Forest</b></td><td align="center"><img src="gallery/espresso.jpg" alt="Bitwig in the Espresso look" width="280"><br><b>Espresso</b></td><td align="center"><img src="gallery/graphite.jpg" alt="Bitwig in the Graphite look" width="280"><br><b>Graphite</b></td></tr>
+  <tr><td align="center"><img src="gallery/ocean.jpg" alt="Bitwig in the Ocean look" width="280"><br><b>Ocean</b></td><td align="center"><img src="gallery/bordeaux.jpg" alt="Bitwig in the Bordeaux look" width="280"><br><b>Bordeaux</b></td><td align="center"><img src="gallery/slate.jpg" alt="Bitwig in the Slate look" width="280"><br><b>Slate</b></td></tr>
+  <tr><td align="center"><img src="gallery/moss.jpg" alt="Bitwig in the Moss look" width="280"><br><b>Moss</b></td><td align="center"><img src="gallery/teal-night.jpg" alt="Bitwig in the Teal Night look" width="280"><br><b>Teal Night</b></td><td align="center"><img src="gallery/plum.jpg" alt="Bitwig in the Plum look" width="280"><br><b>Plum</b></td></tr>
+  <tr><td align="center"><img src="gallery/indigo.jpg" alt="Bitwig in the Indigo look" width="280"><br><b>Indigo</b></td><td align="center"><img src="gallery/sand.jpg" alt="Bitwig in the Sand look" width="280"><br><b>Sand</b></td><td align="center"><img src="gallery/rosewood.jpg" alt="Bitwig in the Rosewood look" width="280"><br><b>Rosewood</b></td></tr>
+  <tr><td align="center"><img src="gallery/neon.jpg" alt="Bitwig in the Neon look" width="280"><br><b>Neon</b></td><td align="center"><img src="gallery/arctic.jpg" alt="Bitwig in the Arctic look" width="280"><br><b>Arctic</b></td><td align="center"><img src="gallery/ember.jpg" alt="Bitwig in the Ember look" width="280"><br><b>Ember</b></td></tr>
+  <tr><td align="center"><img src="gallery/lagoon.jpg" alt="Bitwig in the Lagoon look" width="280"><br><b>Lagoon</b></td><td align="center"><img src="gallery/lavender.jpg" alt="Bitwig in the Lavender look" width="280"><br><b>Lavender</b></td><td align="center"><img src="gallery/olive.jpg" alt="Bitwig in the Olive look" width="280"><br><b>Olive</b></td></tr>
+  <tr><td align="center"><img src="gallery/cobalt.jpg" alt="Bitwig in the Cobalt look" width="280"><br><b>Cobalt</b></td><td align="center"><img src="gallery/mocha.jpg" alt="Bitwig in the Mocha look" width="280"><br><b>Mocha</b></td><td align="center"><img src="gallery/emerald.jpg" alt="Bitwig in the Emerald look" width="280"><br><b>Emerald</b></td></tr>
+  <tr><td align="center"><img src="gallery/crimson.jpg" alt="Bitwig in the Crimson look" width="280"><br><b>Crimson</b></td><td align="center"><img src="gallery/storm.jpg" alt="Bitwig in the Storm look" width="280"><br><b>Storm</b></td></tr>
+</table>
+
 
 ### 💡 Pick your highlight colour
 - Orange out of the box, or choose **Red, Pink, Purple, Violet, Blue, Cyan, Mint, Green, Lime, Yellow, White**, or **any custom hue** you like.
@@ -79,7 +92,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.2.0-dev.10.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.10.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.11.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.11.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 
