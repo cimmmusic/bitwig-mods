@@ -23,5 +23,8 @@ public final class HighlightSettings implements PreferenceProvider {
         preferences.checkbox("highlight_colour_dark_scenes", "Dark scene backgrounds")
                    .in(mine)
                    .value(() -> Scenes.on, v -> { Scenes.on = v; Highlight.STORE.putBoolean(Scenes.KEY, v); });
+        preferences.checkbox("highlight_colour_dark_module_previews", "Grid module previews match the theme (restart)")
+                   .in(mine)
+                   .value(() -> Previews.on, v -> { Previews.on = v; Highlight.STORE.putBoolean(Previews.KEY, v); });
     }
 }

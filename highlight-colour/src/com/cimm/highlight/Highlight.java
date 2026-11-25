@@ -178,5 +178,15 @@ public final class Highlight {
         g.Hnt(c);
     }
 
+    // ---- module previews (see Previews) ----
+
+    @Hook(id = "module-preview", target = com.bitwig.flt.widget.core.device.KL3.class,
+          method = "cfM(Lcom/bitwig/graphics/BrJ;)Ldve;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dqW.class, call = "cfM(Lcom/bitwig/graphics/BrJ;)LdqW;")
+    public static bitwig.obf.dqW modulePreview(com.bitwig.graphics.BrJ bitmap) {
+        Previews.recolour(bitmap);
+        return bitwig.obf.dqW.cfM(bitmap);
+    }
+
     private static int c(float v) { return Math.round(Math.max(0, Math.min(1, v)) * 255); }
 }
