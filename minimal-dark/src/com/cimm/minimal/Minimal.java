@@ -75,10 +75,6 @@ public final class Minimal {
     public static void colourRegistered(@bml.api.This Object colour, @bml.api.Arg(0) String name) {
         seen.incrementAndGet();
         if (Theme.any()) Theme.registering.set(name);
-        if (name != null && name.startsWith("Loop Region ") && !name.contains("Background")) {
-            loopRegion.add(colour);
-            synchronized (loopRegion) { loopRegionArr = loopRegion.toArray(); }
-        }
         if (name != null) Recorder.named(colour, name);
         if (name != null) Tone.register(colour, name);
         if (name == null || !NAMES.contains(name)) return;
@@ -180,12 +176,6 @@ public final class Minimal {
                 if (loopSeen.size() < 24 && loopSeen.add("resolved " + colour)) MOD.log("loop on: " + colour + " drawn mint");
                 return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), value.hUR());
             }
-        }
-        // the loop range in the timeline: mint while the loop is on, the theme's grey/white while it's off
-        if (value != null && isLoopRegion(colour) && loopOn()) {
-            if (loopSeen.size() < 24 && loopSeen.add("range " + colour)) MOD.log("loop range on: " + colour + " drawn mint");
-            boolean fill = String.valueOf(colour).contains("Fill");
-            return new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), fill ? Math.max(0.4f, value.hUR()) : value.hUR());
         }
         if (Recorder.on) Recorder.seen(colour, value);
         if (value == null) return value;
@@ -1035,7 +1025,7 @@ public final class Minimal {
     @Hook(id = "button-icon", target = bitwig.obf.dzq.class, method = "TMF(Ljava/lang/String;)V", at = At.ENTRY)
     public static void buttonIcon(@bml.api.This Object button, @bml.api.Arg(0) String icon) {
         if ("transport_record.svg".equals(icon)) recordButtons.add(button); else recordButtons.remove(button);
-        if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); startLoopWatch(); }
+        if ("loop.svg".equals(icon)) { loopButtons.add(button); if (loopLogs++ < 2) MOD.log("loop button: " + button.getClass().getName()); }
         else loopButtons.remove(button);
         synchronized (loopButtons) { loopArr = loopButtons.toArray(); }
     }
@@ -1046,60 +1036,29 @@ public final class Minimal {
     private static int loopLogs;
     private static final java.util.Set<String> loopSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
     /** The colours a toggle is drawn in when it is on. */
-    /** The loop range's colours (Loop Region Fill / Stroke and their Selected variants), noted as Bitwig registers them. */
-    static final java.util.Set<Object> loopRegion = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new IdentityHashMap<>()));
-
-    private static volatile Object[] loopRegionArr = new Object[0];
-
-    /*
-     * The timeline paints the loop range from its colours' stored values (not through a per-widget lookup), so the
-     * stored values themselves follow the loop: mint while it's on, the theme's own (grey/white) while it's off.
-     * A light watch on Bitwig's UI timer (every 100 ms) notices the loop button's toggle changing.
-     */
-    private static final Map<Object, iok> loopRegionOff = new IdentityHashMap<>();
-    private static volatile Boolean loopWasOn;
-    private static java.util.TimerTask loopWatch;
-
-    private static synchronized void startLoopWatch() {
-        if (loopWatch != null) return;
-        try { loopWatch = bitwig.obf.dpN.TVZ().cfM(Minimal::watchLoop, 200, 100); }
-        catch (Throwable t) { MOD.log("loop watch unavailable", t); }
-    }
-
-    private static void watchLoop() {
-        try {
-            boolean on = loopOn();
-            Boolean was = loopWasOn;
-            if (was != null && was == on) return;
-            loopWasOn = on;
-            int n = 0;
-            for (Object o : loopRegionArr) {
-                if (!(o instanceof bitwig.obf.eeY c)) continue;
-                iok off;
-                synchronized (loopRegionOff) {
-                    off = loopRegionOff.get(c);
-                    if (off == null) { off = c.iHb(); if (off == null) continue; loopRegionOff.put(c, off); }
-                }
-                boolean fill = String.valueOf(c).contains("Fill");
-                iok want = on ? new iok(MINT.FzB(), MINT.IwV(), MINT.UNj(), fill ? 0.45f : 1f) : off;
-                ((bitwig.obf.efb) c).Hnt(want);
-                n++;
-            }
-            if (was != null || on) MOD.log("loop " + (on ? "on" : "off") + ": loop range colours " + (on ? "mint" : "back to the theme's") + " (" + n + ")");
-            Tone.repaint();
-        } catch (Throwable t) { if (loopLogs++ < 8) MOD.log("loop watch failed", t); }
-    }
-    private static boolean isLoopRegion(Object colour) {
-        for (Object c : loopRegionArr) if (c == colour) return true;
-        return false;
-    }
-
     /** Whether the transport loop is on: the loop button's own toggle value (dAE.LIK()). */
     static boolean loopOn() {
         for (Object b : loopArr) {
             try { if (b instanceof bitwig.obf.dAE t && t.LIK() != null && t.LIK().getBoolValue()) return true; } catch (Throwable ignored) {}
         }
         return false;
+    }
+
+    /*
+     * The loop range in the timeline (painted by bpm.cfM): while the loop is on, Bitwig draws its outline in
+     * "Accent (hitech)" and its fill as a 40 % mix of it (white and grey in this theme). The painter gets mint instead.
+     */
+    private static volatile bitwig.obf.eeY loopMint;
+
+    @Hook(id = "loop-range-on", target = bitwig.obf.bpm.class, method = "cfM(LPTe;D)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "hDc()LeeY;")
+    public static bitwig.obf.eeY loopRangeOn(bitwig.obf.eff registry) {
+        try {
+            bitwig.obf.eeY m = loopMint;
+            if (m == null) loopMint = m = bitwig.obf.eeY.cfM("Minimal Dark Loop On", MINT);
+            if (loopSeen.size() < 24 && loopSeen.add("range painter")) MOD.log("loop range on: drawn mint");
+            return m;
+        } catch (Throwable t) { return registry.hDc(); }
     }
 
     private static final java.util.Set<String> LOOP_ON = java.util.Set.of("Accent (hitech)", "Active Toggle Icon (Playing)", "Active Inverted Toggle Icon (Playing)", "Implicit On (subtle)", "Led On");
