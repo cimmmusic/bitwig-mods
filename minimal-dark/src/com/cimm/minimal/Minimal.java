@@ -256,7 +256,12 @@ public final class Minimal {
     public static void colourAsked(@bml.api.Arg(0) Object widget) {
         int[] dd = depth.get();
         if (++dd[0] > 64) dd[0] = 1;
-        if (widget instanceof bitwig.obf.dNg || widget instanceof bitwig.obf.dBX) Tone.noteControl(widget);
+        if (widget instanceof bitwig.obf.dve w0) {
+            // a settings slider or dropdown, itself or a few levels up from what is asking (for the Looks to move them)
+            bitwig.obf.dve w = w0;
+            for (int i = 0; i < 4 && w != null; i++, w = w.RbC())
+                if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { Tone.noteControl(w); break; }
+        }
         Tone.noteWidget(widget);
         if (loopArr.length > 0 || dotColour != null) asking.set(widget);
     }
