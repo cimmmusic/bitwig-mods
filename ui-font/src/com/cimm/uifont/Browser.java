@@ -49,25 +49,48 @@ final class Browser {
 
     /** One of this mod's Settings dropdowns: the framework's value behind it and its options. */
     record Target(Object value, String id, List<String> options) {
-        String current() {
-            try { Object v = value.getClass().getMethod("getValue").invoke(value); return v == null ? "" : v.toString(); }
-            catch (Throwable t) { return ""; }
-        }
+        String current() { return FontSettings.currentLabel(id); }
         void choose(String option) {
-            try { value.getClass().getMethod("setValue", Object.class).invoke(value, option); }
-            catch (Throwable t) { Fonts.MOD.log("choosing " + option + " failed", t); }
+            FontSettings.store(id, option); // the mod's own setting: what the font hooks read at start
+            if (value != null) { // and through the framework, so the dropdown shows it at once
+                try { value.getClass().getMethod("setValue", Object.class).invoke(value, option); }
+                catch (Throwable t) { Fonts.MOD.log("updating the dropdown failed", t); }
+            }
         }
     }
+
+    /** The first option of each of this mod's dropdowns: no other dropdown in Bitwig has these. */
+    private static final Map<String, String> MARKER = Map.of(
+            FontSettings.INTERFACE_FIRST, Fonts.INTERFACE,
+            FontSettings.BOLD_FIRST, Fonts.BOLD,
+            FontSettings.NUMBERS_FIRST, Fonts.NUMBERS);
+
+    private static int checks;
 
     /** The dropdown's Settings control when it is one of this mod's, else null. */
     static Target target(dBX dropdown) {
         try {
-            Object ov = find(dropdown, 0, Collections.newSetFromMap(new IdentityHashMap<>()));
-            if (ov == null) return null;
-            Object control = field(ov, "c");
-            if (control == null || !"ui-font".equals(field(control, "modId"))) return null;
-            @SuppressWarnings("unchecked") List<String> options = (List<String>) field(control, "options");
-            return new Target(ov, String.valueOf(field(control, "id")), options);
+            Found f = search(dropdown);
+            boolean log = checks++ < 6;
+            if (f.optionValue == null && f.role == null) {
+                if (log) Fonts.MOD.log("dropdown " + dropdown.getClass().getName() + ": not ours (" + f.visited + " objects looked at)");
+                return null;
+            }
+            String id = null; List<String> options = null;
+            if (f.optionValue != null) {
+                Object control = field(f.optionValue, "c");
+                if (control != null) {
+                    if (!"ui-font".equals(field(control, "modId"))) return null;
+                    id = String.valueOf(field(control, "id"));
+                    @SuppressWarnings("unchecked") List<String> o = (List<String>) field(control, "options");
+                    options = o;
+                }
+            }
+            String role = id != null && id.startsWith("ui_font_") ? id.substring("ui_font_".length()) : f.role;
+            if (role == null) return null;
+            if (options == null) options = FontSettings.options(role);
+            if (log) Fonts.MOD.log("dropdown is the " + role + " font (" + (f.optionValue != null ? "framework value at " + f.path : "found by its options") + ")");
+            return new Target(f.optionValue, role, options);
         } catch (Throwable t) {
             if (logged.add("target")) Fonts.MOD.log("can't tell which dropdown this is", t);
             return null;
@@ -76,22 +99,41 @@ final class Browser {
 
     private static final Set<String> logged = Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
-    /** The Settings framework's OptionValue held by the dropdown (or one of its parts, two levels deep). */
-    private static Object find(Object o, int depth, Set<Object> seen) throws IllegalAccessException {
-        if (o == null || !seen.add(o)) return null;
-        if (o.getClass().getName().endsWith("Controls$OptionValue")) return o;
-        if (depth > 2) return null;
-        for (Class<?> c = o.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
-            for (Field f : c.getDeclaredFields()) {
-                if (f.getType().isPrimitive() || java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
-                String n = f.getType().getName();
-                if (n.startsWith("java.") || n.startsWith("com.bitwig.graphics")) continue;
-                try { f.setAccessible(true); } catch (Throwable t) { continue; }
-                Object found = find(f.get(o), depth + 1, seen);
-                if (found != null) return found;
+    private static final class Found { Object optionValue; String role; String path; int visited; }
+
+    /**
+     * Looks through what the dropdown holds (fields, collections, arrays; not other widgets, so never the rest of the
+     * window) for the Settings framework's OptionValue, and for one of this mod's marker options.
+     */
+    private static Found search(dBX dropdown) {
+        Found out = new Found();
+        Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
+        queue.add(new Object[]{dropdown, "dropdown", 0});
+        while (!queue.isEmpty() && out.visited < 4000) {
+            Object[] item = queue.poll();
+            Object o = item[0]; String path = (String) item[1]; int depth = (Integer) item[2];
+            if (o == null || !seen.add(o)) continue;
+            out.visited++;
+            if (o instanceof String s) { if (out.role == null) out.role = MARKER.get(s); continue; }
+            Class<?> k = o.getClass();
+            if (k.getName().endsWith("Controls$OptionValue")) { out.optionValue = o; out.path = path; return out; }
+            if (depth >= 5 || o instanceof Number || o instanceof Boolean || o instanceof Class || o instanceof Thread) continue;
+            if (o != dropdown && o instanceof dve) continue; // another widget: its parents lead into the whole window
+            if (o instanceof Object[] arr) { for (int i = 0; i < arr.length && i < 2000; i++) queue.add(new Object[]{arr[i], path + "[" + i + "]", depth + 1}); continue; }
+            if (k.isArray()) continue;
+            if (o instanceof java.util.Collection<?> col) { int i = 0; for (Object e : col) { if (i++ > 2000) break; queue.add(new Object[]{e, path + "[]", depth + 1}); } continue; }
+            if (o instanceof java.util.Map<?, ?> map) { for (Object e : map.values()) queue.add(new Object[]{e, path + "{}", depth + 1}); continue; }
+            if (k.getName().startsWith("java.")) continue;
+            for (Class<?> c = k; c != null && c != Object.class; c = c.getSuperclass()) {
+                for (Field f : c.getDeclaredFields()) {
+                    if (f.getType().isPrimitive() || java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
+                    try { f.setAccessible(true); queue.add(new Object[]{f.get(o), path + "." + c.getSimpleName() + "." + f.getName(), depth + 1}); }
+                    catch (Throwable ignored) {}
+                }
             }
         }
-        return null;
+        return out;
     }
 
     private static Object field(Object o, String name) throws IllegalAccessException {
