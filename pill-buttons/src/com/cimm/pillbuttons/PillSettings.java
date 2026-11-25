@@ -20,6 +20,9 @@ public final class PillSettings implements PreferenceProvider {
         preferences.checkbox("pill_buttons_toolbar_hover_icons", "Toolbar icons light up on hover (highlight colour)")
                    .in(mine)
                    .value(() -> Pill.hoverIcons, v -> { Pill.hoverIcons = v; Pill.STORE.putBoolean("toolbar_hover_icons", v); });
+        preferences.checkbox("pill_buttons_transport_bottom", "Transport at the bottom (restart)")
+                   .in(mine)
+                   .value(() -> Pill.transportBottom, v -> { Pill.transportBottom = v; Pill.STORE.putBoolean("transport_bottom", v); });
         preferences.slider("pill_buttons_roundness", "Roundness (%)", 0, 100).wholeNumbers()
                    .in(mine)
                    .value(() -> Pill.roundness, v -> { Pill.roundness = Math.round(v); Pill.STORE.putInt("roundness", (int) Math.round(v)); });

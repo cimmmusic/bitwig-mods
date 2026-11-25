@@ -274,4 +274,37 @@ public final class Pill {
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
         g.Hnt(colour);
     }
+
+    // ---- the transport toolbar at the bottom of the window ----
+
+    /*
+     * The window's column is built in aBW.G_(): the toolbar (dWb.HL, call 1), then the main area and the bottom bar
+     * (call 4), or in one layout a single area (call 2) instead of calls 3 and 4. With the setting on, the toolbar is
+     * held back at call 1 and added after whichever of calls 2 or 4 runs, so it sits at the bottom. Applies when a
+     * window is built (restart Bitwig).
+     */
+    static volatile boolean transportBottom = STORE.getBoolean("transport_bottom", false);
+    private static final ThreadLocal<bitwig.obf.dve> heldToolbar = new ThreadLocal<>();
+
+    @Hook(id = "toolbar-add", target = bitwig.obf.aBW.class, method = "G_()V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.dWb.class, call = "HL(Ldve;)V", occurrence = 1)
+    public static void addToolbar(bitwig.obf.dWb column, bitwig.obf.dve toolbar) {
+        if (transportBottom && toolbar != null) { heldToolbar.set(toolbar); MOD.log("transport toolbar moved to the bottom"); return; }
+        column.HL(toolbar);
+    }
+
+    @Hook(id = "area-add", target = bitwig.obf.aBW.class, method = "G_()V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.dWb.class, call = "HL(Ldve;)V", occurrence = 2)
+    public static void addArea(bitwig.obf.dWb column, bitwig.obf.dve area) { column.HL(area); addHeld(column); }
+
+    @Hook(id = "bottom-bar-add", target = bitwig.obf.aBW.class, method = "G_()V", at = At.REPLACE_CALL,
+          callOwner = bitwig.obf.dWb.class, call = "HL(Ldve;)V", occurrence = 4)
+    public static void addBottomBar(bitwig.obf.dWb column, bitwig.obf.dve bar) { column.HL(bar); addHeld(column); }
+
+    private static void addHeld(bitwig.obf.dWb column) {
+        bitwig.obf.dve t = heldToolbar.get();
+        if (t == null) return;
+        heldToolbar.remove();
+        column.HL(t);
+    }
 }

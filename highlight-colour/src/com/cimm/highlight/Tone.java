@@ -49,6 +49,7 @@ final class Tone {
 
     static boolean active() { return sat != 0 || lum != 0 || con != 0; }
     private static volatile boolean light;
+    static boolean isLight() { return light; }
     private static final ConcurrentHashMap<Long, iok> cache = new ConcurrentHashMap<>();
     private static final iok SAME = new iok(0f, 0f, 0f, 0f);
 
@@ -160,5 +161,60 @@ final class Tone {
         Object[] ws;
         synchronized (windows) { ws = windows.toArray(); }
         for (Object w : ws) try { ((bitwig.obf.dve) w).jbi(); } catch (Throwable ignored) {}
+    }
+
+    // ------------------------------------------------------------------------------------------- reset
+
+    /** The Background sliders' labels (as in HighlightSettings) and their defaults. */
+    static final Map<String, Integer> DEFAULTS = Map.of("Hue (°)", 270, "Saturation (%)", 0, "Luminance (%)", 0, "Contrast (%)", 0);
+
+    /**
+     * A double-click on a slider: if it is one of the Background sliders, every Background slider is set back to its
+     * default through the slider itself (abo(): its value, bound to the setting), so the settings and the sliders move
+     * together.
+     */
+    static void resetFrom(bitwig.obf.dNg slider) {
+        if (labelOf(slider) == null) return;
+        bitwig.obf.dve section = slider;
+        for (int i = 0; i < 12 && section != null; i++, section = section.RbC())
+            if (labels(section, new java.util.HashSet<>()).containsAll(DEFAULTS.keySet())) break;
+        if (section == null) return;
+        java.util.List<bitwig.obf.dNg> sliders = new java.util.ArrayList<>();
+        collect(section, sliders);
+        int n = 0;
+        for (bitwig.obf.dNg s : sliders) {
+            String label = labelOf(s);
+            if (label == null) continue;
+            s.abo().setDoubleValue(DEFAULTS.get(label));
+            n++;
+        }
+        Highlight.MOD.log("background back to default (" + n + " sliders)");
+    }
+
+    /** The Background label in the slider's own row, or null. */
+    private static String labelOf(bitwig.obf.dve slider) {
+        bitwig.obf.dve a = slider;
+        for (int i = 0; i < 6 && a != null; i++, a = a.RbC()) {
+            Set<String> found = labels(a, new java.util.HashSet<>());
+            if (found.size() == 1) { String l = found.iterator().next(); return DEFAULTS.containsKey(l) ? l : null; }
+            if (found.size() > 1) return null;
+        }
+        return null;
+    }
+
+    private static Set<String> labels(bitwig.obf.dve w, Set<String> into) {
+        if (w instanceof bitwig.obf.duu label) {
+            String t = label.JhA();
+            if (t != null && DEFAULTS.containsKey(t)) into.add(t);
+        }
+        java.util.List<?> kids = w.vJT();
+        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) labels(d, into);
+        return into;
+    }
+
+    private static void collect(bitwig.obf.dve w, java.util.List<bitwig.obf.dNg> into) {
+        if (w instanceof bitwig.obf.dNg s) into.add(s);
+        java.util.List<?> kids = w.vJT();
+        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) collect(d, into);
     }
 }

@@ -224,5 +224,52 @@ public final class Highlight {
         return bitwig.obf.dqW.cfM(bitmap);
     }
 
+    // ---- double-click a Background slider: back to the default (dark) ----
+
+    /** A press on a slider (dNg): on a double-click on one of the Background sliders, all four go back to default. */
+    @Hook(id = "slider-press", target = bitwig.obf.dNg.class, method = "MRY(LeoX;DDLeoW;I)LdrX;", at = At.ENTRY)
+    public static void sliderPress(@bml.api.This Object slider, @bml.api.Arg(4) int clicks) {
+        if (clicks != 2 || !(slider instanceof bitwig.obf.dNg s)) return;
+        try { Tone.resetFrom(s); } catch (Throwable t) { MOD.log("resetting the background failed", t); }
+    }
+
+    // ---- notifications: body text that reads on the notification's own background ----
+
+    /*
+     * Bitwig's notifications (dMF, and the progress one eaA) write their text in Dark Text / Subtle Dark Text, made
+     * for its default light grey Notification Background. On a dark one that text vanished. The colour is chosen
+     * here instead: the notification's background as drawn (theme and background tone applied) decides, by contrast,
+     * between that dark text and white (Lighter Text).
+     */
+    private static final ThreadLocal<Object> notification = new ThreadLocal<>();
+
+    @Hook(id = "notification-build", target = bitwig.obf.dMF.class, method = "MRY(LcpI;)V", at = At.ENTRY)
+    public static void notificationBuild(@bml.api.This Object widget) { notification.set(widget); }
+
+    @Hook(id = "progress-build", target = bitwig.obf.eaA.class, method = "MRY(LYFZ;)V", at = At.ENTRY)
+    public static void progressBuild(@bml.api.This Object widget) { notification.set(widget); }
+
+    @Hook(id = "notification-subtle-text", target = bitwig.obf.dMF.class, method = "MRY(LcpI;)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "d3()LeeY;")
+    public static bitwig.obf.eeY notificationSubtle(bitwig.obf.eff r) { return readable(r, r.d3()); }
+
+    @Hook(id = "progress-subtle-text", target = bitwig.obf.eaA.class, method = "MRY(LYFZ;)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "d3()LeeY;")
+    public static bitwig.obf.eeY progressSubtle(bitwig.obf.eff r) { return readable(r, r.d3()); }
+
+    @Hook(id = "progress-text", target = bitwig.obf.eaA.class, method = "MRY(LYFZ;)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.eff.class, call = "Ktv()LeeY;")
+    public static bitwig.obf.eeY progressText(bitwig.obf.eff r) { return readable(r, r.Ktv()); }
+
+    private static bitwig.obf.eeY readable(bitwig.obf.eff r, bitwig.obf.eeY dark) {
+        try {
+            iok bg = null;
+            if (notification.get() instanceof bitwig.obf.dve w) bg = r.cfM("Notification Background").cfM(w);
+            boolean darkBg = bg != null ? Tone.luminance(bg) <= 0.179 : !Tone.isLight();
+            if (darkBg) { bitwig.obf.eeY white = r.cfM("Lighter Text"); if (white != null) return white; }
+        } catch (Throwable t) { MOD.log("notification text colour failed", t); }
+        return dark;
+    }
+
     private static int c(float v) { return Math.round(Math.max(0, Math.min(1, v)) * 255); }
 }
