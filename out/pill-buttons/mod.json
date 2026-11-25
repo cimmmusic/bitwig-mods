@@ -1,0 +1,237 @@
+{
+  "manifest_version": 2,
+  "mod": {
+    "id": "pill-buttons",
+    "name": "Interface: Pill Buttons",
+    "version": "0.1.0-dev.1",
+    "author": "Cimm",
+    "description": "Bitwig's buttons, fields and small frames drawn fully rounded (pill-shaped), for a minimal, futuristic look. Pairs with the Minimal theme.",
+    "documentation": "readme"
+  },
+  "built_against": {
+    "bitwig_version": "6.1.4",
+    "platform": "macos",
+    "architecture": "universal"
+  },
+  "helper": {
+    "jar": "helper.jar",
+    "class": "com.cimm.pillbuttons.Pill"
+  },
+  "targets": {
+    "dyK.cfM": {
+      "kind": "method",
+      "owner": "dyK",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.cfM": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "cfM",
+      "descriptor": "(DDDDDLjava/util/EnumSet;)V"
+    },
+    "dyK.MRY": {
+      "kind": "method",
+      "owner": "dyK",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "MRY",
+      "descriptor": "(DDDDDLjava/util/EnumSet;)V"
+    },
+    "dyK.cfM-2": {
+      "kind": "method",
+      "owner": "dyK",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.Hnt": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "Hnt",
+      "descriptor": "(DDDDDLjava/util/EnumSet;)V"
+    },
+    "dyO.MRY": {
+      "kind": "method",
+      "owner": "dyO",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.cfM-2": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "cfM",
+      "descriptor": "(DDDDDLiok;Liok;Ljava/util/EnumSet;)V"
+    },
+    "com.bitwig.graphics.SYo.cfM-3": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "cfM",
+      "descriptor": "(DDDDDLjava/util/EnumSet;D)V"
+    },
+    "dyO.MRY-2": {
+      "kind": "method",
+      "owner": "dyO",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
+    },
+    "dyQ.MRY": {
+      "kind": "method",
+      "owner": "dyQ",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    },
+    "dyS.MRY": {
+      "kind": "method",
+      "owner": "dyS",
+      "name": "MRY",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V"
+    }
+  },
+  "hooks": [
+    {
+      "id": "pill-fill",
+      "target": "dyK.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "fill",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-path",
+      "target": "dyK.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "path",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-frame",
+      "target": "dyK.cfM-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.Hnt",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "frame",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-outline-o",
+      "target": "dyO.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "outlineO",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLiok;Liok;Ljava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-line-o",
+      "target": "dyO.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "lineO",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;D)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-path-o",
+      "target": "dyO.MRY-2",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "pathO",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-outline-q",
+      "target": "dyQ.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "outlineQ",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLiok;Liok;Ljava/util/EnumSet;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "pill-line-s",
+      "target": "dyS.MRY",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.cfM-3",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "lineS",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDDLjava/util/EnumSet;D)V",
+        "args": []
+      }
+    }
+  ],
+  "resources": {
+    "readme": {
+      "kind": "file",
+      "path": "README.md",
+      "media_type": "text/markdown"
+    }
+  },
+  "registrations": [
+    {
+      "id": "preferences",
+      "consumer": "preferences-composition-framework",
+      "descriptor": "preferences.properties",
+      "jar": "helper.jar"
+    }
+  ],
+  "requires": [
+    {
+      "id": "preferences-composition-framework",
+      "min_version": "1.0.0"
+    }
+  ]
+}

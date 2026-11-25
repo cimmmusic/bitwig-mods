@@ -1,0 +1,21 @@
+package com.cimm.pillbuttons;
+
+import bml.preferences.Page;
+import bml.preferences.PreferenceProvider;
+import bml.preferences.Preferences;
+import bml.preferences.Section;
+
+/** Settings > Mods > Pill Buttons. */
+public final class PillSettings implements PreferenceProvider {
+    @Override
+    public void declare(Preferences preferences) {
+        Page mods = preferences.page("mods", "Mods");
+        Section mine = preferences.section(mods, "pill_buttons", "Pill Buttons");
+        preferences.checkbox("pill_buttons_on", "Pill buttons")
+                   .in(mine)
+                   .value(() -> Pill.on, v -> { Pill.on = v; Pill.STORE.putBoolean("enabled", v); });
+        preferences.number("pill_buttons_max_height", "Up to height (px)", 8, 200).wholeNumbers()
+                   .in(mine)
+                   .value(() -> Pill.maxH, v -> { Pill.maxH = Math.round(v); Pill.STORE.putInt("max_height", (int) Math.round(v)); });
+    }
+}

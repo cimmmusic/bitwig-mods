@@ -1,81 +1,81 @@
-// Minimal: near-black, flat, hairlines, white text and icons, one orange accent.
+// Minimal 0.2: true black, flat, hairline outlines, white text and icons, one signal-orange accent.
 // Buttons have no background (transparent), no shadows, no emboss, no gradients.
 Gradient: false
 
 // ---- surfaces: neutral near-black, a step per level ----
-Window background: #080808
-Grey 0: #080808
-Grey 1: #0D0D0D
-Grey 2: #121212
-Grey 3: #171717
-Grey 4: #1E1E1E
-Grey 5: #262626
-Grey 6: #303030
-Brighter: #3A3A3A
-Popup insert: #262626
-Selected Dashboard Tree: #1A1A1A
-Dark Panel Sub-frame Fill: #0D0D0D
-Dark Panel Sub-frame Stroke: #1E1E1E
-Panel Stroke (focused): #2E2E2E
-Light Separator Line: #262626
+Window background: #000000
+Grey 0: #000000
+Grey 1: #050505
+Grey 2: #090909
+Grey 3: #0D0D0D
+Grey 4: #111111
+Grey 5: #161616
+Grey 6: #1C1C1C
+Brighter: #262626
+Popup insert: #1C1C1C
+Selected Dashboard Tree: #111111
+Dark Panel Sub-frame Fill: #050505
+Dark Panel Sub-frame Stroke: #1A1A1A
+Panel Stroke (focused): #2A2A2A
+Light Separator Line: #1A1A1A
 Shadow: #00000000
 
 // ---- buttons: no backgrounds, no outlines; selected/pressed a soft grey ----
 Button background: #00000000
-Button stroke: #00000000
-Pressed button background: #FFFFFF14
+Button stroke: #2E2E2E
+Pressed button background: #FFFFFF12
 View button background: #00000000
-Pressed view button background: #1E1E1E
-OK Button background: #262626
-Checkbox background: #262626
-Button in tree background: #1A1A1A
+Pressed view button background: #141414
+OK Button background: #1C1C1C
+Checkbox background: #1C1C1C
+Button in tree background: #111111
 Icon Frame: #00000000
-Abstract Button Stroke: #00000000
+Abstract Button Stroke: #2E2E2E
 Abstract Button Unselected Background: #00000000
-Abstract Button Selected Background: #262626
-Abstract Button Pressed Background: #1E1E1E
-Inverted Selected Borderless Button background: #303030
-Selected borderless button background: #1E1E1E
-Pressed borderless button background: #262626
+Abstract Button Selected Background: #FFFFFF14
+Abstract Button Pressed Background: #FFFFFF0C
+Inverted Selected Borderless Button background: #262626
+Selected borderless button background: #FFFFFF10
+Pressed borderless button background: #FFFFFF18
 Timeline edit tool chooser background: #00000000
 Close button mouse over background: #FFFFFF14
 Close button pressed background: #FFFFFF22
 
 // ---- icons ----
-Normal Toggle Icon: #8A8A8A
+Normal Toggle Icon: #7A7A7A
 Mouse Over Toggle Icon: #F5F5F5
-Pressed Toggle Icon: #CFCFCF
-Active Toggle Icon (Playing): #FF7A1A
+Pressed Toggle Icon: #D6D6D6
+Active Toggle Icon (Playing): #FF5F1F
 Normal Inverted Toggle Icon: #00000044
 Mouse Over Inverted Toggle Icon: #00000088
 Active Inverted Toggle Icon (Playing): #F5F5F5
 Pressed Inverted Toggle Icon: #000000
-Menu Icon: #CFCFCF
+Menu Icon: #BDBDBD
 
 // ---- text ----
 Default text: #F5F5F5
 Light Text: #F5F5F5
 Lighter Text: #FFFFFF
-Medium Light Text: #F5F5F5CC
-Subtle Light Text: #F5F5F599
-Subtler Light Text: #F5F5F55C
+Medium Light Text: #F5F5F5C8
+Subtle Light Text: #F5F5F58C
+Subtler Light Text: #F5F5F552
 Dark Text: #F5F5F5
-Subtle Dark Text: #5C5C5C
+Subtle Dark Text: #4A4A4A
 Link Text: #F5F5F5
 Error Text: #FF453AC8
 
 // ---- accent ----
-Accent (default): #FF7A1A
-Implicit On (subtle): #B35A17
+Accent (default): #FF5F1F
+Implicit On (subtle): #8C3A14
 Accent (hitech): #F5F5F5
-Led On: #FF7A1A
-Led Off: #262626
-Drop Indicator: #FF7A1A
-Beat Marker Color: #FF7A1A
+Led On: #FF5F1F
+Led Off: #1C1C1C
+Drop Indicator: #FF5F1F
+Beat Marker Color: #FF5F1F
 Analyzed Beat Color: #8A8A8A
-Device Locked Overlay: #FF7A1A33
-Comp fill: #FF7A1A33
-Number field bar background: #262626
+Device Locked Overlay: #FF5F1F33
+Comp fill: #FF5F1F33
+Number field bar background: #1C1C1C
 
 // ---- states ----
 Record button color: #FF453A
@@ -85,39 +85,39 @@ Activation Green: #5BD07A
 Activation Yellow: #E8C547
 Activation Red: #FF453A
 Warning: #FF453A
-Notification Background: #141414
-Notification Normal: #FF7A1A
+Notification Background: #0A0A0A
+Notification Normal: #FF5F1F
 Notification Error: #FF453A
 Popup Notification Background: #000000CC
 Popup overlay background color: #080808CC
 Progress bar: #F5F5F5
-Progress background: #262626
-Hitcount background: #262626
+Progress background: #1C1C1C
+Hitcount background: #1C1C1C
 Hitcount text color: #F5F5F5
 User Automation Override Color: #5BD07A
 Automation Color: #BDBDBD
 
 // ---- menus, fields, tooltips ----
-Menu background: #0F0F0F
-Menu stroke: #262626
+Menu background: #0A0A0A
+Menu stroke: #222222
 Menu text: #F5F5F5
 Menu description text: #7A7A7A
-Menu separator: #1F1F1F
-Field background: #121212
-Slider background: #1E1E1E
-Automation Chooser Background: #141414
-Tooltip Background: #141414
-Tooltip Stroke: #2A2A2A
+Menu separator: #161616
+Field background: #0A0A0A
+Slider background: #161616
+Automation Chooser Background: #0A0A0A
+Tooltip Background: #0A0A0A
+Tooltip Stroke: #262626
 Light Tooltip Background: #EDEDED
 
 // ---- lists and trees ----
-List Item Background: #0D0D0D
-List Separator: #1A1A1A
-Tree Item Background: #0D0D0D
+List Item Background: #050505
+List Separator: #121212
+Tree Item Background: #050505
 Tree Separator: #00000000
-Dark tree background (selected): #262626
-Dark tree background (standby selected): #1A1A1A
-Dark tree separator: #1A1A1A
+Dark tree background (selected): #1C1C1C
+Dark tree background (standby selected): #111111
+Dark tree separator: #121212
 Dark tree text: #F5F5F5
 Dark tree text (selected): #FFFFFF
 Dark tree hover background change: #FFFFFF08
@@ -125,26 +125,26 @@ White Selection: #F5F5F5
 White Selection (standby): #F5F5F566
 
 // ---- scrollbars ----
-Scrollbar: #2A2A2A
+Scrollbar: #222222
 Scrollbar background: #00000000
-Modern Scrollbar Handle (active): #3A3A3A
-Modern Scrollbar Handle (inactive): #3A3A3A88
+Modern Scrollbar Handle (active): #2E2E2E
+Modern Scrollbar Handle (inactive): #2E2E2E88
 Modern Scrollbar Background (active): #FFFFFF0A
 Modern Dark Scrollbar Handle (active): #000000FF
 Modern Dark Scrollbar Handle (inactive): #00000088
 
 // ---- knobs: flat body, white line and value, no emboss ----
-Knob Body: #1C1C1C
-Knob Body Lighter: #1C1C1C
-Knob Body Lightest: #3A3A3A
-Knob Body Darkest: #141414
+Knob Body: #111111
+Knob Body Lighter: #111111
+Knob Body Lightest: #2A2A2A
+Knob Body Darkest: #0A0A0A
 Knob Stroke: #262626
 Knob Line: #F5F5F5
 Knob Line Dark: #080808
 Knob Emboss Highlight: #00000000
 Knob Emboss Shadow: #00000000
-Knob Value Background: #262626
-Knob Value Background (dark): #141414
+Knob Value Background: #1C1C1C
+Knob Value Background (dark): #0D0D0D
 Knob Value Color: #F5F5F5
 
 // ---- meters ----
@@ -155,27 +155,27 @@ Meter Clipping: #FF453A
 Meter Gain Reduction: #8A8A8A
 Meter Hitech: #F5F5F5
 Meter Hitech Background: #F5F5F51E
-Meter Muted: #3A3A3A
+Meter Muted: #2A2A2A
 Muted by Audition: #080808B2
 
 // ---- displays, devices, grid ----
-Display Background: #0D0D0D
-Display Stroke: #232323
-Grey Display Background: #0D0D0D80
+Display Background: #000000
+Display Stroke: #1C1C1C
+Grey Display Background: #00000080
 Display Background (error): #2A1212
 Display Waveform: #F5F5F5
-Display Start/End Markers: #FF7A1A
+Display Start/End Markers: #FF5F1F
 Display Loop Markers: #F5F5F5
-Device Header: #111111
-Device Header (selected): #1E1E1E
+Device Header: #0A0A0A
+Device Header (selected): #161616
 Device Tint Future: #00000000
 Device Tint Retro: #00000000
 Device Tint Military: #00000000
-The Grid (background): #0A0A0A
-The Grid (stroke): #1A1A1A
+The Grid (background): #000000
+The Grid (stroke): #121212
 Grid Line (Primary): #000000FF
 Grid Line (Secondary): #00000040
-Audio Event Background: #141414
+Audio Event Background: #0D0D0D
 Audio Event Boundary: #00000080
 Audio Event Waveform: #D9D9D9
 Dark offset for automation/channel bar: #00000033
@@ -204,9 +204,9 @@ Time Selection Standby Cursor Stroke: #F5F5F5
 Time Selection Standby Fill: #FFFFFF14
 Time Selection Standby Stroke: #00000000
 Time Selection Stroke: #F5F5F5
-Timeline Cue Marker: #FF7A1A
+Timeline Cue Marker: #FF5F1F
 Timeline Header Background Pattern: #FFFFFF06
-Timeline Header Cue Marker: #FF7A1A
+Timeline Header Cue Marker: #FF5F1F
 Timeline Header Tooltip Background: #141414CC
 Timeline Header Tooltip Text: #F5F5F5
 Timeline Tooltip Background: #141414CC
