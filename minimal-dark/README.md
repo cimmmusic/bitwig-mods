@@ -9,6 +9,8 @@ A complete dark, flat look for Bitwig Studio in one mod. Enable it, restart Bitw
 - **Highlight colour:** choose from presets or set a custom hue; everything Bitwig draws in its accent colour follows.
 - **Background:** hue, saturation, luminance and contrast sliders, to tint the whole interface (purple, blue...). Text stays readable on its own: black on light surfaces, white on dark ones, and black or white on coloured clips and tracks, whichever contrasts more. Double-click any of the four sliders to go back to the default dark look.
 - **Menus:** while a menu is open, the window behind it dims with a short fade, and the button you opened it from stays lit above the dim. Popups fade in.
+- **Buttons:** pill-shaped buttons with adjustable roundness, no outlines on the toolbar buttons, and toolbar icons that light up in the highlight colour on hover (the record button in red).
+- **Layout:** options to put the transport toolbar at the bottom of the window, and the Arrange/Mix/Edit bar at the top (restart).
 - Dark scene backgrounds, and Grid module previews that match the theme.
 
 Everything can be changed under **Settings › Mods**, in the sections named "Minimal Dark".
@@ -16,5 +18,5 @@ Everything can be changed under **Settings › Mods**, in the sections named "Mi
 ## Notes
 
 - **Framework: Themes:** if it's on with another theme selected, Minimal Dark leaves the colours to it (the font, highlight, background and menus still apply). To use Minimal Dark's colours, turn Framework: Themes off or select no theme there.
-- **Interface: Pill Buttons** works well with it, but is a separate mod.
+- It replaces Interface: Font, Highlight & Background, Menu Backdrop and Pill Buttons: turn those off if you have them.
 - macOS. Built for Bitwig 6.1.
