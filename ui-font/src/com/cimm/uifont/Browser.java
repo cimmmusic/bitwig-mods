@@ -50,11 +50,13 @@ final class Browser {
     record Target(Object value, String id, List<String> options) {
         String current() { return FontSettings.currentLabel(id); }
         void choose(String option) {
-            FontSettings.store(id, option); // the mod's own setting: what the font hooks read at start
-            if (value != null) { // and through the framework, so the dropdown shows it at once
+            // Through the framework first: it only writes (calling the mod's setter, which stores the choice) and
+            // tells the dropdown when the value differs from what the getter returns now, so the store must come after.
+            if (value != null) {
                 try { java.lang.reflect.Method m = value.getClass().getMethod("setValue", Object.class); m.setAccessible(true); m.invoke(value, option); }
                 catch (Throwable t) { Fonts.MOD.log("updating the dropdown failed", t); }
             }
+            FontSettings.store(id, option); // the mod's own setting (already stored by the setter when that worked)
         }
     }
 
@@ -180,12 +182,15 @@ final class Browser {
         @Override public Object get() { return text; }
         @Override public boolean isSettable() { return true; }
         @Override public boolean isObservable() { return true; }
+        private int logs;
+        /** Set by the text field as the user types. The field already shows it, so the field isn't told back
+         *  (telling it resets its editing mid-typing). */
         @Override public void setValue(Object v) {
-            String old = text;
-            text = v == null ? "" : v.toString();
+            String next = v == null ? "" : v.toString();
+            if (logs++ < 6) Fonts.MOD.log("search '" + next + "'");
+            if (next.equals(text)) return;
+            text = next;
             if (onChange != null) try { onChange.accept(text); } catch (Throwable t) { Fonts.MOD.log("search failed", t); }
-            bitwig.obf.VGL e = new bitwig.obf.VGL(this, old, text);
-            for (foz l : listeners) try { l.eventOccurred(e); } catch (Throwable ignored) {}
         }
         public void addListener(foz l) { listeners.add(l); }
         public void removeListener(foz l) { listeners.remove(l); }
@@ -330,7 +335,7 @@ final class Browser {
             boolean pixels = "PIXELS".equals(e.IwV().name());
             double amount = e.FzB();
             if (logged.add("wheel")) Fonts.MOD.log("wheel over the list: " + amount + (pixels ? " px" : " steps"));
-            list.scrollBy(-(pixels ? amount : amount * ROW));
+            list.scrollBy(pixels ? amount : amount * ROW); // follows the system's scroll direction (Natural scrolling)
         } catch (Throwable t) {
             if (logged.add("wheel failed")) Fonts.MOD.log("wheel failed", t);
         }
