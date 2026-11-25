@@ -54,6 +54,7 @@ public final class Highlight {
           method = "cfM(Ljava/lang/String;Lefd;Liok;FFF)V", at = At.ENTRY)
     public static void colourRegistered(@bml.api.This Object colour, @bml.api.Arg(0) String name) {
         seen.incrementAndGet();
+        if (name != null) Recorder.named(colour, name);
         if (name == null || !NAMES.contains(name)) return;
         synchronized (originals) { names.put(colour, name); }
     }
@@ -114,6 +115,7 @@ public final class Highlight {
      *  accent colours, the chosen colour instead. */
     @Hook(id = "draw-highlight", target = bitwig.obf.eeY.class, method = "cfM(Ldve;)Liok;", at = At.WRAP_RETURN)
     public static iok resolved(@bml.api.Return iok value, @bml.api.This bitwig.obf.eeY colour) {
+        if (Recorder.on) Recorder.seen(colour, value);
         Color t = target;
         if (t == null || value == null) return value;
         Object[] a = accents;

@@ -1,40 +1,40 @@
-// Minimal 0.3: very dark grey (arranger ~#141414), flat, hairline outlines, white text and icons, one signal-orange accent.
+// Minimal 0.5: unified dark-grey surfaces (#101010-#1E1E1E), hairlines, quiet outlines, inset fields.
 // Buttons have no background (transparent), no shadows, no emboss, no gradients.
 Gradient: false
 
 // ---- surfaces: neutral near-black, a step per level ----
-Window background: #111111
-Grey 0: #0F0F0F
-Grey 1: #141414
-Grey 2: #171717
-Grey 3: #1B1B1B
-Grey 4: #1F1F1F
-Grey 5: #252525
-Grey 6: #2C2C2C
-Brighter: #343434
-Popup insert: #2C2C2C
-Selected Dashboard Tree: #1F1F1F
-Dark Panel Sub-frame Fill: #141414
-Dark Panel Sub-frame Stroke: #262626
-Panel Stroke (focused): #333333
-Light Separator Line: #262626
+Window background: #101010
+Grey 0: #101010
+Grey 1: #131313
+Grey 2: #151515
+Grey 3: #171717
+Grey 4: #1A1A1A
+Grey 5: #1D1D1D
+Grey 6: #242424
+Brighter: #2E2E2E
+Popup insert: #242424
+Selected Dashboard Tree: #1D1D1D
+Dark Panel Sub-frame Fill: #131313
+Dark Panel Sub-frame Stroke: #222222
+Panel Stroke (focused): #2C2C2C
+Light Separator Line: #222222
 Shadow: #00000000
 
 // ---- buttons: no backgrounds, no outlines; selected/pressed a soft grey ----
 Button background: #00000000
-Button stroke: #363636
+Button stroke: #2A2A2A
 Pressed button background: #FFFFFF12
 View button background: #00000000
-Pressed view button background: #1F1F1F
-OK Button background: #2C2C2C
-Checkbox background: #2C2C2C
-Button in tree background: #1F1F1F
+Pressed view button background: #1D1D1D
+OK Button background: #242424
+Checkbox background: #242424
+Button in tree background: #1A1A1A
 Icon Frame: #00000000
-Abstract Button Stroke: #363636
+Abstract Button Stroke: #2A2A2A
 Abstract Button Unselected Background: #00000000
 Abstract Button Selected Background: #FFFFFF14
 Abstract Button Pressed Background: #FFFFFF0C
-Inverted Selected Borderless Button background: #343434
+Inverted Selected Borderless Button background: #2E2E2E
 Selected borderless button background: #FFFFFF10
 Pressed borderless button background: #FFFFFF18
 Timeline edit tool chooser background: #00000000
@@ -56,9 +56,9 @@ Menu Icon: #BDBDBD
 Default text: #F5F5F5
 Light Text: #F5F5F5
 Lighter Text: #FFFFFF
-Medium Light Text: #F5F5F5C8
-Subtle Light Text: #F5F5F58C
-Subtler Light Text: #F5F5F552
+Medium Light Text: #F5F5F5BF
+Subtle Light Text: #F5F5F580
+Subtler Light Text: #F5F5F547
 Dark Text: #F5F5F5
 Subtle Dark Text: #4A4A4A
 Link Text: #F5F5F5
@@ -69,13 +69,13 @@ Accent (default): #FF5F1F
 Implicit On (subtle): #8C3A14
 Accent (hitech): #F5F5F5
 Led On: #FF5F1F
-Led Off: #2C2C2C
+Led Off: #242424
 Drop Indicator: #FF5F1F
 Beat Marker Color: #FF5F1F
 Analyzed Beat Color: #8A8A8A
 Device Locked Overlay: #FF5F1F33
 Comp fill: #FF5F1F33
-Number field bar background: #2C2C2C
+Number field bar background: #242424
 
 // ---- states ----
 Record button color: #FF453A
@@ -91,33 +91,33 @@ Notification Error: #FF453A
 Popup Notification Background: #000000CC
 Popup overlay background color: #080808CC
 Progress bar: #F5F5F5
-Progress background: #2C2C2C
-Hitcount background: #2C2C2C
+Progress background: #242424
+Hitcount background: #242424
 Hitcount text color: #F5F5F5
 User Automation Override Color: #5BD07A
 Automation Color: #BDBDBD
 
 // ---- menus, fields, tooltips ----
 Menu background: #161616
-Menu stroke: #2C2C2C
+Menu stroke: #262626
 Menu text: #F5F5F5
 Menu description text: #7A7A7A
-Menu separator: #222222
-Field background: #161616
-Slider background: #252525
-Automation Chooser Background: #161616
+Menu separator: #1F1F1F
+Field background: #121212
+Slider background: #1D1D1D
+Automation Chooser Background: #121212
 Tooltip Background: #161616
-Tooltip Stroke: #303030
+Tooltip Stroke: #2A2A2A
 Light Tooltip Background: #EDEDED
 
 // ---- lists and trees ----
-List Item Background: #141414
-List Separator: #1D1D1D
-Tree Item Background: #141414
+List Item Background: #131313
+List Separator: #1A1A1A
+Tree Item Background: #131313
 Tree Separator: #00000000
-Dark tree background (selected): #2C2C2C
-Dark tree background (standby selected): #1F1F1F
-Dark tree separator: #1D1D1D
+Dark tree background (selected): #242424
+Dark tree background (standby selected): #1D1D1D
+Dark tree separator: #1A1A1A
 Dark tree text: #F5F5F5
 Dark tree text (selected): #FFFFFF
 Dark tree hover background change: #FFFFFF08
@@ -125,26 +125,26 @@ White Selection: #F5F5F5
 White Selection (standby): #F5F5F566
 
 // ---- scrollbars ----
-Scrollbar: #2C2C2C
+Scrollbar: #262626
 Scrollbar background: #00000000
-Modern Scrollbar Handle (active): #3A3A3A
-Modern Scrollbar Handle (inactive): #3A3A3A88
+Modern Scrollbar Handle (active): #333333
+Modern Scrollbar Handle (inactive): #33333388
 Modern Scrollbar Background (active): #FFFFFF0A
 Modern Dark Scrollbar Handle (active): #000000FF
 Modern Dark Scrollbar Handle (inactive): #00000088
 
 // ---- knobs: flat body, white line and value, no emboss ----
-Knob Body: #1B1B1B
-Knob Body Lighter: #1B1B1B
-Knob Body Lightest: #343434
-Knob Body Darkest: #141414
-Knob Stroke: #303030
+Knob Body: #181818
+Knob Body Lighter: #181818
+Knob Body Lightest: #2E2E2E
+Knob Body Darkest: #131313
+Knob Stroke: #2A2A2A
 Knob Line: #F5F5F5
 Knob Line Dark: #080808
 Knob Emboss Highlight: #00000000
 Knob Emboss Shadow: #00000000
-Knob Value Background: #2C2C2C
-Knob Value Background (dark): #171717
+Knob Value Background: #242424
+Knob Value Background (dark): #151515
 Knob Value Color: #F5F5F5
 
 // ---- meters ----
@@ -155,27 +155,27 @@ Meter Clipping: #FF453A
 Meter Gain Reduction: #8A8A8A
 Meter Hitech: #F5F5F5
 Meter Hitech Background: #F5F5F51E
-Meter Muted: #343434
+Meter Muted: #2E2E2E
 Muted by Audition: #080808B2
 
 // ---- displays, devices, grid ----
-Display Background: #0F0F0F
-Display Stroke: #262626
-Grey Display Background: #0F0F0F80
+Display Background: #0E0E0E
+Display Stroke: #222222
+Grey Display Background: #0E0E0E80
 Display Background (error): #2A1212
 Display Waveform: #F5F5F5
 Display Start/End Markers: #FF5F1F
 Display Loop Markers: #F5F5F5
-Device Header: #161616
-Device Header (selected): #222222
+Device Header: #151515
+Device Header (selected): #1D1D1D
 Device Tint Future: #00000000
 Device Tint Retro: #00000000
 Device Tint Military: #00000000
-The Grid (background): #111111
-The Grid (stroke): #1F1F1F
-Grid Line (Primary): #000000FF
-Grid Line (Secondary): #00000040
-Audio Event Background: #1B1B1B
+The Grid (background): #101010
+The Grid (stroke): #1D1D1D
+Grid Line (Primary): #00000066
+Grid Line (Secondary): #00000030
+Audio Event Background: #181818
 Audio Event Boundary: #00000080
 Audio Event Waveform: #D9D9D9
 Dark offset for automation/channel bar: #00000033
