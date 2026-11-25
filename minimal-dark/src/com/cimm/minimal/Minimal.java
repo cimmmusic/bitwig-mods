@@ -1278,4 +1278,39 @@ public final class Minimal {
     @Hook(id = "sentence-case-17", target = bitwig.obf.dre.class, method = "IwV()Ldve;", at = At.REPLACE_CALL,
           callOwner = String.class, call = "toUpperCase()Ljava/lang/String;", occurrence = 2)
     public static String sentenceCase17(String s) { return Labels.caps(s, 17); }
+
+    /*
+     * Labels (dut) and buttons (dzg) can carry a text transform (a UnaryOperator), and Bitwig passes String::toUpperCase
+     * for headers and tabs: applied in dut.hbP(text) and dzg.cfM(transform, text). Where the transform's result is just
+     * the text in capitals, sentence case is drawn instead; any other transform is left alone.
+     */
+    @Hook(id = "sentence-case-label", target = bitwig.obf.dut.class, method = "hbP(Ljava/lang/String;)Ljava/lang/String;",
+          at = At.REPLACE_CALL, callOwner = java.util.function.UnaryOperator.class, call = "apply(Ljava/lang/Object;)Ljava/lang/Object;")
+    public static Object sentenceCaseLabel(java.util.function.UnaryOperator op, Object text) { return transformed(op, text, 20); }
+
+    @Hook(id = "sentence-case-button", target = bitwig.obf.dzg.class, method = "cfM(Ljava/util/function/UnaryOperator;Ljava/lang/Object;)Ljava/lang/String;",
+          at = At.REPLACE_CALL, callOwner = java.util.function.UnaryOperator.class, call = "apply(Ljava/lang/Object;)Ljava/lang/Object;")
+    public static Object sentenceCaseButton(java.util.function.UnaryOperator op, Object text) { return transformed(op, text, 21); }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Object transformed(java.util.function.UnaryOperator op, Object text, int site) {
+        Object out = op.apply(text);
+        if (text instanceof String t && out instanceof String o && !o.equals(t) && o.equals(t.toUpperCase())) return Labels.caps(t, site);
+        return out;
+    }
+
+    /** The Dashboard's tabs (Settings, Packages, Help...) are LJt texts turned to capitals with LJt.g_(): sentence case instead. */
+    @Hook(id = "sentence-case-tabs", target = bitwig.obf.aBl.class, method = "cfM(LLJt;Ldve;ZZ)V",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.LJt.class, call = "g_()LLJt;")
+    public static bitwig.obf.LJt sentenceCaseTabs(bitwig.obf.LJt text) { return captioned(text, 22); }
+
+    @Hook(id = "sentence-case-captions", target = bitwig.obf.aLZ.class, method = "cfM(LLJt;Ldve;)Ldve;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.LJt.class, call = "g_()LLJt;")
+    public static bitwig.obf.LJt sentenceCaseCaptions(bitwig.obf.LJt text) { return captioned(text, 23); }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static bitwig.obf.LJt captioned(bitwig.obf.LJt text, int site) {
+        try { return text.cfM((java.util.function.Function) (Object o) -> o instanceof String t ? Labels.caps(t, site) : o); }
+        catch (Throwable t) { return text.g_(); }
+    }
 }
