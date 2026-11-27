@@ -82,7 +82,9 @@ final class Looks {
     /** Applies the option at this index of labels(): 0 = the saved Custom values, else a preset. */
     static void choose(int index) {
         if (index < 0 || index > ALL.size()) return;
+        if (quiet) return; // the framework storing the option we are about to apply ourselves
         Minimal.STORE.putInt("look", index);
+        if (index != 0) Minimal.STORE.remove(Themes.ACTIVE);
         Look l = index == 0 ? savedCustom() : ALL.get(index - 1);
         applying = true;
         try {
@@ -95,11 +97,49 @@ final class Looks {
         } catch (Throwable t) { Minimal.MOD.log("choosing the look failed", t); }
         finally { applying = false; }
         Tone.dimControls(index == 0);
+        Themes.NAME.fire();
     }
+
+    /** A saved theme: its values become the Custom look, shown under its name. */
+    static void useSaved(Look l) {
+        Minimal.STORE.putInt("custom_bg_hue", l.hue()); Minimal.STORE.putInt("custom_bg_saturation", l.sat());
+        Minimal.STORE.putInt("custom_bg_luminance", l.lum()); Minimal.STORE.putInt("custom_bg_contrast", l.con());
+        Minimal.STORE.putInt("custom_choice", l.highlight()); Minimal.STORE.putInt("custom_hue", l.customHue());
+        Minimal.STORE.put(Themes.ACTIVE, l.name());
+        setDropdown(CUSTOM);
+        choose(0);
+        try { Minimal.STORE.flush(); } catch (Throwable ignored) {}
+        Minimal.MOD.log("look: theme " + l.name());
+    }
+
+    /** An option of the Presets tab (0 = Custom, plain: no saved theme's name). */
+    static void usePreset(Object dropdownValue, int index) {
+        if (dropdownValue != null) Looks.dropdownValue = dropdownValue;
+        Minimal.STORE.remove(Themes.ACTIVE);
+        String[] labels = labels();
+        if (index < 0 || index >= labels.length) return;
+        setDropdown(labels[index]);
+        choose(index);
+    }
+
+    /** The Look setting's stored option, through the Settings framework (so it is kept as Bitwig's settings are). */
+    private static void setDropdown(String option) {
+        Object v = dropdownValue;
+        if (v == null) return;
+        quiet = true;
+        try { java.lang.reflect.Method m = v.getClass().getMethod("setValue", Object.class); m.setAccessible(true); m.invoke(v, option); }
+        catch (Throwable t) { Minimal.MOD.log("updating the Look dropdown failed", t); }
+        finally { quiet = false; }
+    }
+
+    /** The Settings framework's value behind the Look dropdown, once its popup has opened. */
+    static volatile Object dropdownValue;
+    private static volatile boolean quiet;
 
     /** The user changed a Background slider or a highlight control. */
     static void edited() {
         if (applying) return;
+        if (!Themes.active().isEmpty()) { Minimal.STORE.remove(Themes.ACTIVE); Themes.NAME.fire(); } // a theme, changed: plain Custom now
         boolean wasPreset = !custom();
         saveCustom(); // the current values (including this change) become the Custom look
         if (wasPreset) {

@@ -98,6 +98,17 @@ final class Browser {
         }
     }
 
+    /** The Settings framework's value behind one of this mod's dropdowns with this setting id, else null. */
+    static Object optionValueOf(dBX dropdown, String id) {
+        try {
+            Found f = search(dropdown);
+            if (f.optionValue == null) return null;
+            Object control = field(f.optionValue, "c");
+            if (control == null || !Fonts.MOD.id().equals(field(control, "modId"))) return null;
+            return id.equals(String.valueOf(field(control, "id"))) ? f.optionValue : null;
+        } catch (Throwable t) { return null; }
+    }
+
     private static final Set<String> logged = Collections.newSetFromMap(new java.util.concurrent.ConcurrentHashMap<>());
 
     private static final class Found { Object optionValue; String role; String path; int visited; }
@@ -427,7 +438,7 @@ final class Browser {
             String current = target.current();
             int first = Math.max(0, (int) (scroll / ROW)), last = Math.min(shown.size() - 1, (int) ((scroll + h) / ROW));
             boolean more = false;
-            if (shown.isEmpty()) Text.plain(g, "No fonts match", PAD + 12, ROW / 2, 15, DIM);
+            if (shown.isEmpty()) Text.standard(g, "No fonts match", PAD + 12, ROW / 2, DIM);
             for (int i = first; i <= last; i++) { // only the rows in view get their font loaded
                 String label = shown.get(i);
                 double y = i * ROW - scroll, cy = y + ROW / 2;
@@ -436,11 +447,11 @@ final class Browser {
                 iok c = picked ? ORANGE : TEXT;
                 if (picked) { g.Hnt(ORANGE); g.MRY(PAD - 8, cy - 3, 6, 6); g.wGc(); } // the current font
                 String path = pathOf.get(label);
-                if (path == null) { Text.plain(g, label, PAD + 12, cy, 15, picked ? ORANGE : DIM); continue; }
+                if (path == null) { Text.standard(g, label, PAD + 12, cy, picked ? ORANGE : DIM); continue; }
                 Hpk font = Faces.get(path);
                 if (font == null && Faces.pending(path)) more = true;
                 if (font != null) Text.inFont(g, font, label, PAD + 12, cy, w - PAD - 12 - BAR - 4, c);
-                else Text.plain(g, label, PAD + 12, cy, 15, DIM);
+                else Text.standard(g, label, PAD + 12, cy, DIM);
             }
             if (maxScroll() > 0) { // the scrollbar
                 double th = thumbH(h), ty = scroll / maxScroll() * (h - th);
@@ -516,16 +527,37 @@ final class Browser {
             g.qoU();
             try { g.FzB(x, cy + size * 0.36); g.Hnt(k, k); g.cfM(0, 0, s, c); } finally { g.ucQ(); }
         }
+        /** Bitwig's UI font at its standard size (as the rest of the interface), left at x, centred on cy. */
+        static void standard(com.bitwig.graphics.SYo g, String s, double x, double cy, iok c) {
+            double h = uiHeight(g);
+            g.qoU();
+            try { g.cfM(x, cy + h * 0.3, s, c); } finally { g.ucQ(); }
+        }
+        /** The standard UI font's height. */
+        static double uiHeight(com.bitwig.graphics.SYo g) {
+            if (Double.isNaN(defaultH)) {
+                try { defaultH = g.iHb().FzB(); } catch (Throwable t) { defaultH = 15; }
+                if (!(defaultH > 4)) defaultH = 15;
+            }
+            return defaultH;
+        }
         /** s in its own font, cut to fit maxW. */
         static void inFont(com.bitwig.graphics.SYo g, Hpk font, String s, double x, double cy, double maxW, iok c) {
+            double ui = uiHeight(g);
             g.qoU();
             try {
                 g.cfM(font);
-                if (width(g, s) > maxW) {
-                    while (s.length() > 1 && width(g, s + "…") > maxW) s = s.substring(0, s.length() - 1);
+                double fh = NAME_SIZE;
+                try { double m = g.iHb().FzB(); if (m > 4) fh = m; } catch (Throwable ignored) {}
+                double k = ui / fh; // as tall as the standard UI text
+                g.FzB(x, cy + ui * 0.3);
+                g.Hnt(k, k);
+                double room = maxW / k;
+                if (width(g, s) > room) {
+                    while (s.length() > 1 && width(g, s + "…") > room) s = s.substring(0, s.length() - 1);
                     s = s + "…";
                 }
-                g.cfM(x, cy + NAME_SIZE * 0.36, s, c);
+                g.cfM(0, 0, s, c);
             } finally { g.ucQ(); }
         }
         private static double width(com.bitwig.graphics.SYo g, String s) {

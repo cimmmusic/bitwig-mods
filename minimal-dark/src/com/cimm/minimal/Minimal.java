@@ -474,6 +474,8 @@ public final class Minimal {
     @Hook(id = "font-dropdown", target = bitwig.obf.dBX.class, method = "JJY()LdKW;",
           at = At.REPLACE_CALL, callOwner = bitwig.obf.dBX.class, call = "cfM(LdKW;)V")
     public static void fillDropdown(bitwig.obf.dBX dropdown, bitwig.obf.dKW popup) {
+        try { if (Themes.fill(dropdown, popup)) return; }
+        catch (Throwable e) { MOD.log("themes popup failed, showing the plain list", e); }
         Browser.Target t = null;
         try { t = Browser.target(dropdown); } catch (Throwable ignored) {}
         if (t != null) {
@@ -481,6 +483,12 @@ public final class Minimal {
             catch (Throwable e) { Fonts.MOD.log("font list failed, showing the plain list", e); }
         }
         dropdown.cfM(popup);
+    }
+
+    /** The Look dropdown's label: a saved theme's name when one is in use (it isn't one of the dropdown's options). */
+    @Hook(id = "look-dropdown-name", target = bitwig.obf.dBX.class, method = "l_(Ljava/lang/Object;)LLJt;", at = At.WRAP_RETURN)
+    public static bitwig.obf.LJt lookName(@bml.api.Return bitwig.obf.LJt value, @bml.api.This bitwig.obf.dBX dropdown, @bml.api.Arg(0) Object shown) {
+        return Themes.label(dropdown, shown, value);
     }
 
     @Hook(id = "font-from-file", target = dpK.class, method = "Hnt(LIdX;)Lcom/bitwig/graphics/sQv;",
@@ -578,7 +586,7 @@ public final class Minimal {
     /** Wheel / trackpad scrolls, before Bitwig handles them: the open font list scrolls. An ENTRY hook, so other mods'
      *  hooks on the same dispatch (the mixer mini views' scroll) are unaffected. */
     @Hook(id = "list-wheel", target = bitwig.obf.dpl.class, method = "cfM(Leph;)V", at = At.ENTRY)
-    public static void wheel(@bml.api.Arg(0) bitwig.obf.eph e) { Browser.wheel(e); }
+    public static void wheel(@bml.api.Arg(0) bitwig.obf.eph e) { if (!Themes.wheel(e)) Browser.wheel(e); }
 
     // ================================================================ from Backdrop
     /**
@@ -737,7 +745,7 @@ public final class Minimal {
 
     /** All four corners round: the open menu's button is a whole pill even when Bitwig joins it to its neighbours. */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final EnumSet ALL_CORNERS = EnumSet.allOf(com.bitwig.base.geom.hgq.class);
+    static final EnumSet ALL_CORNERS = EnumSet.allOf(com.bitwig.base.geom.hgq.class);
     private static int headerLogs;
 
     @SuppressWarnings("rawtypes")
@@ -833,6 +841,7 @@ public final class Minimal {
     @Hook(id = "window-paint", target = bitwig.obf.duG.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
     public static void windowPaint(@bml.api.This Object window) {
         Legible.window();
+        paintingPopup = window instanceof bitwig.obf.dsR; // popups (menus, lists, tooltips) are dsR windows
         if (!(window instanceof bitwig.obf.dsR)) windows.add(window);
     }
 
@@ -911,6 +920,7 @@ public final class Minimal {
     @Hook(id = "window-show-a", target = bitwig.obf.duG.class, method = "fuN()V", at = At.REPLACE_CALL,
           callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Z)V")
     public static void windowShowA(com.bitwig.windowing_system.TopLevelWindowHandle handle, boolean visible) {
+        beforeShow(handle, visible);
         handle.cfM(visible);
         afterShow(handle, visible);
     }
@@ -918,6 +928,7 @@ public final class Minimal {
     @Hook(id = "window-show-b", target = bitwig.obf.duG.class, method = "EUG()V", at = At.REPLACE_CALL,
           callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Z)V")
     public static void windowShowB(com.bitwig.windowing_system.TopLevelWindowHandle handle, boolean visible) {
+        beforeShow(handle, visible);
         handle.cfM(visible);
         afterShow(handle, visible);
     }
@@ -943,7 +954,13 @@ public final class Minimal {
         return java.nio.file.Path.of(System.getProperty("java.io.tmpdir", "/tmp"), "minimal-dark-native-call");
     }
 
+    /** Native popup styling is off: menus are rounded by the theme instead (see popupBackground). Kept for reference. */
     private static boolean nativeAllowed() {
+        return false;
+    }
+
+    @SuppressWarnings("unused")
+    private static boolean nativeAllowedOld() {
         try { return nativeAllowedNow(); } catch (Throwable t) { return false; } // never stop the mod (or Bitwig) loading
     }
 
@@ -1018,7 +1035,7 @@ public final class Minimal {
         try {
             long start = System.nanoTime();
             int[] step = {0};
-            long[] at = {40, 120, 300};
+            long[] at = {40, 120, 300, 600, 1000};
             java.util.TimerTask[] task = new java.util.TimerTask[1];
             task[0] = bitwig.obf.dpN.TVZ().cfM(() -> {
                 if (step[0] >= at.length) { if (task[0] != null) task[0].cancel(); return; }
@@ -1028,8 +1045,24 @@ public final class Minimal {
                 try { shown = ((bitwig.obf.dvW) popup).uev(); } catch (Throwable t) { shown = false; }
                 if (!shown) { step[0] = at.length; if (task[0] != null) task[0].cancel(); return; }
                 roundPopupNow(popup);
+                if (step[0] == 3 && diagOpens < 2) { diagOpens++; diagnose(popup, "after 300 ms + re-round"); }
             }, 20, 20);
         } catch (Throwable t) { log("popup re-rounding unavailable", t); }
+    }
+
+    private static int diagOpens;
+
+    /** Diagnostics for the first openings: the popup's window and layers as they are now. */
+    private static void diagnose(Object popup, String when) {
+        try {
+            java.lang.reflect.Field f = handleField;
+            Object h = f == null ? null : f.get(popup);
+            if (!(h instanceof com.bitwig.windowing_system.PopupWindowHandle ph)) { MOD.log("popup diag " + when + ": no handle"); return; }
+            long layer = layerOf(ph);
+            markNative(true);
+            try { MOD.log("popup diag " + when + ": " + NativeCorners.describe(NativeCorners.windowOfLayer(layer), layer)); }
+            finally { markNative(false); }
+        } catch (Throwable t) { log("popup diag failed", t); }
     }
 
     private static void roundPopupNow(Object popup) {
@@ -1062,6 +1095,21 @@ public final class Minimal {
         markNative(true);
         try { return NativeCorners.windowOfLayer(layer); } finally { markNative(false); }
     }
+
+    /*
+     * Rounded before macOS puts the window on screen: a window made see-through only once it is showing stays square
+     * (the very first menu after starting Bitwig was square, every later one rounded, because later ones were reached
+     * earlier). The native window usually exists already here; if not, the after-show path takes over.
+     */
+    private static void beforeShow(Object handle, boolean visible) {
+        if (!NATIVE_POPUPS || !visible || !MAC || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
+        try {
+            long window = nativeWindow(popup);
+            if (window != 0) styleNative(window, layerOf(popup));
+            else if (preLogs++ < 2) MOD.log("popup window not created before showing: rounded once shown");
+        } catch (Throwable t) { log("rounding before showing failed", t); }
+    }
+    private static int preLogs;
 
     private static void afterShow(Object handle, boolean visible) {
         if (!NATIVE_POPUPS || !visible || !MAC || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
@@ -1098,9 +1146,19 @@ public final class Minimal {
         try { styleNativeNow(window, layer); } finally { markNative(false); }
     }
 
+    /** Windows already handled (pointer -> when): each window is re-shown at most once, and only if it was already
+     *  on screen when first rounded. Pointers get reused by later windows, so entries count for 10 s only. */
+    private static final java.util.Map<Long, Long> styled = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static void styleNativeNow(long window, long layer) {
+        long now = System.nanoTime();
+        Long seen = styled.get(window);
+        boolean first = seen == null || now - seen > 10_000_000_000L;
+        boolean wasShowing = first && NativeCorners.visible(window);
+        if (first) { styled.put(window, now); if (styled.size() > 64) styled.clear(); }
         try { NativeCorners.round(window, layer, menuRadius(), 0x51 / 255f, 0x51 / 255f, 0x51 / 255f, 1.0); }
         catch (Throwable t) { log("rounding the popup failed", t); }
+        if (wasShowing && menuRadius() > 0) NativeCorners.reshow(window);
         // The fade keeps messaging the window for 130 ms; a menu closed sooner would leave it messaging a freed window.
         // Off until popups' closing is tracked per window.
         if (!fadePopups || !FADE_SAFE) return;
@@ -1176,7 +1234,70 @@ public final class Minimal {
      * popup window of its own: a popup menu (dKW) itself, or a panel on the window's popup layer (the layer stack,
      * dqs) that is smaller than the window. Its frame is rounded like the native menus.
      */
+    /*
+     * Rounded menus, drawn by the theme: a menu is its own small window, and its panel (background and border) is
+     * drawn with rounded corners (inWindowMenu). What shows in the corners outside the panel is the window's own
+     * background colour, which Bitwig sets when it shows the window (duG.fuN: handle.cfM(colour)). For popup windows
+     * that colour becomes the near-black of the dimmed screen behind open menus, so the corners read as rounded.
+     */
+    @Hook(id = "popup-background", target = bitwig.obf.duG.class, method = "fuN()V", at = At.REPLACE_CALL,
+          callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Liok;)V")
+    public static void popupBackground(com.bitwig.windowing_system.TopLevelWindowHandle handle, iok colour) {
+        if (on && menuRadius() > 0 && handle instanceof com.bitwig.windowing_system.PopupWindowHandle) {
+            iok c = cornerColour();
+            if (bgLogs++ < 2) MOD.log("menu corners: window background " + Scenes.hex(c) + " (was " + (colour == null ? "none" : Scenes.hex(colour)) + ")");
+            handle.cfM(c);
+            return;
+        }
+        handle.cfM(colour);
+    }
+    private static int bgLogs;
+
+    /*
+     * A panel without a frame shape gets its background as a plain rectangle (eeM: g.MRY(x, y, w, h), then fill): that
+     * square fill is what kept menus square (only their borders were rounded). In a popup, a large panel's rectangle
+     * becomes a rounded one with the menu radius; buttons and rows inside menus keep their own shapes.
+     */
+    @Hook(id = "panel-plain-fill", target = bitwig.obf.eeM.class,
+          method = "cfM(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;Liok;)V", at = At.REPLACE_CALL,
+          callOwner = SYo.class, call = "MRY(DDDD)V")
+    @SuppressWarnings("unchecked")
+    public static void panelPlainFill(SYo g, double x, double y, double w, double h) {
+        if (on && paintingPopup && menuRadius() > 0) {
+            double scale = 1;
+            try { scale = g.Hnt(); } catch (Throwable ignored) {}
+            if (h > maxH * Math.max(1, scale) + 0.5) {
+                double r = Math.min(menuRadius() * Math.max(1, scale), Math.min(w, h) / 2);
+                if (plainLogs++ < 3) MOD.log("menu background rounded: " + Math.round(w) + "x" + Math.round(h) + " r " + Math.round(r));
+                g.MRY(x, y, w, h, r, ALL_CORNERS);
+                return;
+            }
+        }
+        g.MRY(x, y, w, h);
+    }
+    private static int plainLogs;
+
+    /** The colour around a rounded menu: the dimmed screen's near-black (the theme's popup overlay colour, solid). */
+    static iok cornerColour() {
+        iok o = Theme.colour("Popup overlay background color");
+        return o == null ? new iok(0x0A / 255f, 0x0A / 255f, 0x0A / 255f, 1f) : new iok(o.FzB(), o.IwV(), o.UNj(), 1f);
+    }
+
+    /** Whether the window being painted now is a popup (set as each window starts painting; painting is one thread). */
+    static volatile boolean paintingPopup;
+
     static boolean inWindowMenu() {
+        // Bitwig draws a menu's panel (background and border) inside its popup window, with a drop shadow around it:
+        // the window is bigger than the menu, so rounding the window misses the menu's corners. Its panel frame is
+        // rounded here instead: any large frame painted in a popup window.
+        if (paintingPopup) {
+            if (menuFrameKinds.size() < 10) {
+                Object c = Legible.current();
+                if (c != null && menuFrameKinds.add("popup " + c.getClass().getName()))
+                    MOD.log("menu panel rounded: " + c.getClass().getName());
+            }
+            return true;
+        }
         Object w = Legible.current();
         if (!(w instanceof bitwig.obf.dve v)) return false;
         try {

@@ -37,6 +37,8 @@ Not sure where to start? The **Look** dropdown (top of the Minimal Dark settings
 
 **Custom** is your own look, saved separately: pick it and your own background and highlight come back. While a preset is selected, the Background sliders and highlight controls are dimmed; nudge one anyway and the look switches to Custom, starting from the preset you were on, so you can use any preset as a starting point. Minimal Dark itself stays pure neutral near-black.
 
+**Save your own themes.** The Look dropdown has two tabs: **Presets** and **User Themes**. Get a look you like, type a name at the bottom of the dropdown and click **Save**. It appears under User Themes and is still there after you restart Bitwig. Click a theme to use it, or click its **×** to delete it. Saving with the same name again updates that theme. A theme keeps the Background sliders and the highlight colour.
+
 Here they all are (click one to see it full size):
 
 <table>
@@ -96,7 +98,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.2.0-dev.24.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.24.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.32.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.32.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 

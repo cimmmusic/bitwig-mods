@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.2.0-dev.24",
+    "version": "0.2.0-dev.32",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -156,6 +156,12 @@
       "name": "cfM",
       "descriptor": "(LdKW;)V"
     },
+    "dBX.l_": {
+      "kind": "method",
+      "owner": "dBX",
+      "name": "l_",
+      "descriptor": "(Ljava/lang/Object;)LLJt;"
+    },
     "dpK.Hnt": {
       "kind": "method",
       "owner": "dpK",
@@ -282,6 +288,24 @@
       "name": "EUG",
       "descriptor": "()V"
     },
+    "com.bitwig.windowing_system.TopLevelWindowHandle.cfM-2": {
+      "kind": "method",
+      "owner": "com/bitwig/windowing_system/TopLevelWindowHandle",
+      "name": "cfM",
+      "descriptor": "(Liok;)V"
+    },
+    "eeM.cfM": {
+      "kind": "method",
+      "owner": "eeM",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;Liok;)V"
+    },
+    "com.bitwig.graphics.SYo.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "MRY",
+      "descriptor": "(DDDD)V"
+    },
     "dyK.cfM": {
       "kind": "method",
       "owner": "dyK",
@@ -300,7 +324,7 @@
       "name": "MRY",
       "descriptor": "(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V"
     },
-    "com.bitwig.graphics.SYo.MRY": {
+    "com.bitwig.graphics.SYo.MRY-2": {
       "kind": "method",
       "owner": "com/bitwig/graphics/SYo",
       "name": "MRY",
@@ -558,12 +582,6 @@
       "name": "Hnt",
       "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
     },
-    "eeM.cfM": {
-      "kind": "method",
-      "owner": "eeM",
-      "name": "cfM",
-      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;Liok;)V"
-    },
     "dNg.cfM": {
       "kind": "method",
       "owner": "dNg",
@@ -601,6 +619,12 @@
       "owner": "com/bitwig/graphics/render_commands/hLr",
       "name": "MRY",
       "descriptor": "Lcom/bitwig/graphics/render_commands/z2y;"
+    },
+    "dAd.init": {
+      "kind": "method",
+      "owner": "dAd",
+      "name": "<init>",
+      "descriptor": "()V"
     },
     "drX.init": {
       "kind": "method",
@@ -979,6 +1003,19 @@
       }
     },
     {
+      "id": "look-dropdown-name",
+      "target": "dBX.l_",
+      "transform": "WRAP_OBJECT_RETURN",
+      "bridge": {
+        "method": "lookName",
+        "descriptor": "(LLJt;LdBX;Ljava/lang/Object;)LLJt;",
+        "args": [
+          "this",
+          "arg1"
+        ]
+      }
+    },
+    {
       "id": "font-from-file",
       "target": "dpK.Hnt",
       "transform": "REPLACE_INVOKE",
@@ -1191,6 +1228,36 @@
       }
     },
     {
+      "id": "popup-background",
+      "target": "duG.fuN",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.windowing_system.TopLevelWindowHandle.cfM-2",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "popupBackground",
+        "descriptor": "(Lcom/bitwig/windowing_system/TopLevelWindowHandle;Liok;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "panel-plain-fill",
+      "target": "eeM.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "panelPlainFill",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDD)V",
+        "args": []
+      }
+    },
+    {
       "id": "pill-fill",
       "target": "dyK.cfM",
       "transform": "REPLACE_INVOKE",
@@ -1211,7 +1278,7 @@
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEINTERFACE",
-        "target": "com.bitwig.graphics.SYo.MRY",
+        "target": "com.bitwig.graphics.SYo.MRY-2",
         "occurrence": 1
       },
       "bridge": {
@@ -1317,7 +1384,7 @@
       "transform": "REPLACE_INVOKE",
       "match": {
         "opcode": "INVOKEINTERFACE",
-        "target": "com.bitwig.graphics.SYo.MRY",
+        "target": "com.bitwig.graphics.SYo.MRY-2",
         "occurrence": 1
       },
       "bridge": {
@@ -1980,6 +2047,7 @@
     "com.bitwig.graphics.render_commands.JXO.cfM",
     "com.bitwig.graphics.render_commands.hLr",
     "com.bitwig.graphics.render_commands.hLr.MRY",
+    "dAd.init",
     "dBX.cfM",
     "drX.init",
     "dut.hbP",
