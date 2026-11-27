@@ -28,6 +28,7 @@ Give your mixer X-ray vision. Device Mini Panels puts a tiny picture of **16 dev
 - Right-click a view (away from its nodes) for Reset Device to Default: every knob, choice and switch of the device goes back to its default.
 - Right-click a device for Mini View in Mixer / Track Inspector: Collapse or Expand.
 - Devices renamed by a preset are still recognised for most views.
+- You can also hide unwated devices in the mixer view for a clean and visually aligned experience. 
 
 ## EQ+
 
@@ -195,4 +196,4 @@ Give your mixer X-ray vision. Device Mini Panels puts a tiny picture of **16 dev
 - Curves follow the knobs, not the audio passing through. De-Esser and Transient Control show what they can do rather than what they're doing at that moment.
 - Over's waveform is the channel's output level.
 - Collapse choices last for the current session.
-- Built for Bitwig Studio 6.1.4 on macOS.
+- Built for Bitwig Studio 6.1.4 / 6.1.7

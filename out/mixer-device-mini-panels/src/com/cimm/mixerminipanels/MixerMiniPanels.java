@@ -135,6 +135,7 @@ public final class MixerMiniPanels {
                         header.MRY(w3.cfM);
                         column.HL(header);
                         column.HL(scope);
+                        headers.put(row, header);
                         row.MRY(kn.cfM());
                         result = column;
                     }
@@ -153,6 +154,7 @@ public final class MixerMiniPanels {
                     header.MRY(w3.cfM); // keep Bitwig's row line at its usual fixed height
                     column.HL(header); // Bitwig's own row
                     column.HL(mini);   // the mini panel
+                    headers.put(row, header); // the selection outline goes round this line only
                     row.MRY(kn.cfM()); // height: Bitwig fixed the row to one line; let it fit the column
                     result = column;
                     if (log) if (MiniGraph.DEBUG) MOD.log("mini panel added");
@@ -166,6 +168,39 @@ public final class MixerMiniPanels {
             result = content;
         }
         row.cfM(result); // what Bitwig's code did: set the row's content
+    }
+
+    /** Rows given a mini view, and their name line (Bitwig's own row content). */
+    private static final java.util.Map<g2L, dve> headers = java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    /** The row drawing its selection outline now (UI thread). */
+    private static g2L outlining;
+
+    @Hook(id = "row-outline-start", target = g2L.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void rowOutlineStart(@bml.api.This g2L row) { outlining = row; }
+
+    /**
+     * The selected device's outline: round the name line only (as rows without a mini view), not the name line and
+     * the mini view below it.
+     */
+    @Hook(id = "row-outline", target = g2L.class, method = "cfM(Lcom/bitwig/graphics/SYo;)V", at = At.REPLACE_CALL,
+          callOwner = com.bitwig.graphics.SYo.class, call = "MRY(DDDD)V")
+    public static void rowOutline(com.bitwig.graphics.SYo g, double x, double y, double w, double h) {
+        g2L row = outlining;
+        outlining = null;
+        if (row != null) {
+            dve header = headers.get(row);
+            if (header != null) {
+                try {
+                    com.bitwig.base.geom.OLR r = row.ihs(), hd = header.ihs();
+                    if (r != null && hd != null) {
+                        double inset = y; // half the line width
+                        double bottom = hd.hUR() - r.hUR() + header.yiX(); // the name line's bottom, in the row
+                        if (bottom > 2 * inset && bottom < h) h = bottom - 2 * inset;
+                    }
+                } catch (Throwable ignored) {}
+            }
+        }
+        g.MRY(x, y, w, h);
     }
 
     // ---- temporary probe: dump native devices' panel trees to the log (once per device type) ----

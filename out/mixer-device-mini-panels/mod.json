@@ -3,7 +3,7 @@
   "mod": {
     "id": "mixer-device-mini-panels",
     "name": "Mixer: Device Mini Panels",
-    "version": "0.3.0-dev.1",
+    "version": "0.3.0-dev.3",
     "author": "Cimm",
     "description": "Adds graphical mini views under devices in the mixer's Devices section \u2014 EQs, compressors, dynamics, gate, limiter, Over, Saturator, Transient Control, filters, De-Esser, Tool and meters \u2014 with draggable nodes, right-click type menus and live modulation.",
     "documentation": "readme"
@@ -95,6 +95,18 @@
       "owner": "com/bitwig/flt/widget/core/device/g2L",
       "name": "cfM",
       "descriptor": "(LdyC;)V"
+    },
+    "com.bitwig.flt.widget.core.device.g2L.cfM-3": {
+      "kind": "method",
+      "owner": "com/bitwig/flt/widget/core/device/g2L",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "com.bitwig.graphics.SYo.MRY": {
+      "kind": "method",
+      "owner": "com/bitwig/graphics/SYo",
+      "name": "MRY",
+      "descriptor": "(DDDD)V"
     },
     "auI": {
       "kind": "class",
@@ -319,6 +331,33 @@
       "bridge": {
         "method": "setRowContent",
         "descriptor": "(Lcom/bitwig/flt/widget/core/device/g2L;LdyC;)V",
+        "args": []
+      }
+    },
+    {
+      "id": "row-outline-start",
+      "target": "com.bitwig.flt.widget.core.device.g2L.cfM-3",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "rowOutlineStart",
+        "descriptor": "(Lcom/bitwig/flt/widget/core/device/g2L;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "row-outline",
+      "target": "com.bitwig.flt.widget.core.device.g2L.cfM-3",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKEINTERFACE",
+        "target": "com.bitwig.graphics.SYo.MRY",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "rowOutline",
+        "descriptor": "(Lcom/bitwig/graphics/SYo;DDDD)V",
         "args": []
       }
     }
