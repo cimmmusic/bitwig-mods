@@ -28,7 +28,7 @@ final class NativeCorners {
 
     private static volatile boolean ready, broken;
     private static MethodHandle sel, getClass, sendP, sendV, sendB, sendL, sendD, responds, cgColor;
-    private static MemorySegment respondsTo, contentView, window, delegate, setOpaque, setBackgroundColor, clearColor, setWantsLayer,
+    private static MemorySegment respondsTo, contentView, window, delegate, superlayer, setOpaque, setBackgroundColor, clearColor, setWantsLayer,
             layer, setCornerRadius, setMasksToBounds, setBorderWidth, setBorderColor, invalidateShadow, setHasShadow;
     private static long nsColor;
     private static int logs;
@@ -53,6 +53,7 @@ final class NativeCorners {
             respondsTo = s("respondsToSelector:");
             contentView = s("contentView");
             window = s("window");
+            superlayer = s("superlayer");
             delegate = s("delegate");
             setOpaque = s("setOpaque:");
             setBackgroundColor = s("setBackgroundColor:");
@@ -107,6 +108,48 @@ final class NativeCorners {
      * Rounds the popup's corners (radius in points; 0 puts square corners back). ptr: the native window, or a view in it.
      * Border: sRGB 0..1 and width in points.
      */
+    private static boolean chainLogged;
+
+    /** Rounds one layer: radius, clipping, and see-through so the clipped corners really show what is behind. */
+    private static void roundLayer(long l, double radius) throws Throwable {
+        boolean rounded = radius > 0;
+        sendD.invokeExact(l, setCornerRadius, radius);
+        sendB.invokeExact(l, setMasksToBounds, (byte) (rounded ? 1 : 0));
+        if (rounded && can(l, setOpaque)) sendB.invokeExact(l, setOpaque, (byte) 0);
+    }
+
+    /**
+     * Rounds the popup: the window (see-through), its content view's layer, and Bitwig's Metal layer with every layer
+     * it sits in (rounding only the top view did not clip the Metal drawing: menus stayed square). The border goes on
+     * the Metal layer, the one actually drawn. metalLayer may be 0 (then only the window and its view are rounded).
+     */
+    static boolean round(long ptr, long metalLayer, double radius, float r, float g, float b, double borderWidth) {
+        if (!round(ptr, radius, r, g, b, plausible(metalLayer) ? 0 : borderWidth)) return false;
+        if (!plausible(metalLayer)) return true;
+        try {
+            StringBuilder chain = new StringBuilder();
+            long l = metalLayer;
+            for (int i = 0; i < 6 && plausible(l); i++) {
+                roundLayer(l, radius);
+                chain.append(i == 0 ? "" : " < ").append(NativeAlpha.classOf(l));
+                if (!can(l, superlayer)) break;
+                l = (long) sendP.invokeExact(l, superlayer);
+            }
+            boolean rounded = radius > 0;
+            sendD.invokeExact(metalLayer, setBorderWidth, rounded ? borderWidth : 0.0);
+            if (rounded) {
+                long colour = (long) cgColor.invokeExact((double) r, (double) g, (double) b, 1.0);
+                if (colour != 0) sendL.invokeExact(metalLayer, setBorderColor, colour);
+            }
+            if (!chainLogged) { chainLogged = true; Minimal.MOD.log("menu layers rounded: " + chain); }
+            return true;
+        } catch (Throwable t) {
+            broken = true; ready = false;
+            Minimal.MOD.log("rounding the menu's layers failed; turned off", t);
+            return false;
+        }
+    }
+
     static boolean round(long ptr, double radius, float r, float g, float b, double borderWidth) {
         if (!plausible(ptr) || !init()) return false;
         try {
@@ -126,7 +169,7 @@ final class NativeCorners {
             sendD.invokeExact(l, setCornerRadius, radius);
             sendB.invokeExact(l, setMasksToBounds, (byte) (rounded ? 1 : 0));
             sendD.invokeExact(l, setBorderWidth, rounded ? borderWidth : 0.0);
-            if (rounded) {
+            if (rounded && borderWidth > 0) {
                 long colour = (long) cgColor.invokeExact((double) r, (double) g, (double) b, 1.0);
                 if (colour != 0) sendL.invokeExact(l, setBorderColor, colour); // (one small colour per popup shown)
             }

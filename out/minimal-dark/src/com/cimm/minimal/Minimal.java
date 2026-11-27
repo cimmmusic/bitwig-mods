@@ -758,6 +758,7 @@ public final class Minimal {
 
     @Hook(id = "popup-visible", target = bitwig.obf.dsQ.class, method = "t_(Z)V", at = At.ENTRY)
     public static void popupVisible(@bml.api.This Object popup, @bml.api.Arg(0) boolean visible) {
+        if (visible) roundPopup(popup);
         try {
             if (visible) {
                 Object content = opening.get();
@@ -997,6 +998,38 @@ public final class Minimal {
         } catch (Throwable t) { layerFieldMissing = true; log("popup layer unavailable", t); return 0; }
     }
 
+    /*
+     * Every popup becoming visible (dsQ.t_(true)) is rounded too, not only those shown through the window-show calls:
+     * some (the arrangement's right-click menu) reuse a popup window and skip them. Its window handle is found by type
+     * in the popup's fields (cross-platform interface, no names). Rounding twice is harmless.
+     */
+    private static volatile java.lang.reflect.Field handleField;
+    private static volatile boolean handleFieldMissing;
+    private static int roundLogs;
+
+    private static void roundPopup(Object popup) {
+        if (!NATIVE_POPUPS || !MAC || handleFieldMissing || popup == null) return;
+        try {
+            java.lang.reflect.Field f = handleField;
+            if (f == null) {
+                outer:
+                for (Class<?> c = popup.getClass(); c != null; c = c.getSuperclass())
+                    for (java.lang.reflect.Field cand : c.getDeclaredFields()) {
+                        if (java.lang.reflect.Modifier.isStatic(cand.getModifiers())) continue;
+                        if (!com.bitwig.windowing_system.TopLevelWindowHandle.class.isAssignableFrom(cand.getType())
+                                && cand.getType() != Object.class) continue;
+                        cand.setAccessible(true);
+                        if (cand.get(popup) instanceof com.bitwig.windowing_system.PopupWindowHandle) { f = cand; break outer; }
+                    }
+                if (f == null) { if (roundLogs++ < 3) MOD.log("popup window handle not found yet (" + popup.getClass().getName() + ")"); return; }
+                handleField = f;
+                MOD.log("popup window handle field: " + f.getDeclaringClass().getName() + "." + f.getName());
+            }
+            Object h = f.get(popup);
+            if (h != null) afterShow(h, true);
+        } catch (Throwable t) { handleFieldMissing = true; log("popup handle unavailable", t); }
+    }
+
     /** The popup's NSWindow, or 0 while it doesn't exist yet. */
     private static long nativeWindow(Object handle) {
         long layer = layerOf(handle);
@@ -1009,7 +1042,7 @@ public final class Minimal {
         if (!NATIVE_POPUPS || !visible || !MAC || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
         long window = nativeWindow(popup);
         if (window == 0) { whenNative(popup); return; }
-        styleNative(window);
+        styleNative(window, layerOf(popup));
     }
 
     /*
@@ -1025,7 +1058,7 @@ public final class Minimal {
                 try { w = nativeWindow(popup); } catch (Throwable ignored) {}
                 if (w != 0 || ++tries[0] > 50) {
                     if (task[0] != null) task[0].cancel();
-                    if (w != 0) { if (showLogs++ < 3) MOD.log("popup window ready after " + tries[0] * 10 + " ms"); styleNative(w); }
+                    if (w != 0) { if (showLogs++ < 3) MOD.log("popup window ready after " + tries[0] * 10 + " ms"); styleNative(w, layerOf(popup)); }
                     else if (showLogs++ < 3) MOD.log("popup window never appeared: menu stays square");
                 }
             }, 0, 10);
@@ -1035,13 +1068,13 @@ public final class Minimal {
     /** The popup's native window exists: round it, and fade it up. */
     private static final boolean FADE_SAFE = false;
 
-    private static void styleNative(long window) {
+    private static void styleNative(long window, long layer) {
         markNative(true);
-        try { styleNativeNow(window); } finally { markNative(false); }
+        try { styleNativeNow(window, layer); } finally { markNative(false); }
     }
 
-    private static void styleNativeNow(long window) {
-        try { NativeCorners.round(window, menuRadius(), 0x51 / 255f, 0x51 / 255f, 0x51 / 255f, 1.0); }
+    private static void styleNativeNow(long window, long layer) {
+        try { NativeCorners.round(window, layer, menuRadius(), 0x51 / 255f, 0x51 / 255f, 0x51 / 255f, 1.0); }
         catch (Throwable t) { log("rounding the popup failed", t); }
         // The fade keeps messaging the window for 130 ms; a menu closed sooner would leave it messaging a freed window.
         // Off until popups' closing is tracked per window.
@@ -1103,8 +1136,34 @@ public final class Minimal {
         double scale = 1;
         try { scale = g.Hnt(); } catch (Throwable ignored) {}
         if (pillLogs < 8) { pillLogs++; MOD.log("frame " + Math.round(w) + "x" + Math.round(h) + " radius " + r + " scale " + scale); }
-        if (h > maxH * Math.max(1, scale) + 0.5) return r; // a panel, not a button
+        if (h > maxH * Math.max(1, scale) + 0.5) {
+            // a panel, not a button; but a menu drawn inside the window (right-click menus) gets the menus' rounding
+            if (inWindowMenu()) return Math.max(r, Math.min(menuRadius() * Math.max(1, scale), Math.min(w, h) / 2));
+            return r;
+        }
         return Math.max(r, Math.min(w, h) / 2 * Math.max(0, Math.min(100, roundness)) / 100);
+    }
+
+    private static final java.util.Set<String> menuFrameKinds = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /**
+     * Whether the frame being painted is a menu that Bitwig draws inside the window (right-click menus) rather than in a
+     * popup window of its own: a popup menu (dKW) itself, or a panel on the window's popup layer (the layer stack,
+     * dqs) that is smaller than the window. Its frame is rounded like the native menus.
+     */
+    static boolean inWindowMenu() {
+        Object w = Legible.current();
+        if (!(w instanceof bitwig.obf.dve v)) return false;
+        try {
+            boolean menu = v instanceof bitwig.obf.dKW;
+            if (!menu && !(v instanceof DimLayer)) {
+                bitwig.obf.dve p = v.RbC();
+                menu = p instanceof bitwig.obf.dqs && v.Sxo() < p.Sxo() * 0.95 && v.yiX() < p.yiX() * 0.95;
+            }
+            if (menu && menuFrameKinds.size() < 10 && menuFrameKinds.add(v.getClass().getName()))
+                MOD.log("in-window menu rounded: " + v.getClass().getName() + " " + Math.round(v.Sxo()) + "x" + Math.round(v.yiX()));
+            return menu;
+        } catch (Throwable t) { return false; }
     }
 
     // ---- dyK: fill, clip and border paths of every rounded frame ----
