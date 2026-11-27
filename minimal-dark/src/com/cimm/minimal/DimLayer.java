@@ -37,6 +37,7 @@ final class DimLayer extends bitwig.obf.dve {
     private static int raiseLogs;
 
     private void raised(com.bitwig.graphics.SYo g) {
+        if (!Minimal.raiseButton) return;
         com.bitwig.base.geom.OLR me = ihs();
         if (me == null) return;
         bitwig.obf.dve myRoot = root(this);

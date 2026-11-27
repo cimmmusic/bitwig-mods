@@ -69,6 +69,8 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 ### ⬭ Pill buttons and a tidy toolbar
 - **Pill-shaped buttons**, with a **Roundness** slider (0% square to 100% full pill) and a height limit so big panels don't turn into giant capsules.
 - **No outlines on the toolbar buttons**: just the icons, floating cleanly.
+- **Menu buttons get a little arrow** (File ▾, Edit ▾, Play ▾) that flips up ▴ while the menu is open, sitting neatly inside the button's pill. *Arrows on menu buttons* turns it off *(restart)*.
+- **An open menu's button is a whole pill**, even where Bitwig joins it to its neighbours (Edit next to Undo/Redo no longer ends in a straight edge).
 - **Toolbar icons light up on hover** in your highlight colour. The **record button glows red**, because some things are sacred. 🔴
 - **Move things around** (restart to apply):
   - put the **transport at the bottom** of the window;
@@ -78,7 +80,8 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 ### 🌘 Menus that take the spotlight
 - **Dim behind open menus.** Open any menu and the window behind it fades down (in Bitwig's own popup-overlay colour) and fades back up when you're done. Meters and all go under it: nothing pokes through.
 - **The menu's own button stays lit** above the dim, so you can always see which menu you opened ("File", glowing in your highlight colour).
-- **Popups fade in**, smoothly, instead of slamming onto the screen (macOS).
+- **Rounded menus** (macOS): menus, dropdown lists and tooltips get rounded corners that follow your pill **Roundness** (square when pills are off), with the border following the curve.
+- **Popups fade in** is paused for now while it's made crash-proof; the setting stays and will come back.
 - Tooltips and hover popups don't dim anything. That would be exhausting. 😵‍💫
 
 ### ✨ Little touches
@@ -93,7 +96,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.2.0-dev.13.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.13.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.20.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.20.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 
@@ -109,7 +112,7 @@ Everything lives in **Settings › Mods**, in the sections starting with **"Mini
 | --- | --- |
 | **Minimal Dark** | Look (26 presets), theme colours on/off *(restart)* |
 | **Background** | Hue, Saturation, Luminance, Contrast. Double-click a slider to reset all four. |
-| **Buttons** | Pill buttons, no toolbar outlines, hover icons, transport at the bottom *(restart)*, Arrange/Mix/Edit bar at the top *(restart)*, Roundness, Up to height |
+| **Buttons** | Pill buttons, no toolbar outlines, hover icons, arrows on menu buttons *(restart)*, transport at the bottom *(restart)*, Arrange/Mix/Edit bar at the top *(restart)*, Roundness, Up to height |
 | **Font** | Interface / Bold / Numbers font *(restart)*, their text sizes *(restart)*, Move text down, Solid dark text on bright colours, Sentence case instead of capitals *(restart)* |
 | **Highlight** | Highlight colour, Custom hue, Keep text readable, Dark scene backgrounds, Grid module previews *(restart)* |
 | **Menus** | Behind open menus (Dim / Off), Menu's button stays above the dim, Popups fade in |
@@ -122,7 +125,7 @@ Everything lives in **Settings › Mods**, in the sections starting with **"Mini
 
 ## Good to know
 
-- **macOS**, built for Bitwig Studio **6.1.4 and 6.1.7** (BML adapts it on load). **Windows:** it should load (since 0.1.0-dev.11) but hasn't been tested there yet; popups don't fade in on Windows. Reports welcome!
+- **macOS**, built for Bitwig Studio **6.1.4 and 6.1.7** (BML adapts it on load). **Windows:** it should load (since 0.1.0-dev.11) but hasn't been tested there yet; menus stay square and popups don't fade in on Windows. Reports welcome!
 - Some changes need a **restart** (marked *(restart)* in Settings). Background, highlight and menu changes apply live.
 - If something looks off, Bitwig's log (`~/Library/Logs/Bitwig/BitwigStudio.log`) has a `[minimal-dark]` line for each part as it kicks in. Send it over! 📬
 

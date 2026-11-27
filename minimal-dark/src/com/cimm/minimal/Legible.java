@@ -61,6 +61,12 @@ final class Legible {
         s.depth = d;
     }
 
+    /** The widget being painted now on this thread (null between windows). */
+    static Object current() {
+        Stack s = STACK.get();
+        return s.depth > 0 ? s.widget[s.depth] : null;
+    }
+
     /** A widget is done painting. */
     static void pop(Object widget) {
         Stack s = STACK.get();
@@ -70,12 +76,20 @@ final class Legible {
         for (int d = s.depth - 1; d > 0; d--) if (s.widget[d] == widget) { for (int k = d; k <= s.depth; k++) s.widget[k] = null; s.depth = d - 1; return; }
     }
 
-    /** A widget's frame fills its background with c: the colour behind its contents from now on. */
-    static void background(Object widget, iok c) {
+    /**
+     * A widget's frame fills a w x h area with c: the colour behind its contents from now on, but only when the fill
+     * covers (nearly) the whole widget. A checkbox fills just its small box, and its label beside it still sits on the
+     * panel: that fill must not count (it turned the labels black on a white highlight).
+     */
+    static void background(Object widget, double w, double h, iok c) {
         if (c == null) return;
         Stack s = STACK.get();
         int d = s.depth;
         if (d <= 0 || s.widget[d] != widget) return;
+        try {
+            bitwig.obf.dve v = (bitwig.obf.dve) widget;
+            if (w < v.Sxo() * 0.85 || h < v.yiX() * 0.85) return;
+        } catch (Throwable ignored) { return; }
         float a = c.hUR();
         if (a <= 0.02f) return;
         s.r[d] = c.FzB() * a + s.r[d] * (1 - a);

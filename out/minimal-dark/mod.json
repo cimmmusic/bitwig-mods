@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.2.0-dev.13",
+    "version": "0.2.0-dev.20",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -228,6 +228,24 @@
       "name": "cfM",
       "descriptor": "(LdrO;LdsP;Z)V"
     },
+    "dsp.cfM": {
+      "kind": "method",
+      "owner": "dsp",
+      "name": "cfM",
+      "descriptor": "(Ljava/lang/String;ZLCzc;LdKB;)LdLh;"
+    },
+    "dXD.cfM": {
+      "kind": "method",
+      "owner": "dXD",
+      "name": "cfM",
+      "descriptor": "([Ldve;)LdXD;"
+    },
+    "aCf.cfM": {
+      "kind": "method",
+      "owner": "aCf",
+      "name": "cfM",
+      "descriptor": "(LaBF;)Ldve;"
+    },
     "dsQ.t_": {
       "kind": "method",
       "owner": "dsQ",
@@ -299,12 +317,6 @@
       "owner": "com/bitwig/graphics/SYo",
       "name": "Hnt",
       "descriptor": "(DDDDDLjava/util/EnumSet;)V"
-    },
-    "aCf.cfM": {
-      "kind": "method",
-      "owner": "aCf",
-      "name": "cfM",
-      "descriptor": "(LaBF;)Ldve;"
     },
     "dyO.MRY": {
       "kind": "method",
@@ -631,6 +643,12 @@
       "owner": "dve",
       "name": "cfM",
       "descriptor": "(LeoX;DDLeoW;I)LdrX;"
+    },
+    "dve.iG_": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "iG_",
+      "descriptor": "()Lcom/bitwig/base/geom/SYo;"
     }
   },
   "hooks": [
@@ -1073,6 +1091,36 @@
           "arg1",
           "arg2"
         ]
+      }
+    },
+    {
+      "id": "menu-arrow-menus",
+      "target": "dsp.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKESTATIC",
+        "target": "dXD.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "menuArrow",
+        "descriptor": "([Ldve;)LdXD;",
+        "args": []
+      }
+    },
+    {
+      "id": "menu-arrow-play",
+      "target": "aCf.cfM",
+      "transform": "REPLACE_INVOKE",
+      "match": {
+        "opcode": "INVOKESTATIC",
+        "target": "dXD.cfM",
+        "occurrence": 1
+      },
+      "bridge": {
+        "method": "playArrow",
+        "descriptor": "([Ldve;)LdXD;",
+        "args": []
       }
     },
     {
@@ -1890,9 +1938,11 @@
       "transform": "INSERT_AT_ENTRY",
       "bridge": {
         "method": "frameFill",
-        "descriptor": "(Ljava/lang/Object;Liok;)V",
+        "descriptor": "(Ljava/lang/Object;DDLiok;)V",
         "args": [
           "arg2",
+          "arg7",
+          "arg9",
           "arg12"
         ]
       }
@@ -1938,6 +1988,7 @@
     "dve.b_",
     "dve.cfM",
     "dve.cfM-2",
+    "dve.iG_",
     "dve.init"
   ],
   "resources": {

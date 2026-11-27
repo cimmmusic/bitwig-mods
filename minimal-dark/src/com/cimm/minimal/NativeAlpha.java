@@ -53,14 +53,14 @@ final class NativeAlpha {
 
     /** The Objective-C class of the object at ptr (for the log). */
     static String classOf(long ptr) {
-        if (ptr == 0 || !init()) return "?";
+        if (!NativeCorners.plausible(ptr) || !init()) return "?";
         try { return ((MemorySegment) className.invokeExact(ptr)).reinterpret(256).getString(0); }
         catch (Throwable t) { return "?"; }
     }
 
     /** Sets the opacity (0..1); false if the object can't take one. */
     static boolean set(long ptr, double alpha) {
-        if (ptr == 0 || !init()) return false;
+        if (!NativeCorners.plausible(ptr) || !init()) return false;
         try {
             if ((byte) responds.invokeExact(ptr, respondsTo, setAlpha) != 0) {
                 sendD.invokeExact(ptr, setAlpha, alpha);

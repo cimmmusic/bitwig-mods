@@ -20,6 +20,9 @@ public final class PillSettings implements PreferenceProvider {
         preferences.checkbox("pill_buttons_toolbar_hover_icons", "Toolbar icons light up on hover (highlight colour)")
                    .in(mine)
                    .value(() -> Minimal.hoverIcons, v -> { Minimal.hoverIcons = v; Minimal.STORE.putBoolean("toolbar_hover_icons", v); });
+        preferences.checkbox("pill_buttons_menu_arrows", "Arrows on menu buttons (restart)")
+                   .in(mine)
+                   .value(() -> Minimal.menuArrows, v -> { Minimal.menuArrows = v; Minimal.STORE.putBoolean("menu_arrows", v); });
         preferences.checkbox("pill_buttons_transport_bottom", "Transport at the bottom (restart)")
                    .in(mine)
                    .value(() -> Minimal.transportBottom, v -> { Minimal.transportBottom = v; Minimal.STORE.putBoolean("transport_bottom", v); });

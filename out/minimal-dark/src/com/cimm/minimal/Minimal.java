@@ -642,6 +642,7 @@ public final class Minimal {
      */
     private static final ThreadLocal<Object> openingAnchor = new ThreadLocal<>();
     private static int anchorLogs;
+    private static final java.util.Set<String> anchorKinds = java.util.concurrent.ConcurrentHashMap.newKeySet();
     /** Open menu popup -> the button it opened from. */
     static final java.util.Map<Object, bitwig.obf.dve> anchors = Collections.synchronizedMap(new WeakHashMap<>());
 
@@ -657,13 +658,93 @@ public final class Minimal {
                     // a menu button (dLh: File, Play, Add...) always; another widget only when it is button-sized
                     if (w instanceof bitwig.obf.dLh || (w instanceof bitwig.obf.dve b0 && b0.yiX() > 0 && b0.yiX() <= 80 && b0.Sxo() <= 400)) {
                         bitwig.obf.dve b = (bitwig.obf.dve) w;
-                        if (anchorLogs++ < 6) MOD.log("menu opened from " + b.getClass().getName() + " " + Math.round(b.Sxo()) + "x" + Math.round(b.yiX()));
+                        if (anchorKinds.size() < 30 && anchorKinds.add(b.getClass().getName() + " " + Math.round(b.Sxo()) + "x" + Math.round(b.yiX())))
+                            MOD.log("menu opened from " + b.getClass().getName() + " " + Math.round(b.Sxo()) + "x" + Math.round(b.yiX())
+                                    + " in " + (b.RbC() == null ? "-" : b.RbC().getClass().getName() + " " + Math.round(b.RbC().Sxo()) + "x" + Math.round(b.RbC().yiX())));
                         return b;
                     }
                     if (w != null && anchorLogs++ < 6) MOD.log("menu anchor too big to raise: " + w.getClass().getName());
                 }
         } catch (Throwable t) { log("menu button not found", t); }
         return null;
+    }
+
+    /** The open menus' buttons, as a plain array for painting (rebuilt when a menu opens or closes). */
+    private static volatile Object[] anchorArr = new Object[0];
+    private static void snapshotAnchors() {
+        Object[] was = anchorArr, now = openAnchors().toArray();
+        anchorArr = now;
+        // the buttons' arrows flip (and their pills change): repaint the buttons that opened or closed
+        for (Object[] list : new Object[][]{was, now})
+            for (Object a : list) try { ((bitwig.obf.dve) a).jbi(); } catch (Throwable ignored) {}
+    }
+
+    /** Whether the widget being painted is (inside) the button of an open menu. */
+    static boolean inOpenAnchor() { return inOpenAnchor(Legible.current(), 3); }
+
+    static boolean inOpenAnchor(Object w) { return inOpenAnchor(w, 6); }
+
+    private static boolean inOpenAnchor(Object w, int levels) {
+        Object[] as = anchorArr;
+        if (as.length == 0 || w == null) return false;
+        for (Object x = w; x instanceof bitwig.obf.dve v && levels-- > 0; x = v.RbC())
+            for (Object a : as) if (a == v) return true;
+        // or a container just around the button, which paints the pressed background for it (Add and similar)
+        for (Object a : as) {
+            Object p = a instanceof bitwig.obf.dve d ? d.RbC() : null;
+            for (int i = 0; i < 2 && p instanceof bitwig.obf.dve pv; i++, p = pv.RbC()) {
+                if (p != w) continue;
+                try { if (pv.Sxo() <= ((bitwig.obf.dve) a).Sxo() * 1.6 + 8) return true; } catch (Throwable ignored) {} // not a whole bar
+            }
+        }
+        return false;
+    }
+
+    // ---- an arrow after each menu button's name (File ▾), inside the button ----
+
+    static volatile boolean menuArrows = STORE.getBoolean("menu_arrows", true);
+    private static final iok ARROW = new iok(1f, 1f, 1f, 0.85f);
+
+    /** The arrow's colour: the theme's text colour (Legible keeps it readable on the pill). */
+    static iok arrowColour() {
+        iok c = Theme.colour("Default text");
+        return c == null ? ARROW : new iok(c.FzB(), c.IwV(), c.UNj(), 0.85f);
+    }
+
+    /** The button's content: [padded name, corner icon] stacked. With arrows on: [name ▾] in a row, the icon kept. */
+    private static bitwig.obf.dXD withArrow(bitwig.obf.dve[] parts) {
+        if (menuArrows && parts != null && parts.length >= 1 && parts[0] != null) {
+            try {
+                bitwig.obf.dve[] next = parts.clone();
+                next[0] = bitwig.obf.dWb.cfM(1, new bitwig.obf.dve[]{parts[0], new MenuArrow(parts[0])});
+                if (arrowLogs++ < 2) MOD.log("menu button arrow added");
+                return bitwig.obf.dXD.cfM(next);
+            } catch (Throwable t) { if (arrowLogs++ < 4) MOD.log("menu button arrow failed", t); }
+        }
+        return bitwig.obf.dXD.cfM(parts);
+    }
+    private static int arrowLogs;
+
+    /** File, Edit and the other menus built by Bitwig's menu bar (dsp). */
+    @Hook(id = "menu-arrow-menus", target = bitwig.obf.dsp.class, method = "cfM(Ljava/lang/String;ZLCzc;LdKB;)LdLh;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dXD.class, call = "cfM([Ldve;)LdXD;")
+    public static bitwig.obf.dXD menuArrow(bitwig.obf.dve[] parts) { return withArrow(parts); }
+
+    /** The Play menu (the toolbar builds it itself). */
+    @Hook(id = "menu-arrow-play", target = bitwig.obf.aCf.class, method = "cfM(LaBF;)Ldve;",
+          at = At.REPLACE_CALL, callOwner = bitwig.obf.dXD.class, call = "cfM([Ldve;)LdXD;", occurrence = 1)
+    public static bitwig.obf.dXD playArrow(bitwig.obf.dve[] parts) { return withArrow(parts); }
+
+    /** All four corners round: the open menu's button is a whole pill even when Bitwig joins it to its neighbours. */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static final EnumSet ALL_CORNERS = EnumSet.allOf(com.bitwig.base.geom.hgq.class);
+    private static int headerLogs;
+
+    @SuppressWarnings("rawtypes")
+    static EnumSet corners(EnumSet c) {
+        if (!on || !inOpenAnchor()) return c;
+        if (headerLogs++ < 2) MOD.log("open menu button drawn as a whole pill (corners " + c + ")");
+        return ALL_CORNERS;
     }
 
     /** The buttons of the menus open now, to paint over the dim. */
@@ -685,11 +766,12 @@ public final class Minimal {
                     if (content instanceof bitwig.obf.dKW) menus.add(popup); else menus.remove(popup);
                     bitwig.obf.dve a = (bitwig.obf.dve) openingAnchor.get();
                     openingAnchor.set(null);
-                    if (a != null && raiseButton) anchors.put(popup, a); else anchors.remove(popup);
+                    if (a != null) anchors.put(popup, a); else anchors.remove(popup);
                 }
                 if (!menus.contains(popup)) return; // a hover popup or tooltip
                 open.add(popup);
             } else open.remove(popup);
+            snapshotAnchors();
             update(visible ? "shown" : "hidden");
         } catch (Throwable t) { log("popup tracking failed", t); }
     }
@@ -697,7 +779,7 @@ public final class Minimal {
     /** A popup thrown away (choosing a menu item can close the menu this way, without hiding it first). */
     @Hook(id = "popup-disposed", target = bitwig.obf.dsQ.class, method = "ix_()V", at = At.ENTRY)
     public static void popupDisposed(@bml.api.This Object popup) {
-        try { if (open.remove(popup)) update("disposed"); } catch (Throwable t) { log("popup tracking failed", t); }
+        try { if (open.remove(popup)) { snapshotAnchors(); update("disposed"); } } catch (Throwable t) { log("popup tracking failed", t); }
     }
 
     /** Forgets menus that are no longer on screen, whatever closed them. */
@@ -707,7 +789,7 @@ public final class Minimal {
         synchronized (open) {
             removed = open.removeIf(p -> { try { return !((bitwig.obf.dvW) p).uev(); } catch (Throwable t) { return true; } });
         }
-        if (removed) update("gone");
+        if (removed) { snapshotAnchors(); update("gone"); }
     }
 
     /** Starts the fade in or out when menus appear or all are gone. */
@@ -828,22 +910,144 @@ public final class Minimal {
     @Hook(id = "window-show-a", target = bitwig.obf.duG.class, method = "fuN()V", at = At.REPLACE_CALL,
           callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Z)V")
     public static void windowShowA(com.bitwig.windowing_system.TopLevelWindowHandle handle, boolean visible) {
-        beforeShow(handle, visible);
         handle.cfM(visible);
+        afterShow(handle, visible);
     }
 
     @Hook(id = "window-show-b", target = bitwig.obf.duG.class, method = "EUG()V", at = At.REPLACE_CALL,
           callOwner = com.bitwig.windowing_system.TopLevelWindowHandle.class, call = "cfM(Z)V")
     public static void windowShowB(com.bitwig.windowing_system.TopLevelWindowHandle handle, boolean visible) {
-        beforeShow(handle, visible);
         handle.cfM(visible);
+        afterShow(handle, visible);
     }
 
-    private static void beforeShow(Object handle, boolean visible) {
-        if (!visible || !fadePopups || !MAC || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
+    /** Menu corners: the pill roundness applied to a radius of up to 10 pt; square when pills are off. */
+    static double menuRadius() { return on ? 10.0 * Math.max(0, Math.min(100, roundness)) / 100.0 : 0; }
+    private static int showLogs;
+
+    /*
+     * Just shown (the native window exists only from here: before, its pointer is 0, which is why the fade used to never
+     * start): round its corners, then make it see-through and fade it up. Both happen before the window reaches the
+     * screen (Cocoa draws at the end of this turn of the event loop), so nothing flashes.
+     */
+    /** Off until the real NSWindow pointer is known: IBe.Hnt() is a handle number, not an object (crashed dev.15). */
+    static volatile boolean NATIVE_POPUPS = nativeAllowed();
+
+    /*
+     * Crash guard: a marker file is written before each native call and removed after. If Bitwig died during one, the
+     * marker is still there at the next start: rounded menus and the popup fade stay off from then on (logged).
+     */
+    /** A method, not a field: NATIVE_POPUPS (declared above) is set while the class loads, before later fields exist. */
+    private static java.nio.file.Path nativeMark() {
+        return java.nio.file.Path.of(System.getProperty("java.io.tmpdir", "/tmp"), "minimal-dark-native-call");
+    }
+
+    private static boolean nativeAllowed() {
+        try { return nativeAllowedNow(); } catch (Throwable t) { return false; } // never stop the mod (or Bitwig) loading
+    }
+
+    private static boolean nativeAllowedNow() {
+        if (STORE.getBoolean("native_popups_off", false)) return false;
+        if (java.nio.file.Files.exists(nativeMark())) {
+            STORE.putBoolean("native_popups_off", true);
+            try { java.nio.file.Files.deleteIfExists(nativeMark()); } catch (Throwable ignored) {}
+            MOD.log("Bitwig stopped during a native popup call last time: rounded menus and popup fades are now off");
+            return false;
+        }
+        return true;
+    }
+
+    private static void markNative(boolean on) {
         try {
-            long window = popup.Hnt(); // its native window
-            if (window == 0 || !NativeAlpha.set(window, 0)) return;
+            if (on) java.nio.file.Files.writeString(nativeMark(), "1");
+            else java.nio.file.Files.deleteIfExists(nativeMark());
+        } catch (Throwable ignored) {}
+    }
+
+    /*
+     * The popup's real native objects: IBe.Hnt() and the view field are Bitwig's own handle numbers. The address of its
+     * CALayer is kept in a long field of the class that declares the native getNativeLayerAddress (CocoaTopLevelWindowHandle:
+     * "Ucl" in 6.1.4, "BCC" in 6.1.7; found by reflection so no macOS-only class is named in code, which would block the
+     * mod on Windows). From the layer: its view, then the NSWindow.
+     */
+    private static final String[] LAYER_FIELDS = {"Ucl", "BCC"};
+    private static volatile java.lang.reflect.Field layerField;
+    private static volatile boolean layerFieldMissing;
+
+    static long layerOf(Object handle) {
+        if (layerFieldMissing || handle == null) return 0;
+        try {
+            java.lang.reflect.Field f = layerField;
+            if (f == null) {
+                for (Class<?> c = handle.getClass(); c != null && f == null; c = c.getSuperclass()) {
+                    boolean declares = false;
+                    for (java.lang.reflect.Method m : c.getDeclaredMethods()) if (m.getName().equals("getNativeLayerAddress")) { declares = true; break; }
+                    if (!declares) continue;
+                    for (String n : LAYER_FIELDS) {
+                        try { java.lang.reflect.Field cand = c.getDeclaredField(n); if (cand.getType() == long.class) { f = cand; break; } }
+                        catch (NoSuchFieldException ignored) {}
+                    }
+                }
+                if (f == null) { layerFieldMissing = true; MOD.log("popup layer field not found: menus stay square"); return 0; }
+                f.setAccessible(true);
+                layerField = f;
+                MOD.log("popup layer field: " + f.getDeclaringClass().getSimpleName() + "." + f.getName());
+            }
+            return f.getLong(handle);
+        } catch (Throwable t) { layerFieldMissing = true; log("popup layer unavailable", t); return 0; }
+    }
+
+    /** The popup's NSWindow, or 0 while it doesn't exist yet. */
+    private static long nativeWindow(Object handle) {
+        long layer = layerOf(handle);
+        if (layer == 0) return 0;
+        markNative(true);
+        try { return NativeCorners.windowOfLayer(layer); } finally { markNative(false); }
+    }
+
+    private static void afterShow(Object handle, boolean visible) {
+        if (!NATIVE_POPUPS || !visible || !MAC || !(handle instanceof com.bitwig.windowing_system.PopupWindowHandle popup)) return;
+        long window = nativeWindow(popup);
+        if (window == 0) { whenNative(popup); return; }
+        styleNative(window);
+    }
+
+    /*
+     * Bitwig creates the popup's native window a moment after showing it (on its first frame), so the pointer is often
+     * still 0 here: ask again from Bitwig's UI timer every 10 ms, for up to half a second.
+     */
+    private static void whenNative(com.bitwig.windowing_system.PopupWindowHandle popup) {
+        try {
+            java.util.TimerTask[] task = new java.util.TimerTask[1];
+            int[] tries = {0};
+            task[0] = bitwig.obf.dpN.TVZ().cfM(() -> {
+                long w = 0;
+                try { w = nativeWindow(popup); } catch (Throwable ignored) {}
+                if (w != 0 || ++tries[0] > 50) {
+                    if (task[0] != null) task[0].cancel();
+                    if (w != 0) { if (showLogs++ < 3) MOD.log("popup window ready after " + tries[0] * 10 + " ms"); styleNative(w); }
+                    else if (showLogs++ < 3) MOD.log("popup window never appeared: menu stays square");
+                }
+            }, 0, 10);
+        } catch (Throwable t) { log("popup timer unavailable", t); }
+    }
+
+    /** The popup's native window exists: round it, and fade it up. */
+    private static final boolean FADE_SAFE = false;
+
+    private static void styleNative(long window) {
+        markNative(true);
+        try { styleNativeNow(window); } finally { markNative(false); }
+    }
+
+    private static void styleNativeNow(long window) {
+        try { NativeCorners.round(window, menuRadius(), 0x51 / 255f, 0x51 / 255f, 0x51 / 255f, 1.0); }
+        catch (Throwable t) { log("rounding the popup failed", t); }
+        // The fade keeps messaging the window for 130 ms; a menu closed sooner would leave it messaging a freed window.
+        // Off until popups' closing is tracked per window.
+        if (!fadePopups || !FADE_SAFE) return;
+        try {
+            if (!NativeAlpha.set(window, 0)) return;
             fading.put(window, System.nanoTime());
             if (fadeLogs < 3) { fadeLogs++; MOD.log("popup fading in (" + NativeAlpha.classOf(window) + ")"); }
             startFadeTicker();
@@ -908,12 +1112,14 @@ public final class Minimal {
     @Hook(id = "pill-fill", target = bitwig.obf.dyK.class, method = "cfM(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLjava/util/EnumSet;)V")
     public static void fill(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c) {
+        c = corners(c);
         g.cfM(x, y, w, h, r(g, w, h, r), c);
     }
 
     @Hook(id = "pill-path", target = bitwig.obf.dyK.class, method = "MRY(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "MRY(DDDDDLjava/util/EnumSet;)V")
     public static void path(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c) {
+        c = corners(c);
         g.MRY(x, y, w, h, r(g, w, h, r), c);
     }
 
@@ -921,6 +1127,7 @@ public final class Minimal {
           method = "cfM(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "Hnt(DDDDDLjava/util/EnumSet;)V")
     public static void frame(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c) {
+        c = corners(c);
         g.Hnt(x, y, w, h, r(g, w, h, r), c);
     }
 
@@ -1036,6 +1243,7 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLiok;Liok;Ljava/util/EnumSet;)V")
     public static void outlineO(SYo g, double x, double y, double w, double h, double r, iok a, iok b, EnumSet<?> c) {
         if (inToolbar()) return;
+        c = corners(c);
         g.cfM(x, y, w, h, r(g, w, h, r), a, b, c);
     }
 
@@ -1044,6 +1252,7 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLjava/util/EnumSet;D)V")
     public static void lineO(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c, double width) {
         if (inToolbar()) return;
+        c = corners(c);
         g.cfM(x, y, w, h, r(g, w, h, r), c, width);
     }
 
@@ -1051,6 +1260,7 @@ public final class Minimal {
           method = "MRY(Lcom/bitwig/graphics/SYo;DDDDLjava/util/EnumSet;)V",
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "MRY(DDDDDLjava/util/EnumSet;)V")
     public static void pathO(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c) {
+        c = corners(c);
         g.MRY(x, y, w, h, r(g, w, h, r), c);
     }
 
@@ -1059,6 +1269,7 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLiok;Liok;Ljava/util/EnumSet;)V")
     public static void outlineQ(SYo g, double x, double y, double w, double h, double r, iok a, iok b, EnumSet<?> c) {
         if (inToolbar()) return;
+        c = corners(c);
         g.cfM(x, y, w, h, r(g, w, h, r), a, b, c);
     }
 
@@ -1067,6 +1278,7 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "cfM(DDDDDLjava/util/EnumSet;D)V")
     public static void lineS(SYo g, double x, double y, double w, double h, double r, EnumSet<?> c, double width) {
         if (inToolbar()) return;
+        c = corners(c);
         g.cfM(x, y, w, h, r(g, w, h, r), c, width);
     }
 
@@ -1440,7 +1652,8 @@ public final class Minimal {
     /** A widget's frame fills its background (eeM: the style's background colour, already resolved). */
     @Hook(id = "legible-frame-fill", target = bitwig.obf.eeM.class,
           method = "cfM(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;Liok;)V", at = At.ENTRY)
-    public static void frameFill(@bml.api.Arg(1) Object widget, @bml.api.Arg(7) iok colour) { Legible.background(widget, colour); }
+    public static void frameFill(@bml.api.Arg(1) Object widget, @bml.api.Arg(4) double w, @bml.api.Arg(5) double h,
+                                 @bml.api.Arg(7) iok colour) { Legible.background(widget, w, h, colour); }
 
     // ---- settings sliders and dropdowns, noted as they paint (for the Looks: move them, dim the Custom-only ones) ----
 
