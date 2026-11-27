@@ -152,13 +152,25 @@ public final class Minimal {
             }
             accents = a; isMain = m;
         }
-        int choice = choice();
-        target = choice == CUSTOM ? Color.getHSBColor(hue() / 360f, 0.85f, 1f) : choice == 0 ? null : new Color(RGB[choice]);
+        retarget();
         cache.clear();
+        Legible.clear();
+        int choice = choice();
         MOD.log("highlight " + LABELS[choice] + (choice == CUSTOM ? " " + hue() + "°" : "") + " for " + accents.length + " colours");
     }
 
     private static int drawLogs;
+
+    /** The chosen highlight, moved just enough in lightness to read against the background (Legible). */
+    static void retarget() {
+        int choice = choice();
+        Color t = choice == CUSTOM ? Color.getHSBColor(hue() / 360f, 0.85f, 1f) : choice == 0 ? null : new Color(RGB[choice]);
+        try { t = Legible.readableHighlight(t); } catch (Throwable e) { MOD.log("readable highlight failed", e); }
+        if (java.util.Objects.equals(t, target)) return;
+        target = t;
+        cache.clear();
+        Legible.clear();
+    }
 
     /** A theme colour as a widget gets it (eeY.cfM(widget)), after any theme has put its own value in: for the
      *  accent colours, the chosen colour instead. */
@@ -540,6 +552,7 @@ public final class Minimal {
           callOwner = com.bitwig.graphics.render_commands.JXO.class, call = "MRY(DDLjava/lang/String;Liok;)V")
     public static void runDraw(com.bitwig.graphics.render_commands.JXO g, double x, double y, String text, bitwig.obf.iok colour) {
         com.bitwig.graphics.render_commands.hLr run = Shift.current.get();
+        colour = Legible.text(colour); // readable on what is behind it (the highlight above all)
         double d = Shift.offset(run);
         if (d > 0) d = Shift.fit(g, run, y, d); // never past the bottom of the field / label: descenders stay whole
         g.MRY(x, y + d, text, colour);
@@ -736,6 +749,7 @@ public final class Minimal {
     /** Notes the main windows as they paint (the dim layer goes on each); popups are windows too and are skipped. */
     @Hook(id = "window-paint", target = bitwig.obf.duG.class, method = "MRY(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
     public static void windowPaint(@bml.api.This Object window) {
+        Legible.window();
         if (!(window instanceof bitwig.obf.dsR)) windows.add(window);
     }
 
@@ -1242,7 +1256,7 @@ public final class Minimal {
             if (loopSeen.size() < 12 && loopSeen.add(key)) MOD.log("loop icon tinted " + Math.round(colour.FzB() * 255) + "," + Math.round(colour.IwV() * 255) + "," + Math.round(colour.UNj() * 255) + (lit(colour) ? " (on: mint)" : ""));
         }
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) { g.Hnt(accent(v)); return; }
-        g.Hnt(colour);
+        g.Hnt(Legible.icon(colour));
     }
 
     // ---- the transport toolbar at the bottom of the window ----
@@ -1414,6 +1428,19 @@ public final class Minimal {
             MOD.log("dashboard: centred, at most " + Math.round(DashboardHeight.share * 100) + "% of the window's height");
         } catch (Throwable t) { MOD.log("dashboard size failed", t); box.E3(vertical); }
     }
+
+    // ---- readable text: the background behind each widget as it paints (see Legible) ----
+
+    @Hook(id = "legible-paint-start", target = bitwig.obf.dve.class, method = "Hnt(Lcom/bitwig/graphics/SYo;)V", at = At.ENTRY)
+    public static void paintStart(@bml.api.This Object widget) { Legible.push(widget); }
+
+    @Hook(id = "legible-paint-end", target = bitwig.obf.dve.class, method = "Hnt(Lcom/bitwig/graphics/SYo;)V", at = At.BEFORE_RETURN)
+    public static void paintEnd(@bml.api.This Object widget) { Legible.pop(widget); }
+
+    /** A widget's frame fills its background (eeM: the style's background colour, already resolved). */
+    @Hook(id = "legible-frame-fill", target = bitwig.obf.eeM.class,
+          method = "cfM(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;Liok;)V", at = At.ENTRY)
+    public static void frameFill(@bml.api.Arg(1) Object widget, @bml.api.Arg(7) iok colour) { Legible.background(widget, colour); }
 
     // ---- settings sliders and dropdowns, noted as they paint (for the Looks: move them, dim the Custom-only ones) ----
 

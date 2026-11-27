@@ -89,6 +89,14 @@ final class Tone {
     }
 
     static boolean active() { return sat != 0 || lum != 0 || con != 0; }
+
+    /** The window background as drawn (with the tone applied), or null before Bitwig has drawn a window. */
+    static iok windowBackground() {
+        iok w = windowSeen;
+        if (w == null) return null;
+        Object c = windowColour;
+        return c == null ? w : adjust(c, w);
+    }
     private static volatile boolean light;
     static boolean isLight() { return light; }
     private static final ConcurrentHashMap<Long, iok> cache = new ConcurrentHashMap<>();
@@ -97,8 +105,10 @@ final class Tone {
     /** Settings changed: forget the cached results and work out again whether the background is now light. */
     static void changed() {
         cache.clear();
+        Legible.clear();
         iok w = windowSeen;
         light = active() && w != null && luminance(background(w)) > 0.4;
+        Minimal.retarget(); // the highlight stays readable against the new background
         Minimal.MOD.log("background tone: hue " + hue + "° saturation " + sat + "% luminance " + lum + "% contrast " + con
                 + "%" + (light ? " (light: dark text)" : ""));
     }

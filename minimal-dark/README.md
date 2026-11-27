@@ -55,6 +55,7 @@ Here they all are (click one to see it full size):
 ### 💡 Pick your highlight colour
 - Orange out of the box, or choose **Red, Pink, Purple, Violet, Blue, Cyan, Mint, Green, Lime, Yellow, White**, or **any custom hue** you like.
 - Everything Bitwig draws in its accent follows: toggles, LEDs, knob values, number-field bars, beat markers, drop indicators, comp fills, the start/end markers and the locked-device overlay.
+- **Text stays readable on it, whatever you pick** ♿: text on a light highlight (Yellow, Lime, White…) turns black, and on a dark one it turns white. Every piece of text is checked against what is actually behind it (WCAG contrast, 4.5:1), so this covers lit buttons and light Looks too. A highlight too dark to see on the background (a deep blue, say) is lifted just enough to stand out, without changing its hue. Turn it off with *Keep text readable* if you prefer.
 
 ### 🌈 Background tone: make it yours
 Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background:
@@ -92,7 +93,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.2.0-dev.12.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.12.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.13.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.13.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 
@@ -110,7 +111,7 @@ Everything lives in **Settings › Mods**, in the sections starting with **"Mini
 | **Background** | Hue, Saturation, Luminance, Contrast. Double-click a slider to reset all four. |
 | **Buttons** | Pill buttons, no toolbar outlines, hover icons, transport at the bottom *(restart)*, Arrange/Mix/Edit bar at the top *(restart)*, Roundness, Up to height |
 | **Font** | Interface / Bold / Numbers font *(restart)*, their text sizes *(restart)*, Move text down, Solid dark text on bright colours, Sentence case instead of capitals *(restart)* |
-| **Highlight** | Highlight colour, Custom hue, Dark scene backgrounds, Grid module previews *(restart)* |
+| **Highlight** | Highlight colour, Custom hue, Keep text readable, Dark scene backgrounds, Grid module previews *(restart)* |
 | **Menus** | Behind open menus (Dim / Off), Menu's button stays above the dim, Popups fade in |
 
 ## Tinkering 🛠️

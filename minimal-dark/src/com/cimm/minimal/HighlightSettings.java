@@ -21,6 +21,12 @@ public final class HighlightSettings implements PreferenceProvider {
                        if (Minimal.choice() == Minimal.CUSTOM) Minimal.apply();
                        Looks.edited();
                    });
+        preferences.checkbox("highlight_colour_readable_text", "Keep text readable (black on light colours, white on dark)")
+                   .in(mine)
+                   .value(() -> Legible.on, v -> {
+                       Legible.on = v; Minimal.STORE.putBoolean(Legible.KEY, v);
+                       Legible.clear(); Minimal.retarget(); Tone.repaint();
+                   });
         preferences.checkbox("highlight_colour_dark_scenes", "Dark scene backgrounds")
                    .in(mine)
                    .value(() -> Scenes.on, v -> { Scenes.on = v; Minimal.STORE.putBoolean(Scenes.KEY, v); });

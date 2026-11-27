@@ -3,7 +3,7 @@
   "mod": {
     "id": "minimal-dark",
     "name": "Theme: Minimal Dark",
-    "version": "0.2.0-dev.12",
+    "version": "0.2.0-dev.13",
     "author": "Cimm",
     "description": "A complete dark, flat look for Bitwig in one mod: near-black theme colours, the Lato font, pill-shaped buttons, a highlight colour of your choice, background hue/saturation/luminance/contrast with text that stays readable, a dim behind open menus, and toolbar layout options. Doesn't need Framework: Themes.",
     "documentation": "readme"
@@ -539,6 +539,18 @@
       "owner": "dnF",
       "name": "E3",
       "descriptor": "(F)V"
+    },
+    "dve.Hnt": {
+      "kind": "method",
+      "owner": "dve",
+      "name": "Hnt",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;)V"
+    },
+    "eeM.cfM": {
+      "kind": "method",
+      "owner": "eeM",
+      "name": "cfM",
+      "descriptor": "(Lcom/bitwig/graphics/SYo;Ldve;DDDDLjava/util/EnumSet;Liok;)V"
     },
     "dNg.cfM": {
       "kind": "method",
@@ -1846,6 +1858,43 @@
         "method": "dashboardSize",
         "descriptor": "(LdnF;F)V",
         "args": []
+      }
+    },
+    {
+      "id": "legible-paint-start",
+      "target": "dve.Hnt",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "paintStart",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "legible-paint-end",
+      "target": "dve.Hnt",
+      "transform": "INSERT_BEFORE_FINAL_RETURN",
+      "bridge": {
+        "method": "paintEnd",
+        "descriptor": "(Ljava/lang/Object;)V",
+        "args": [
+          "this"
+        ]
+      }
+    },
+    {
+      "id": "legible-frame-fill",
+      "target": "eeM.cfM",
+      "transform": "INSERT_AT_ENTRY",
+      "bridge": {
+        "method": "frameFill",
+        "descriptor": "(Ljava/lang/Object;Liok;)V",
+        "args": [
+          "arg2",
+          "arg12"
+        ]
       }
     },
     {
