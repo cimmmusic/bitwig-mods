@@ -167,7 +167,6 @@ public final class Minimal {
         int[] dd = depth.get();
         if (dd[0] > 0) dd[0]--;
         value = Theme.relative(colour, value);
-        noteAvailable(asking.get(), colour, value);
         if (colour == dotColour && dotColour != null) {
             boolean shown = false;
             try {
@@ -922,7 +921,12 @@ public final class Minimal {
 
     @Hook(id = "note-toolbar", target = bitwig.obf.aCf.class, method = "cfM(LaBF;)Ldve;", at = At.WRAP_RETURN)
     public static Object noteToolbar(@bml.api.Return Object toolbar) {
-        if (toolbar != null) { toolbars.add(toolbar); MOD.log("toolbar noted: " + toolbar.getClass().getName()); }
+        if (toolbar != null) {
+            toolbars.add(toolbar);
+            barsPending = true;
+            snapshotBars();
+            MOD.log("toolbar noted: " + toolbar.getClass().getName());
+        }
         return toolbar;
     }
 
@@ -946,6 +950,33 @@ public final class Minimal {
     private static final java.util.Set<Object> resolvedBars =
             java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
 
+    /*
+     * Painting asks "is this widget in a top bar?" for every outline and icon it draws (thousands a frame in a busy
+     * project). The answer comes from these copies: plain arrays compared by identity, no locks, no weak-map lookups.
+     * They are rebuilt only when a toolbar or bar is found (a few times, at start).
+     */
+    private static volatile Object[] barArr = new Object[0];
+    private static volatile boolean barsPending;
+
+    private static void snapshotBars() {
+        java.util.ArrayList<Object> all = new java.util.ArrayList<>();
+        synchronized (toolbars) { all.addAll(toolbars); }
+        synchronized (bars) { all.addAll(bars); }
+        barArr = all.toArray();
+    }
+
+    private static boolean isBar(Object w) {
+        for (Object b : barArr) if (b == w) return true;
+        return false;
+    }
+
+    /** Resolves the bars of toolbars noted but not yet on screen (cheap no-op once all are resolved). */
+    private static void resolvePending() {
+        if (!barsPending) return;
+        resolveBars();
+        synchronized (toolbars) { barsPending = resolvedBars.size() < toolbars.size(); }
+    }
+
     private static void resolveBars() {
         Object[] pieces;
         synchronized (toolbars) { pieces = toolbars.toArray(); }
@@ -960,6 +991,7 @@ public final class Minimal {
                     if (w.yiX() <= ph * 1.8 + 2 && w.Sxo() >= best.Sxo()) best = w;
                 bars.add(best);
                 resolvedBars.add(o);
+                snapshotBars();
                 MOD.log("top bar: " + best.getClass().getName() + " " + best.Sxo() + "x" + best.yiX()
                         + " (from " + piece.getClass().getName() + " " + piece.Sxo() + "x" + ph + ")");
             } catch (Throwable t) { if (toolbarLogs < 3) { toolbarLogs++; MOD.log("finding the top bar failed", t); } }
@@ -968,12 +1000,12 @@ public final class Minimal {
 
     /** True when the outline being drawn belongs to a widget in a top bar (and the setting is on). */
     static boolean inToolbar() {
-        if (!toolbarPlain || toolbars.isEmpty()) return false;
-        if (resolvedBars.size() < toolbars.size()) resolveBars();
+        if (!toolbarPlain || barArr.length == 0) return false;
+        resolvePending();
         Object w = drawing.get();
         try {
             for (int i = 0; w instanceof bitwig.obf.dve v && i < 40; i++) {
-                if (bars.contains(v) || toolbars.contains(v)) {
+                if (isBar(v)) {
                     if (toolbarLogs < 3) { toolbarLogs++; MOD.log("toolbar outline skipped: " + drawing.get().getClass().getName()); }
                     return true;
                 }
@@ -1031,12 +1063,15 @@ public final class Minimal {
     private static final java.util.Set<Object> hovered =
             java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
     private static int hoverLogs;
+    /** A copy of hovered for painting (rebuilt on enter/leave): identity checks without locks. */
+    private static volatile Object[] hoveredArr = new Object[0];
 
     @Hook(id = "mouse-enter", target = bitwig.obf.drW.class,
           method = "cfM(Ldve;JLeoW;ZLepb;DDDDDDDDZZD)V", at = At.ENTRY)
     public static void mouseEnter(@bml.api.Arg(0) Object widget) {
         if (widget == null) return;
         hovered.add(widget);
+        synchronized (hovered) { hoveredArr = hovered.toArray(); }
         if (hoverIcons) repaintIfToolbar(widget);
     }
 
@@ -1045,6 +1080,7 @@ public final class Minimal {
     public static void mouseLeave(@bml.api.Arg(0) Object widget) {
         if (widget == null) return;
         hovered.remove(widget);
+        synchronized (hovered) { hoveredArr = hovered.toArray(); }
         if (hoverIcons) repaintIfToolbar(widget);
     }
 
@@ -1054,11 +1090,11 @@ public final class Minimal {
 
     /** True when w sits in a top bar (and not the bar itself). */
     static boolean inToolbar(bitwig.obf.dve w) {
-        if (toolbars.isEmpty()) return false;
-        if (resolvedBars.size() < toolbars.size()) resolveBars();
+        if (barArr.length == 0) return false;
+        resolvePending();
         try {
             for (bitwig.obf.dve v = w.RbC(); v != null; v = v.RbC())
-                if (bars.contains(v) || toolbars.contains(v)) return true;
+                if (isBar(v)) return true;
         } catch (Throwable ignored) {}
         return false;
     }
@@ -1066,12 +1102,13 @@ public final class Minimal {
     /** True when the icon is in a toolbar button the mouse is over: the icon or one of its few nearest parents is
      *  hovered, and that one is button-sized (not the whole bar). */
     static boolean hoveredToolbarIcon(bitwig.obf.dve icon) {
-        if (!hoverIcons || hovered.isEmpty()) return false;
+        Object[] hov = hoveredArr;
+        if (!hoverIcons || hov.length == 0) return false;
         try {
             bitwig.obf.dve v = icon;
             for (int i = 0; i < 4 && v != null; i++, v = v.RbC()) {
-                if (bars.contains(v) || toolbars.contains(v)) return false;
-                if (hovered.contains(v)) return inToolbar(icon);
+                if (isBar(v)) return false;
+                for (Object h : hov) if (h == v) return inToolbar(icon);
             }
         } catch (Throwable ignored) {}
         return false;
@@ -1162,7 +1199,9 @@ public final class Minimal {
 
     /** Whether this icon widget belongs to a loop button (itself or a few parents up). */
     private static boolean loopIcon(bitwig.obf.dve w) {
-        try { for (int i = 0; i < 4 && w != null; i++, w = w.RbC()) if (loopButtons.contains(w)) return true; } catch (Throwable ignored) {}
+        Object[] lb = loopArr;
+        if (lb.length == 0) return false;
+        try { for (int i = 0; i < 4 && w != null; i++, w = w.RbC()) for (Object b : lb) if (b == w) return true; } catch (Throwable ignored) {}
         return false;
     }
 
@@ -1182,7 +1221,7 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = com.bitwig.graphics.BrJ.class, call = "MRY(Lcom/bitwig/graphics/SYo;DD)V")
     public static void iconPlain(com.bitwig.graphics.BrJ image, SYo g, double x, double y) {
         Object w = icon.get();
-        if (w instanceof bitwig.obf.dve lv && loopIcon(lv) && loopSeen.size() < 12 && loopSeen.add("plain " + lv.getClass().getName()))
+        if (loopSeen.size() < 12 && w instanceof bitwig.obf.dve lv && loopIcon(lv) && loopSeen.add("plain " + lv.getClass().getName()))
             MOD.log("loop icon drawn in its own colours (" + lv.getClass().getName() + ")");
         if (w instanceof bitwig.obf.dve v && hoveredToolbarIcon(v)) {
             g.qoU();
@@ -1198,7 +1237,7 @@ public final class Minimal {
           at = At.REPLACE_CALL, callOwner = SYo.class, call = "Hnt(Liok;)V")
     public static void iconTinted(SYo g, iok colour) {
         Object w = icon.get();
-        if (w instanceof bitwig.obf.dve v && colour != null && loopIcon(v)) {
+        if (loopSeen.size() < 12 && w instanceof bitwig.obf.dve v && colour != null && loopIcon(v)) {
             String key = "tinted " + Integer.toHexString(colour.hashCode());
             if (loopSeen.size() < 12 && loopSeen.add(key)) MOD.log("loop icon tinted " + Math.round(colour.FzB() * 255) + "," + Math.round(colour.IwV() * 255) + "," + Math.round(colour.UNj() * 255) + (lit(colour) ? " (on: mint)" : ""));
         }
@@ -1374,22 +1413,6 @@ public final class Minimal {
             box.MRY(new DashboardHeight(box));     // height: the content's, capped to a share of the window
             MOD.log("dashboard: centred, at most " + Math.round(DashboardHeight.share * 100) + "% of the window's height");
         } catch (Throwable t) { MOD.log("dashboard size failed", t); box.E3(vertical); }
-    }
-
-    // ---- finding the colours of the Packages page's Installed / Available switch (diagnostic) ----
-
-    private static final java.util.Set<Object> availableParts = java.util.Collections.synchronizedSet(java.util.Collections.newSetFromMap(new java.util.WeakHashMap<>()));
-    private static final java.util.Set<String> availableSeen = java.util.concurrent.ConcurrentHashMap.newKeySet();
-
-    static void noteAvailable(Object widget, Object colour, iok value) {
-        if (availableSeen.size() > 40 || !(widget instanceof bitwig.obf.dve w)) return;
-        try {
-            if (w instanceof bitwig.obf.duu l && "Available".equals(l.JhA())) {
-                for (bitwig.obf.dve p = w; p != null && availableParts.size() < 8; p = p.RbC()) { availableParts.add(p); if (availableParts.size() >= 4) break; }
-            }
-            if (availableParts.contains(w) && availableSeen.add(w.getClass().getName() + " " + colour))
-                MOD.log("Available switch: " + w.getClass().getName() + " asks for \"" + colour + "\" = " + (value == null ? "null" : Scenes.hex(value)));
-        } catch (Throwable ignored) {}
     }
 
     // ---- settings sliders and dropdowns, noted as they paint (for the Looks: move them, dim the Custom-only ones) ----

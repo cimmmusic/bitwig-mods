@@ -92,7 +92,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.2.0-dev.11.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.11.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.12.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.12.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 

@@ -46,6 +46,19 @@ final class Shift {
 
     private static int fitLogs;
 
+    /** The last font asked about and its descent: runs come in long stretches of the same font, so this saves asking
+     *  the font system for metrics on every run of text drawn. */
+    private record Last(Object font, double descent) {}
+    private static volatile Last last;
+
+    private static double descent(com.bitwig.graphics.render_commands.hLr run) {
+        Last l = last; // a run (face at a size) is immutable: the same run has the same descent
+        if (l != null && l.font == run) return l.descent;
+        double d = run.cfM().MRY();
+        last = new Last(run, d);
+        return d;
+    }
+
     /**
      * How far a run with its baseline at y may move down: the wanted d, but no further than the room between the
      * bottom of its letters (baseline + the font's descent: the tails of g, y, p) and the bottom of the area Bitwig
@@ -55,7 +68,7 @@ final class Shift {
         try {
             com.bitwig.base.geom.DoubleRectangle clip = g.TtY();
             if (clip == null || !(clip.IwV > 0)) return d;
-            double descent = run.cfM().MRY(); // the font's descent at this size
+            double descent = descent(run); // the font's descent at this size
             double room = (clip.Hnt + clip.IwV) - (y + descent);
             double ok = Math.max(0, Math.min(d, room));
             if (fitLogs < 5 && ok < d) {
