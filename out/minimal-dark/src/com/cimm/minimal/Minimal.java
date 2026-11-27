@@ -1007,7 +1007,32 @@ public final class Minimal {
     private static volatile boolean handleFieldMissing;
     private static int roundLogs;
 
+    /*
+     * The first time a popup opens, Bitwig is still building its window and layers when it becomes visible, and the
+     * rounding doesn't take (it did from the second opening on). So it is applied again at about 40, 120 and 300 ms,
+     * each time only while the popup is still open (a closed popup's window may be gone: never touched).
+     */
     private static void roundPopup(Object popup) {
+        roundPopupNow(popup);
+        if (!NATIVE_POPUPS || !MAC || popup == null) return;
+        try {
+            long start = System.nanoTime();
+            int[] step = {0};
+            long[] at = {40, 120, 300};
+            java.util.TimerTask[] task = new java.util.TimerTask[1];
+            task[0] = bitwig.obf.dpN.TVZ().cfM(() -> {
+                if (step[0] >= at.length) { if (task[0] != null) task[0].cancel(); return; }
+                if ((System.nanoTime() - start) / 1_000_000 < at[step[0]]) return;
+                step[0]++;
+                boolean shown;
+                try { shown = ((bitwig.obf.dvW) popup).uev(); } catch (Throwable t) { shown = false; }
+                if (!shown) { step[0] = at.length; if (task[0] != null) task[0].cancel(); return; }
+                roundPopupNow(popup);
+            }, 20, 20);
+        } catch (Throwable t) { log("popup re-rounding unavailable", t); }
+    }
+
+    private static void roundPopupNow(Object popup) {
         if (!NATIVE_POPUPS || !MAC || handleFieldMissing || popup == null) return;
         try {
             java.lang.reflect.Field f = handleField;
