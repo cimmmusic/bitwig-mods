@@ -231,6 +231,7 @@ final class Themes {
         Object value = lookValue(dropdown);
         if (value == null) return false;
         Looks.dropdownValue = value;
+        Tone.anchor(dropdown); // the Settings page: its sliders are found from here
         if (tab < 0) tab = active().isEmpty() ? PRESETS : USER;
         Runnable close = () -> { try { popup.pYg(); } catch (Throwable t) { Minimal.MOD.log("closing the themes failed", t); } };
         ThemeList list = new ThemeList(value, close);

@@ -35,7 +35,7 @@ It's near-black, flat and quiet, so your music is the loudest thing on screen. A
 ### 🎭 26 Looks, one click
 Not sure where to start? The **Look** dropdown (top of the Minimal Dark settings) sets the background tone *and* the highlight colour in one go, and the whole window follows instantly, arrangement and scenes included:
 
-**Custom** is your own look, saved separately: pick it and your own background and highlight come back. While a preset is selected, the Background sliders and highlight controls are dimmed; nudge one anyway and the look switches to Custom, starting from the preset you were on, so you can use any preset as a starting point. Minimal Dark itself stays pure neutral near-black.
+**Every Look shows its numbers.** Pick one and the Hue, Saturation, Luminance, Contrast, Highlight colour and Custom hue below it move to that Look's values. Like Forest but want it a touch bluer? Nudge the Hue: the dropdown switches to **Custom**, starting from exactly where Forest was. **Custom** is your own look, saved separately: pick it and your own background and highlight come back. Minimal Dark itself stays pure neutral near-black.
 
 **Save your own themes.** The Look dropdown has two tabs: **Presets** and **User Themes**. Get a look you like, type a name at the bottom of the dropdown and click **Save**. It appears under User Themes and is still there after you restart Bitwig. Click a theme to use it, or click its **×** to delete it. Saving with the same name again updates that theme. A theme keeps the Background sliders and the highlight colour.
 
@@ -98,7 +98,7 @@ Want a midnight-blue Bitwig? A deep purple one? Sliders for the whole background
 
 ## Install
 
-1. Download **[minimal-dark-0.2.0-dev.32.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.32.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
+1. Download **[minimal-dark-0.2.0-dev.37.zip](https://github.com/cimmmusic/bitwig-mods/releases/download/downloads/minimal-dark-0.2.0-dev.37.zip)** and add it in **Patchbay** (or unzip it into BML's `mods` folder).
 2. Tick **Theme: Minimal Dark**.
 3. Press **Load** / restart Bitwig. That's it. 🎉
 
@@ -113,10 +113,10 @@ Everything lives in **Settings › Mods**, in the sections starting with **"Mini
 | Section | What's there |
 | --- | --- |
 | **Minimal Dark** | Look (26 presets), theme colours on/off *(restart)* |
-| **Background** | Hue, Saturation, Luminance, Contrast. Double-click a slider to reset all four. |
+| **Background** | Hue, Saturation, Luminance, Contrast, Highlight colour, Custom hue. Double-click a Background slider to reset the four tone sliders. |
 | **Buttons** | Pill buttons, no toolbar outlines, hover icons, arrows on menu buttons *(restart)*, transport at the bottom *(restart)*, Arrange/Mix/Edit bar at the top *(restart)*, Roundness, Up to height |
 | **Font** | Interface / Bold / Numbers font *(restart)*, their text sizes *(restart)*, Move text down, Solid dark text on bright colours, Sentence case instead of capitals *(restart)* |
-| **Highlight** | Highlight colour, Custom hue, Keep text readable, Dark scene backgrounds, Grid module previews *(restart)* |
+| **Options** | Keep text readable, Dark scene backgrounds, Grid module previews *(restart)* |
 | **Menus** | Behind open menus (Dim / Off), Menu's button stays above the dim, Popups fade in |
 
 ## Tinkering 🛠️

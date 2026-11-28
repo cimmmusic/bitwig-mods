@@ -373,6 +373,9 @@ public final class Minimal {
     public static void sliderPress(@bml.api.This Object slider, @bml.api.Arg(0) Object button) {
         if (!(slider instanceof bitwig.obf.dNg s) || button != bitwig.obf.eoX.cfM) return;
         long now = System.nanoTime();
+        // Bitwig asks this on hover too: only a real mouse-down (just now) counts, and not right after a Look was
+        // chosen (the mouse leaving the Look list passes over the sliders)
+        if (now - lastMouseDown > 80_000_000L || now - Looks.chosenAt < 1_000_000_000L) return;
         boolean twice = slider == lastSlider && now - lastPress < 400_000_000L;
         lastSlider = twice ? null : slider; lastPress = now;
         if (!twice) return;
@@ -391,6 +394,11 @@ public final class Minimal {
     }
     private static volatile Object lastSlider;
     private static volatile long lastPress;
+    private static volatile long lastMouseDown;
+
+    /** A real mouse button press in a window (eoZ: where Bitwig starts a press), before Bitwig handles it. */
+    @Hook(id = "mouse-down", target = bitwig.obf.dpl.class, method = "cfM(LeoZ;)V", at = At.ENTRY)
+    public static void mouseDown() { lastMouseDown = System.nanoTime(); }
 
     /*
      * Minimal's "Dark Text" is white: Bitwig uses it on surfaces that are light grey in its own theme (value fields,

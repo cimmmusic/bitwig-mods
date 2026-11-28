@@ -78,21 +78,26 @@ final class Looks {
 
     /** While a look is being applied its own control changes mustn't count as the user editing. */
     private static volatile boolean applying;
+    /** When a Look was last chosen (slider double-clicks just after don't count). */
+    static volatile long chosenAt;
 
     /** Applies the option at this index of labels(): 0 = the saved Custom values, else a preset. */
     static void choose(int index) {
         if (index < 0 || index > ALL.size()) return;
         if (quiet) return; // the framework storing the option we are about to apply ourselves
+        chosenAt = System.nanoTime();
         Minimal.STORE.putInt("look", index);
         if (index != 0) Minimal.STORE.remove(Themes.ACTIVE);
         Look l = index == 0 ? savedCustom() : ALL.get(index - 1);
         applying = true;
         try {
-            set(l);
+            // the controls first: the Settings framework only moves a control (and tells it) when the value differs
+            // from what its getter returns now, so this must come before set(l) stores the look's values
             int moved = Tone.showOnSettingsPage(Map.of(
                     "background_tone_hue", (Object) (double) l.hue(), "background_tone_saturation", (double) l.sat(),
                     "background_tone_luminance", (double) l.lum(), "background_tone_contrast", (double) l.con(),
                     "highlight_colour_choice", Minimal.LABELS[l.highlight()], "highlight_colour_hue", (double) l.customHue()));
+            set(l);
             Minimal.MOD.log("look: " + (index == 0 ? "Custom" : l.name()) + " (" + moved + " controls moved)");
         } catch (Throwable t) { Minimal.MOD.log("choosing the look failed", t); }
         finally { applying = false; }
@@ -143,12 +148,15 @@ final class Looks {
         boolean wasPreset = !custom();
         saveCustom(); // the current values (including this change) become the Custom look
         if (wasPreset) {
+            // the dropdown first (the framework only updates it while the stored option still differs); quiet: its
+            // setter mustn't apply the Custom look again, the values are already the ones being edited
+            applying = true; quiet = true;
+            try { Tone.showOnSettingsPage(Map.of(LOOK_ID, CUSTOM)); } finally { applying = false; quiet = false; }
             Minimal.STORE.putInt("look", 0);
-            applying = true;
-            try { Tone.showOnSettingsPage(Map.of(LOOK_ID, CUSTOM)); } finally { applying = false; }
             Tone.dimControls(true);
             Minimal.MOD.log("look: Custom (edited from a preset)");
         }
+        Themes.NAME.fire(); // the dropdown's name: Custom
     }
 
     private static void saveCustom() {

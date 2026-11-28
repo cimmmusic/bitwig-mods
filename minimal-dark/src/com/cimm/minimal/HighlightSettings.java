@@ -5,22 +5,28 @@ import bml.preferences.PreferenceProvider;
 import bml.preferences.Preferences;
 import bml.preferences.Section;
 
-/** Settings > Mods > Highlight Colour: a preset dropdown and a hue for "Custom hue". */
+/** Settings > Mods: Minimal Dark: Background (tone sliders, then the highlight colour and its custom hue) and Options. */
 public final class HighlightSettings implements PreferenceProvider {
     @Override
     public void declare(Preferences preferences) {
         Page mods = preferences.page("mods", "Mods");
-        Section mine = preferences.section(mods, "highlight_colour", "Minimal Dark: Highlight");
+        Section bg = preferences.section(mods, "background_tone", "Minimal Dark: Background");
+        tone(preferences, bg, "hue", "Hue (°)", 0, 360, () -> Tone.hue, v -> Tone.hue = v, "bg_hue");
+        tone(preferences, bg, "saturation", "Saturation (%)", -100, 100, () -> Tone.sat, v -> Tone.sat = v, "bg_saturation");
+        tone(preferences, bg, "luminance", "Luminance (%)", -100, 100, () -> Tone.lum, v -> Tone.lum = v, "bg_luminance");
+        tone(preferences, bg, "contrast", "Contrast (%)", -100, 100, () -> Tone.con, v -> Tone.con = v, "bg_contrast");
+        // the highlight colour with the background: the two parts of a Look, together
         preferences.dropdown("highlight_colour_choice", "Highlight colour", Minimal.LABELS)
-                   .in(mine)
+                   .in(bg)
                    .value(Minimal::choice, i -> { Minimal.STORE.putInt("choice", i); Minimal.apply(); Looks.edited(); });
         preferences.slider("highlight_colour_hue", "Custom hue (°)", 0, 360).wholeNumbers()
-                   .in(mine)
+                   .in(bg)
                    .value(Minimal::hue, v -> {
                        Minimal.STORE.putInt("hue", (int) Math.round(v));
                        if (Minimal.choice() == Minimal.CUSTOM) Minimal.apply();
                        Looks.edited();
                    });
+        Section mine = preferences.section(mods, "highlight_colour", "Minimal Dark: Options");
         preferences.checkbox("highlight_colour_readable_text", "Keep text readable (black on light colours, white on dark)")
                    .in(mine)
                    .value(() -> Legible.on, v -> {
@@ -33,11 +39,6 @@ public final class HighlightSettings implements PreferenceProvider {
         preferences.checkbox("highlight_colour_dark_module_previews", "Grid module previews match the theme (restart)")
                    .in(mine)
                    .value(() -> Previews.on, v -> { Previews.on = v; Minimal.STORE.putBoolean(Previews.KEY, v); });
-        Section bg = preferences.section(mods, "background_tone", "Minimal Dark: Background");
-        tone(preferences, bg, "hue", "Hue (°)", 0, 360, () -> Tone.hue, v -> Tone.hue = v, "bg_hue");
-        tone(preferences, bg, "saturation", "Saturation (%)", -100, 100, () -> Tone.sat, v -> Tone.sat = v, "bg_saturation");
-        tone(preferences, bg, "luminance", "Luminance (%)", -100, 100, () -> Tone.lum, v -> Tone.lum = v, "bg_luminance");
-        tone(preferences, bg, "contrast", "Contrast (%)", -100, 100, () -> Tone.con, v -> Tone.con = v, "bg_contrast");
     }
 
     private static void tone(Preferences preferences, Section in, String id, String label, int min, int max,

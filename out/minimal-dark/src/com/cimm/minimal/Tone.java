@@ -227,24 +227,26 @@ final class Tone {
      */
     static void resetFrom(bitwig.obf.dNg slider) {
         String id = Browser.controlId(Browser.frameworkValue(slider));
-        if (id == null || !DEFAULTS.containsKey(id)) return;
+        if (id == null || !DEFAULTS.containsKey(id)) return; // not one of the Background sliders
         long now = System.nanoTime();
         if (now - lastReset < 500_000_000L) return; // one reset per double-click
         lastReset = now;
-        hue = 270; sat = 0; lum = 0; con = 0;
-        Minimal.STORE.putInt("bg_hue", 270); Minimal.STORE.putInt("bg_saturation", 0);
-        Minimal.STORE.putInt("bg_luminance", 0); Minimal.STORE.putInt("bg_contrast", 0);
-        bitwig.obf.dve root = slider;
-        for (bitwig.obf.dve p = slider.RbC(); p != null; p = p.RbC()) root = p;
+        anchor(slider);
+        bitwig.obf.dve root = root(slider);
         java.util.List<bitwig.obf.dNg> sliders = new java.util.ArrayList<>();
         collect(root, sliders);
         int n = 0;
         for (bitwig.obf.dNg s : sliders) {
             Object v = Browser.frameworkValue(s);
-            Integer def = DEFAULTS.get(Browser.controlId(v));
+            String sid = Browser.controlId(v);
+            Integer def = sid == null ? null : DEFAULTS.get(sid);
             if (def == null || !(v instanceof bitwig.obf.rMe value)) continue;
             try { value.setValue(Double.valueOf(def)); n++; } catch (Throwable t) { Minimal.MOD.log("slider reset failed", t); }
         }
+        // stored after the sliders moved (the framework moves a slider only when its value differs from the stored one)
+        hue = 270; sat = 0; lum = 0; con = 0;
+        Minimal.STORE.putInt("bg_hue", 270); Minimal.STORE.putInt("bg_saturation", 0);
+        Minimal.STORE.putInt("bg_luminance", 0); Minimal.STORE.putInt("bg_contrast", 0);
         changed();
         refreshAll();
         repaint();
@@ -263,24 +265,57 @@ final class Tone {
     /** Each noted control's setting id ("" when it isn't one of this mod's). */
     private static final Map<Object, String> controlIds = Collections.synchronizedMap(new WeakHashMap<>());
 
+    /** A control known to be on the Settings page (the Look dropdown, once opened): its window holds the others. */
+    static volatile java.lang.ref.WeakReference<bitwig.obf.dve> anchor = new java.lang.ref.WeakReference<>(null);
+
+    static void anchor(bitwig.obf.dve w) { if (w != null) anchor = new java.lang.ref.WeakReference<>(w); }
+
+    private static bitwig.obf.dve root(bitwig.obf.dve w) {
+        bitwig.obf.dve r = w;
+        for (int i = 0; i < 400 && r != null && r.RbC() != null; i++) r = r.RbC();
+        return r;
+    }
+
     static void noteControl(Object w) {
         if (controlsSeen.size() >= 2000 || !controlsSeen.add(w)) return;
-        boolean inSettings = false; // only the Dashboard's (Settings) controls are looked into; others: skipped at once
-        for (bitwig.obf.dve p = w instanceof bitwig.obf.dve d ? d : null; p != null; p = p.RbC())
+        if (!(w instanceof bitwig.obf.dve d)) return;
+        boolean inSettings = false; // only the Settings page's controls are looked into; others: skipped at once
+        for (bitwig.obf.dve p = d; p != null; p = p.RbC())
             if (p instanceof bitwig.obf.aBl) { inSettings = true; break; }
-        if (!inSettings) { controlIds.put(w, ""); return; }
-        String id = Browser.controlId(Browser.frameworkValue(w));
-        controlIds.put(w, id == null ? "" : id);
-        if (id != null && Looks.CUSTOM_IDS.contains(id)) dim(w, !Looks.custom());
+        bitwig.obf.dve a = anchor.get();
+        if (!inSettings && a != null && root(a) == root(d)) inSettings = true;
+        if (!inSettings) return; // not cached: it may turn out to be on the page (settingsControls looks again)
+        String id = id(d);
+        if (id != null && !id.isEmpty()) {
+            if (anchor.get() == null) anchor(d);
+            if (Looks.CUSTOM_IDS.contains(id)) dim(w, !Looks.custom());
+        }
+    }
+
+    /** The setting id behind a control ("" when it isn't one of this mod's), worked out once per control. */
+    private static String id(bitwig.obf.dve c) {
+        String id = controlIds.get(c);
+        if (id == null) {
+            id = Browser.controlId(Browser.frameworkValue(c));
+            if (id == null) id = "";
+            controlIds.put(c, id);
+        }
+        return id;
+    }
+
+    /** Every slider and dropdown in the Settings window (found from the anchor, through the widget tree). */
+    static java.util.List<bitwig.obf.dve> settingsControls() {
+        java.util.List<bitwig.obf.dve> out = new java.util.ArrayList<>();
+        bitwig.obf.dve a = anchor.get();
+        if (a != null) controls(root(a), out, 0);
+        return out;
     }
 
     /** Dims (or undims) the Custom-only controls' rows: they only apply while the Look is Custom. */
     static void dimControls(boolean custom) {
-        Object[] cs;
-        synchronized (controlsSeen) { cs = controlsSeen.toArray(); }
-        for (Object o : cs) {
-            String id = controlIds.get(o);
-            if (id != null && Looks.CUSTOM_IDS.contains(id)) dim(o, !custom);
+        for (bitwig.obf.dve c : settingsControls()) {
+            String id = id(c);
+            if (Looks.CUSTOM_IDS.contains(id)) dim(c, !custom);
         }
     }
 
@@ -294,33 +329,35 @@ final class Tone {
     static String kindOf(Object colour) { Byte k = kinds.get(colour); return k == null ? "unknown" : k == BG ? "background" : k == FG ? "foreground" : "kept"; }
 
     static int showOnSettingsPage(Map<String, Object> values) {
-        Object[] cs;
-        synchronized (controlsSeen) { cs = controlsSeen.toArray(); }
-        int n = 0;
-        {
-            for (Object o : cs) {
-                if (!(o instanceof bitwig.obf.dve c)) continue;
-                String known = controlIds.get(o);
-                if (known != null && !values.containsKey(known)) continue;
-                Object v = Browser.frameworkValue(c);
-                String id = Browser.controlId(v);
-                if (id == null || !values.containsKey(id) || !(v instanceof bitwig.obf.rMe value)) continue;
-                try { value.setValue(values.get(id)); n++; } catch (Throwable t) { Minimal.MOD.log("setting " + id + " failed", t); }
-            }
+        java.util.List<bitwig.obf.dve> cs = settingsControls();
+        int n = 0, ours = 0;
+        for (bitwig.obf.dve c : cs) {
+            String id = id(c);
+            if (id.isEmpty()) continue;
+            ours++;
+            if (!values.containsKey(id)) continue;
+            Object v = Browser.frameworkValue(c);
+            if (!(v instanceof bitwig.obf.rMe value)) continue;
+            try { value.setValue(values.get(id)); n++; } catch (Throwable t) { Minimal.MOD.log("setting " + id + " failed", t); }
         }
+        Minimal.MOD.log("settings page: " + cs.size() + " controls found, " + ours + " of this mod's, " + n + " set" + (anchor.get() == null ? " (the page not seen yet)" : ""));
         return n;
     }
 
     private static void controls(bitwig.obf.dve w, java.util.List<bitwig.obf.dve> into, int depth) {
         if (depth > 60) return;
         if (w instanceof bitwig.obf.dNg || w instanceof bitwig.obf.dBX) { into.add(w); return; }
-        java.util.List<?> kids = w.vJT();
-        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) controls(d, into, depth + 1);
+        for (Object k : children(w)) if (k instanceof bitwig.obf.dve d) controls(d, into, depth + 1);
     }
 
     private static void collect(bitwig.obf.dve w, java.util.List<bitwig.obf.dNg> into) {
         if (w instanceof bitwig.obf.dNg s) into.add(s);
-        java.util.List<?> kids = w.vJT();
-        if (kids != null) for (Object k : kids) if (k instanceof bitwig.obf.dve d) collect(d, into);
+        for (Object k : children(w)) if (k instanceof bitwig.obf.dve d) collect(d, into);
+    }
+
+    /** A widget's children (dve.YBm: its child list as a stream; vJT is its action bindings, not its children). */
+    private static java.util.List<Object> children(bitwig.obf.dve w) {
+        try { java.util.stream.Stream<?> st = w.YBm(); return st == null ? java.util.List.of() : st.map(o -> (Object) o).toList(); }
+        catch (Throwable t) { return java.util.List.of(); }
     }
 }

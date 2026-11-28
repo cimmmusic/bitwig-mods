@@ -154,19 +154,21 @@ final class Browser {
         java.util.ArrayDeque<Object[]> queue = new java.util.ArrayDeque<>();
         queue.add(new Object[]{widget, 0});
         int visited = 0;
-        while (!queue.isEmpty() && visited < 3000) {
+        while (!queue.isEmpty() && visited < 5000) {
             Object[] item = queue.poll();
             Object o = item[0]; int depth = (Integer) item[1];
             if (o == null || !seen.add(o)) continue;
             visited++;
             Class<?> k = o.getClass();
             if (k.getName().startsWith("bml.preferences.internal.Controls$") && k.getName().endsWith("Value")) return o;
-            if (depth >= 5 || o instanceof String || o instanceof Number || o instanceof Boolean || o instanceof Class || o instanceof Thread) continue;
+            if (depth >= 6 || o instanceof String || o instanceof Number || o instanceof Boolean || o instanceof Class || o instanceof Thread) continue;
             if (o != widget && o instanceof dve) continue;
-            if (k.isArray() || k.getName().startsWith("java.")) {
-                if (o instanceof java.util.Collection<?> col) { int i = 0; for (Object e : col) { if (i++ > 500) break; queue.add(new Object[]{e, depth + 1}); } }
-                continue;
-            }
+            // arrays (Bitwig keeps a slider's bindings in them), collections and maps are looked into too
+            if (o instanceof Object[] arr) { for (int i = 0; i < arr.length && i < 2000; i++) queue.add(new Object[]{arr[i], depth + 1}); continue; }
+            if (k.isArray()) continue;
+            if (o instanceof java.util.Collection<?> col) { int i = 0; for (Object e : col) { if (i++ > 500) break; queue.add(new Object[]{e, depth + 1}); } continue; }
+            if (o instanceof java.util.Map<?, ?> map) { int i = 0; for (Object e : map.values()) { if (i++ > 500) break; queue.add(new Object[]{e, depth + 1}); } continue; }
+            if (k.getName().startsWith("java.")) continue;
             for (Class<?> c = k; c != null && c != Object.class; c = c.getSuperclass())
                 for (Field f : c.getDeclaredFields()) {
                     if (f.getType().isPrimitive() || java.lang.reflect.Modifier.isStatic(f.getModifiers())) continue;
